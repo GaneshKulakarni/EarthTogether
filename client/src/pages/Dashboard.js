@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Trophy, Target, TrendingUp, Calendar, CheckCircle } from 'lucide-react';
+import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
+import StatsCard from '../components/StatsCard';
+import HabitCard from '../components/HabitCard';
+import EmptyState from '../components/EmptyState';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [estimatedCarbon, setEstimatedCarbon] = useState(null);
 
   useEffect(() => {
     fetchHabits();
@@ -19,6 +23,9 @@ const Dashboard = () => {
         headers: { 'x-auth-token': token }
       });
       setHabits(response.data);
+  // compute a simple client-side CO2 estimate when backend doesn't supply it
+  const est = computeCarbonFromHabits(response.data);
+  setEstimatedCarbon(est);
     } catch (error) {
       console.error('Error fetching habits:', error);
     } finally {
@@ -48,6 +55,35 @@ const Dashboard = () => {
 
   const randomQuote = dailyQuotes[Math.floor(Math.random() * dailyQuotes.length)];
 
+  // Simple client-side estimator: per-habit estimated kg CO2 saved per completion.
+  // If a habit provides an explicit `impactKg` field we use that; otherwise we
+  // fall back to a small default or category-based heuristic.
+  const computeCarbonFromHabits = (habitsArray) => {
+    if (!habitsArray || habitsArray.length === 0) return 0;
+    const categoryMap = {
+      'transport': 2.5, // example: using bike instead of car
+      'food': 0.5, // example: plant-based meal instead of meat
+      'consumption': 0.2,
+      'energy': 0.8,
+      'waste': 0.1,
+      'default': 0.1
+    };
+
+    let total = 0;
+    habitsArray.forEach((h) => {
+      // prefer explicit impactKg
+      const impact = (typeof h.impactKg === 'number') ? h.impactKg : (
+        (h.category && categoryMap[h.category.toLowerCase()]) || categoryMap.default
+      );
+
+      // if habit has been completed today, count it; otherwise treat as potential (still add)
+      // Many apps want to show both potential and actual; here we show today's potential sum.
+      total += impact;
+    });
+
+    return Number(total.toFixed(2));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -71,37 +107,15 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trophy className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">{user?.ecoPoints || 0}</h3>
-            <p className="text-gray-600">Eco Points</p>
-          </div>
+          <StatsCard icon={<Trophy className="w-6 h-6 text-green-600" />} title="Eco Points" value={user?.ecoPoints || 0} color="green" />
+          <StatsCard icon={<TrendingUp className="w-6 h-6 text-blue-600" />} title="Day Streak" value={user?.currentStreak || 0} color="blue" />
+          <StatsCard icon={<Leaf className="w-6 h-6 text-purple-600" />} title="CO₂ Saved" value={`${(user?.totalCarbonSaved ?? estimatedCarbon ?? 0)} kg`} color="purple" />
+          <StatsCard icon={<Target className="w-6 h-6 text-yellow-600" />} title="Active Habits" value={habits.length} color="yellow" />
+        </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">{user?.currentStreak || 0}</h3>
-            <p className="text-gray-600">Day Streak</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Leaf className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">{user?.totalCarbonSaved || 0} kg</h3>
-            <p className="text-gray-600">CO₂ Saved</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="bg-yellow-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Target className="w-6 h-6 text-yellow-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">{habits.length}</h3>
-            <p className="text-gray-600">Active Habits</p>
-          </div>
+        {/* Small note about the CO2 estimate when backend value is not available */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <p className="text-sm text-gray-500">Showing estimated CO₂ saved when backend value is not provided. Estimates are heuristic and for motivational purposes only.</p>
         </div>
 
         {/* Today's Habits */}
@@ -112,38 +126,11 @@ const Dashboard = () => {
           </div>
           
           {habits.length === 0 ? (
-            <div className="text-center py-8">
-              <Leaf className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-4">No habits set up yet</p>
-              <p className="text-gray-400">Create your first eco-habit to start making a difference!</p>
-            </div>
+            <EmptyState icon={<Leaf className="w-16 h-16" />} title="No habits set up yet" subtitle="Create your first eco-habit to start making a difference!" />
           ) : (
             <div className="space-y-4">
               {habits.map((habit) => (
-                <div key={habit._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-3 h-3 rounded-full ${
-                      habit.isActive ? 'bg-green-500' : 'bg-gray-300'
-                    }`}></div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{habit.name}</h3>
-                      <p className="text-sm text-gray-600">{habit.category} • {habit.frequency}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-500">
-                      Streak: {habit.currentStreak} days
-                    </span>
-                    <button
-                      onClick={() => markHabitComplete(habit._id)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Complete</span>
-                    </button>
-                  </div>
-                </div>
+                <HabitCard key={habit._id} habit={habit} onComplete={markHabitComplete} />
               ))}
             </div>
           )}

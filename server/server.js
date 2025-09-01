@@ -12,7 +12,8 @@ const app = express();
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5000',
+  // In development the React dev server runs on 3000 — allow it by default.
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5001',
   credentials: true
 }));
 app.use(compression());
@@ -85,8 +86,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+// Bind explicitly to 0.0.0.0 to avoid IPv6/IPv4 ambiguity on some Windows setups
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🔗 Health check: http://127.0.0.1:${PORT}/api/health`);
+  console.log(`🔉 Listening on 0.0.0.0:${PORT} (IPv4)`);
 });

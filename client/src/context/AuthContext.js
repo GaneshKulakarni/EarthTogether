@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
+// Configure axios base URL from environment or default to development proxy
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || '';
+axios.defaults.withCredentials = true;
+
 const AuthContext = createContext();
 
 const initialState = {
@@ -79,10 +83,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       dispatch({ type: 'LOGIN_FAIL' });
-      return { 
-        success: false, 
-        error: err.response?.data?.msg || 'Login failed' 
-      };
+  const serverErrors = err.response?.data?.errors;
+  const message = serverErrors ? serverErrors.map(e => e.msg).join(', ') : (err.response?.data?.msg || 'Login failed');
+  return { success: false, error: message };
     }
   };
 
@@ -98,10 +101,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       dispatch({ type: 'LOGIN_FAIL' });
-      return { 
-        success: false, 
-        error: err.response?.data?.msg || 'Registration failed' 
-      };
+  const serverErrors = err.response?.data?.errors;
+  const message = serverErrors ? serverErrors.map(e => `${e.param ? e.param + ': ' : ''}${e.msg}`).join(', ') : (err.response?.data?.msg || 'Registration failed');
+  return { success: false, error: message };
     }
   };
 
