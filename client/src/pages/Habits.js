@@ -11,11 +11,12 @@ const Habits = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
-    category: 'energy',
+    category: 'Waste Reduction',
     frequency: 'daily',
-    targetDays: 1
+    ecoPoints: 10,
+    carbonSaved: 0.5,
   });
 
   useEffect(() => {
@@ -65,11 +66,12 @@ const Habits = () => {
   const handleEdit = (habit) => {
     setEditingHabit(habit);
     setFormData({
-      name: habit.name,
+      title: habit.title,
       description: habit.description,
       category: habit.category,
       frequency: habit.frequency,
-      targetDays: habit.targetDays
+      ecoPoints: habit.ecoPoints || 10,
+      carbonSaved: habit.carbonSaved || 0.5,
     });
     setShowForm(true);
   };
@@ -92,11 +94,12 @@ const Habits = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
-      category: 'energy',
-      frequency: 'daily',
-      targetDays: 1
+      title: '',
+    description: '',
+    category: 'Waste Reduction',
+    frequency: 'daily',
+    ecoPoints: 10,
+    carbonSaved: 0.5,
     });
   };
 
@@ -140,12 +143,12 @@ const Habits = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Habit Name
+                    Habit Title
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="title"
+                    value={formData.title}
                     onChange={handleChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -162,12 +165,12 @@ const Habits = () => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
-                    <option value="energy">Energy</option>
-                    <option value="waste">Waste</option>
-                    <option value="transport">Transport</option>
-                    <option value="water">Water</option>
-                    <option value="food">Food</option>
-                    <option value="other">Other</option>
+                    <option value="Waste Reduction">Waste Reduction</option>
+                    <option value="Energy">Energy</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Water">Water</option>
+                    <option value="Food">Food</option>
+                    <option value="General">General</option>
                   </select>
                 </div>
               </div>
@@ -198,6 +201,46 @@ const Habits = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Eco Points
+                  </label>
+                  <input
+                    type="number"
+                    name="ecoPoints"
+                    value={formData.ecoPoints}
+                    onChange={handleChange}
+                    min="1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Carbon Saved (kg)
+                  </label>
+                  <input
+                    type="number"
+                    name="carbonSaved"
+                    value={formData.carbonSaved}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <select
+                    name="carbonSavedFrequency"
+                    value={formData.carbonSavedFrequency}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
+                  >
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                   </select>
@@ -262,15 +305,16 @@ const Habits = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{habit.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{habit.title}</h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          habit.category === 'energy' ? 'bg-yellow-100 text-yellow-800' :
-                          habit.category === 'waste' ? 'bg-red-100 text-red-800' :
-                          habit.category === 'transport' ? 'bg-blue-100 text-blue-800' :
-                          habit.category === 'water' ? 'bg-cyan-100 text-cyan-800' :
-                          habit.category === 'food' ? 'bg-green-100 text-green-800' :
+                          habit.category === 'Energy' ? 'bg-yellow-100 text-yellow-800' :
+                          habit.category === 'Waste Reduction' ? 'bg-red-100 text-red-800' :
+                          habit.category === 'Transportation' ? 'bg-blue-100 text-blue-800' :
+                          habit.category === 'Water' ? 'bg-cyan-100 text-cyan-800' :
+                          habit.category === 'Food' ? 'bg-green-100 text-green-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
+
                           {habit.category}
                         </span>
                       </div>

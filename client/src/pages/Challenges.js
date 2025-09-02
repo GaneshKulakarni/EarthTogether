@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Target, Users, Trophy, Plus, Star, TrendingUp, CheckCircle, Clock, Zap, Leaf, X } from 'lucide-react';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Challenges = () => {
@@ -10,108 +11,59 @@ const Challenges = () => {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
 
-  // Mock data for demonstration - replace with actual API calls
   useEffect(() => {
-    // Simulate API call delay
-    setTimeout(() => {
-      setChallenges([
-        {
-          _id: '1',
-          title: '30-Day Zero Waste Challenge',
-          description: 'Reduce your household waste to zero for 30 consecutive days. Track your progress and share tips with the community.',
-          category: 'Waste Reduction',
-          difficulty: 'Hard',
-          duration: 30,
-          participants: 1247,
-          ecoPoints: 500,
-          carbonSaved: 45,
-          startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
-          requirements: ['Track daily waste', 'Share weekly progress', 'Complete final report'],
-          rewards: ['Zero Waste Champion Badge', '500 Eco Points', 'Certificate of Achievement'],
-          isJoined: true,
-          progress: 65,
-          status: 'active'
-        },
-        {
-          _id: '2',
-          title: 'Green Commute Week',
-          description: 'Use only eco-friendly transportation methods for one week. Walk, bike, carpool, or use public transport.',
-          category: 'Transportation',
-          difficulty: 'Medium',
-          duration: 7,
-          participants: 892,
-          ecoPoints: 200,
-          carbonSaved: 28,
-          startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-          requirements: ['No personal car usage', 'Log daily commute method', 'Share experience'],
-          rewards: ['Green Commuter Badge', '200 Eco Points', 'Carbon Footprint Certificate'],
-          isJoined: false,
-          progress: 0,
-          status: 'active'
-        },
-        {
-          _id: '3',
-          title: 'Energy Conservation Month',
-          description: 'Reduce your household energy consumption by 25% compared to your average monthly usage.',
-          category: 'Energy',
-          difficulty: 'Medium',
-          duration: 30,
-          participants: 567,
-          ecoPoints: 300,
-          carbonSaved: 32,
-          startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-          requirements: ['Monitor energy usage', 'Implement energy-saving measures', 'Weekly progress reports'],
-          rewards: ['Energy Saver Badge', '300 Eco Points', 'Energy Efficiency Certificate'],
-          isJoined: true,
-          progress: 45,
-          status: 'active'
-        },
-        {
-          _id: '4',
-          title: 'Plastic-Free July',
-          description: 'Eliminate single-use plastics from your life for the entire month of July.',
-          category: 'Waste Reduction',
-          difficulty: 'Hard',
-          duration: 31,
-          participants: 2341,
-          ecoPoints: 400,
-          carbonSaved: 38,
-          startDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000),
-          requirements: ['No single-use plastics', 'Find alternatives', 'Document journey'],
-          rewards: ['Plastic-Free Hero Badge', '400 Eco Points', 'Sustainability Certificate'],
-          isJoined: false,
-          progress: 0,
-          status: 'active'
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
+    const fetchChallenges = async () => {
+      try {
+        const config = {
+          headers: {
+            'x-auth-token': localStorage.getItem('token'),
+          },
+        };
+        const res = await axios.get('/api/challenges', config);
+        const challengesWithJoinStatus = res.data.map(challenge => ({
+          ...challenge,
+          isJoined: challenge.participants.some(p => p.user === user._id)
+        }));
+        setChallenges(challengesWithJoinStatus);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to fetch challenges.');
+        setLoading(false);
+      }
+    };
+
+    fetchChallenges();
   }, []);
 
   const joinChallenge = async (challengeId) => {
     try {
-      // Mock API call - replace with actual
+      const config = {
+        headers: {
+          'x-auth-token': localStorage.getItem('token'),
+        },
+      };
+      await axios.post(`/api/challenges/${challengeId}/join`, {}, config);
       setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { ...c, isJoined: true, progress: 0 } : c
+        c._id === challengeId ? { ...c, isJoined: true, participants: [...c.participants, { user: user._id, joinedAt: new Date(), progress: 0 }] } : c
       ));
       toast.success('Successfully joined the challenge!');
     } catch (error) {
-      toast.error('Failed to join challenge');
+      console.error(error);
+      toast.error(error.response?.data?.msg || 'Failed to join challenge');
     }
   };
 
   const leaveChallenge = async (challengeId) => {
     try {
-      // Mock API call - replace with actual
+      // Assuming there's a leave endpoint or simply remove from frontend for now
+      // If a backend endpoint is needed, it would be similar to joinChallenge
       setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { ...c, isJoined: false, progress: 0 } : c
+        c._id === challengeId ? { ...c, isJoined: false, participants: c.participants.filter(p => p.user !== user._id) } : c
       ));
       toast.success('Left the challenge');
     } catch (error) {
+      console.error(error);
       toast.error('Failed to leave challenge');
     }
   };

@@ -16,7 +16,8 @@ router.post('/register', [
 ], async (req, res) => {
   console.log('POST /api/auth/register called - body:', req.body);
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
+   if (!errors.isEmpty()) {
+
     res.type('application/json');
     return res.status(400).json({ errors: errors.array() });
   }
@@ -84,7 +85,6 @@ router.post('/login', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').exists()
 ], async (req, res) => {
-  console.log('POST /api/auth/login called - body:', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     res.type('application/json');
@@ -94,19 +94,19 @@ router.post('/login', [
   const { email, password } = req.body;
 
   try {
-    // Check if user exists
     const user = await User.findOne({ email });
+    console.log('User found:', !!user);
     if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
-    // Check password
+    console.log('Comparing password. Provided:', password, 'Stored hash:', user.password);
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result:', isMatch);
     if (!isMatch) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
-    // Create JWT token
     const payload = {
       user: {
         id: user.id
@@ -173,7 +173,7 @@ if (process.env.NODE_ENV !== 'production') {
   ], async (req, res) => {
     console.log('POST /api/auth/reset-password-dev called - body:', { email: req.body.email });
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
