@@ -22,6 +22,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log('Attempting login with:', formData);
     try {
       const result = await login(formData.email, formData.password);
       if (result.success) {
