@@ -9,27 +9,41 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || '',
-    bio: user?.bio || ''
+    bio: user?.bio || '',
+    avatar: user?.avatar || '' // Add avatar to form data
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (user) {
       setFormData({
         username: user.username || '',
-        bio: user.bio || ''
+        bio: user.bio || '',
+        avatar: user.avatar || ''
       });
     }
   }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData();
+    data.append('username', formData.username);
+    data.append('bio', formData.bio);
+    if (selectedFile) {
+      data.append('avatar', selectedFile);
+    }
+
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/users/profile', formData, {
-        headers: { 'x-auth-token': token }
+      await axios.put('/api/users/profile', data, {
+        headers: {
+          'x-auth-token': token,
+          'Content-Type': 'multipart/form-data' // Important for file uploads
+        }
       });
       toast.success('Profile updated successfully!');
       setEditing(false);
+      setSelectedFile(null); // Clear selected file after upload
       loadUser(); // Refresh user data
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -39,6 +53,10 @@ const Profile = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
   };
 
   if (!user) {
@@ -93,6 +111,25 @@ const Profile = () => {
                   placeholder="Tell us about yourself and your eco-journey..."
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Profile Picture
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-green-50 file:text-green-700
+                    hover:file:bg-green-100"
+                />
+                {selectedFile && (
+                  <p className="mt-2 text-sm text-gray-500">Selected file: {selectedFile.name}</p>
+                )}
+              </div>
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
@@ -111,8 +148,12 @@ const Profile = () => {
             </form>
           ) : (
             <div className="flex items-start space-x-6">
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="w-12 h-12 text-green-600" />
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {user.avatar ? (
+                  <img src={user.avatar} alt="User Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-12 h-12 text-green-600" />
+                )}
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">{user.username}</h2>

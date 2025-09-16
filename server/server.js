@@ -13,7 +13,7 @@ const app = express();
 app.use(helmet());
 app.use(cors({
   // In development the React dev server runs on 3000 — allow it by default.
-  origin: process.env.CORS_ORIGIN || ['http://localhost:5001', 'http://localhost:3000'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:5001', 'http://localhost:3001'],
   credentials: true
 }));
 app.use(compression());

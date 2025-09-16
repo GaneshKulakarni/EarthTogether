@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
@@ -12,26 +12,54 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [estimatedCarbon, setEstimatedCarbon] = useState(null);
 
-  useEffect(() => {
-    fetchHabits();
-  }, []);
+  // Simple client-side estimator: per-habit estimated kg CO2 saved per completion.
+  // If a habit provides an explicit `impactKg` field we use that; otherwise we
+  // fall back to a small default or category-based heuristic.
+  const calculateCarbonImpact = (habitsArray) => {
+    if (!habitsArray || habitsArray.length === 0) return 0;
+    const categoryMap = {
+      'transport': 2.5, // example: using bike instead of car
+      'food': 0.5, // example: plant-based meal instead of meat
+      'consumption': 0.2,
+      'energy': 0.8,
+      'waste': 0.1,
+      'default': 0.1
+    };
 
-  const fetchHabits = async () => {
+    let total = 0;
+    habitsArray.forEach((h) => {
+      // prefer explicit impactKg
+      const impact = (typeof h.impactKg === 'number') ? h.impactKg : (
+        (h.category && categoryMap[h.category.toLowerCase()]) || categoryMap.default
+      );
+
+      // if habit has been completed today, count it; otherwise treat as potential (still add)
+      // Many apps want to show both potential and actual; here we show today's potential sum.
+      total += impact;
+    });
+
+    return Number(total.toFixed(2));
+  };
+
+  const fetchHabits = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/habits', {
         headers: { 'x-auth-token': token }
       });
       setHabits(response.data);
-  // compute a simple client-side CO2 estimate when backend doesn't supply it
-  const est = computeCarbonFromHabits(response.data);
-  setEstimatedCarbon(est);
+      const est = computeCarbonFromHabits(response.data);
+      setEstimatedCarbon(est);
     } catch (error) {
       console.error('Error fetching habits:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchHabits();
+  }, [fetchHabits]);
 
   const markHabitComplete = async (habitId) => {
     try {

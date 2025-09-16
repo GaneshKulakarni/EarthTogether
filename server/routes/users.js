@@ -2,6 +2,20 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Make sure this 'uploads/' directory exists in your server root
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // @route   GET api/users/profile
 // @desc    Get user profile
@@ -19,7 +33,7 @@ router.get('/profile', auth, async (req, res) => {
 // @route   PUT api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, upload.single('avatar'), async (req, res) => {
   const { username, bio } = req.body;
 
   try {
@@ -40,6 +54,9 @@ router.put('/profile', auth, async (req, res) => {
     // Update fields
     if (username) user.username = username;
     if (bio !== undefined) user.bio = bio;
+    if (req.file) {
+      user.avatar = `/uploads/${req.file.filename}`;
+    }
 
     await user.save();
 
@@ -56,7 +73,7 @@ router.put('/profile', auth, async (req, res) => {
 router.get('/leaderboard', auth, async (req, res) => {
   try {
     const users = await User.find()
-      .select('username ecoPoints currentStreak totalCarbonSaved badges')
+      .select('username ecoPoints currentStreak totalCarbonSaved badges avatar')
       .sort({ ecoPoints: -1 })
       .limit(50);
 

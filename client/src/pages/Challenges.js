@@ -34,7 +34,7 @@ const Challenges = () => {
     };
 
     fetchChallenges();
-  }, []);
+  }, [user._id]);
 
   const joinChallenge = async (challengeId) => {
     try {

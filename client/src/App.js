@@ -18,6 +18,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
+
   return (
     <AuthProvider>
       <Router

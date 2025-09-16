@@ -52,18 +52,23 @@ export const AuthProvider = ({ children }) => {
 
   // Load user
   const loadUser = async () => {
-    if (localStorage.getItem('token')) {
+    const token = localStorage.getItem('token');
+    console.log('loadUser called. Token:', token ? 'Exists' : 'Does not exist');
+
+    if (token) {
       try {
         const res = await axios.get('/api/auth/user', {
           headers: {
-            'x-auth-token': localStorage.getItem('token')
+            'x-auth-token': token
           }
         });
         dispatch({
           type: 'USER_LOADED',
           payload: res.data
         });
+        console.log('User loaded successfully. Data:', res.data);
       } catch (err) {
+        console.error('Error loading user:', err.response?.data || err.message);
         dispatch({ type: 'AUTH_ERROR' });
       }
     } else {
@@ -74,19 +79,21 @@ export const AuthProvider = ({ children }) => {
   // Login user
   const login = async (email, password) => {
     try {
-        console.log('Sending login request with:', { email, password });
-        const res = await axios.post('/api/auth/login', { email, password });
+      console.log('Attempting login for:', email);
+      const res = await axios.post('/api/auth/login', { email, password });
+      console.log('Login API response:', res.data);
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: res.data
       });
-      loadUser();
+      // Removed redundant loadUser() call here
       return { success: true };
     } catch (err) {
+      console.error('Login error:', err.response?.data || err.message);
       dispatch({ type: 'LOGIN_FAIL' });
-  const serverErrors = err.response?.data?.errors;
-  const message = serverErrors ? serverErrors.map(e => e.msg).join(', ') : (err.response?.data?.msg || 'Login failed');
-  return { success: false, error: message };
+      const serverErrors = err.response?.data?.errors;
+      const message = serverErrors ? serverErrors.map(e => e.msg).join(', ') : (err.response?.data?.msg || 'Login failed');
+      return { success: false, error: message };
     }
   };
 
