@@ -18,7 +18,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/welcome" className="flex items-center space-x-2">
               <Leaf className="w-8 h-8 text-green-600" />
               <span className="text-xl font-bold text-gray-900">EarthTogether</span>
             </Link>
@@ -28,6 +28,12 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-8">
             {isAuthenticated ? (
               <>
+                <Link
+                  to="/"
+                  className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Home
+                </Link>
                 <Link
                   to="/dashboard"
                   className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"

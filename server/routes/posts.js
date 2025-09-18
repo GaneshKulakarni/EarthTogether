@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate('user', ['username', 'ecoPoints'])
+      .populate('user', ['username', 'ecoPoints', 'avatar'])
       .sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {

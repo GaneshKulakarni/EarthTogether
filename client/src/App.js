@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
+import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Habits from './pages/Habits';
 import Feed from './pages/Feed';
@@ -30,7 +31,12 @@ function App() {
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
           <Navbar />
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            } />
+            <Route path="/welcome" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={
