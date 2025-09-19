@@ -134,11 +134,13 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard icon={<Trophy className="w-6 h-6 text-green-600" />} title="Eco Points" value={user?.ecoPoints || 0} color="green" />
-          <StatsCard icon={<TrendingUp className="w-6 h-6 text-blue-600" />} title="Day Streak" value={user?.currentStreak || 0} color="blue" />
-          <StatsCard icon={<Leaf className="w-6 h-6 text-purple-600" />} title="CO₂ Saved" value={`${(user?.totalCarbonSaved ?? estimatedCarbon ?? 0)} kg`} color="purple" />
-          <StatsCard icon={<Target className="w-6 h-6 text-yellow-600" />} title="Active Habits" value={habits.length} color="yellow" />
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <StatsCard icon={<Trophy className="w-6 h-6 text-green-600" />} title="Eco Points" value={user?.ecoPoints || 0} color="green" />
+            <StatsCard icon={<TrendingUp className="w-6 h-6 text-blue-600" />} title="Day Streak" value={user?.currentStreak || 0} color="blue" />
+            
+            <StatsCard icon={<Target className="w-6 h-6 text-yellow-600" />} title="Active Habits" value={habits.length} color="yellow" />
+          </div>
         </div>
 
         {/* Small note about the CO2 estimate when backend value is not available */}

@@ -120,41 +120,33 @@ const Challenges = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-            <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Target className="w-6 h-6 text-green-600" />
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Target className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">{activeChallenges.length}</h3>
+              <p className="text-gray-600">Active Challenges</p>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{activeChallenges.length}</h3>
-            <p className="text-gray-600">Active Challenges</p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-            <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Users className="w-6 h-6 text-blue-600" />
+            
+            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">{joinedChallenges.length}</h3>
+              <p className="text-gray-600">Joined</p>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{joinedChallenges.length}</h3>
-            <p className="text-gray-600">Joined</p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-            <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Trophy className="w-6 h-6 text-purple-600" />
+            
+            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
+              <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Trophy className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                {joinedChallenges.reduce((sum, c) => sum + c.ecoPoints, 0)}
+              </h3>
+              <p className="text-gray-600">Points Available</p>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {joinedChallenges.reduce((sum, c) => sum + c.ecoPoints, 0)}
-            </h3>
-            <p className="text-gray-600">Points Available</p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-            <div className="bg-yellow-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-6 h-6 text-yellow-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {joinedChallenges.reduce((sum, c) => sum + c.carbonSaved, 0)} kg
-            </h3>
-            <p className="text-gray-600">CO₂ to Save</p>
           </div>
         </div>
 
