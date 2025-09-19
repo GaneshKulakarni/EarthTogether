@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+
 import { Plus, Image, Send } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Feed = () => {
-  const { } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);

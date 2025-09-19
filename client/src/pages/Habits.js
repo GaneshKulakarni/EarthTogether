@@ -5,7 +5,6 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Habits = () => {
-  const { } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

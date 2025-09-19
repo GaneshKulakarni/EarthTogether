@@ -28,7 +28,7 @@ const PostCard = ({ post, onLike, onComment }) => {
       </div>
       <p className="text-gray-800 mb-4">{post.content}</p>
       {post.imageUrl && (
-        <img src={post.imageUrl} alt="Post Image" className="w-full rounded-lg mb-4" />
+        <img src={post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
       )}
       <div className="flex items-center justify-between text-gray-500 text-sm mb-4">
         <div className="flex items-center space-x-4">

@@ -8,7 +8,6 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuth();
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -81,7 +80,7 @@ const Home = () => {
               {post.imageUrl && (
                 <img
                   src={post.imageUrl}
-                  alt="Post Image"
+                  alt=""
                   className="w-full h-64 object-cover rounded-md mb-4"
                 />
               )}
