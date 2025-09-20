@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
 
-const MainLayout = ({ children }) => {
+const MainLayout = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
@@ -17,16 +17,23 @@ const MainLayout = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 pt-16">
         {isAuthenticated && (
-          <aside className="w-64 bg-gray-100 p-4 border-r border-gray-200">
-            <nav>
-              <ul>
+          <aside className="w-64 bg-white shadow-md fixed left-0 h-full overflow-y-auto">
+            <nav className="p-4">
+              <div className="mb-6 px-2">
+                <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
+              </div>
+              <ul className="space-y-1">
                 {sidebarLinks.map((link) => (
-                  <li key={link.name} className="mb-2">
+                  <li key={link.name}>
                     <Link
                       to={link.path}
-                      className={`block p-2 rounded-md ${location.pathname === link.path ? 'bg-green-200 text-green-800 font-semibold' : 'text-gray-700 hover:bg-gray-200'}`}
+                      className={`block px-4 py-2 text-sm rounded-md transition-colors ${
+                        location.pathname === link.path
+                          ? 'bg-green-100 text-green-800 font-medium'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                     >
                       {link.name}
                     </Link>
@@ -36,8 +43,12 @@ const MainLayout = ({ children }) => {
             </nav>
           </aside>
         )}
-        <main className="flex-1 p-4">
-          {children}
+        <main
+          className={`flex-1 p-6 bg-gray-50 min-h-screen ${
+            isAuthenticated ? 'ml-64' : ''
+          }`}
+        >
+          <Outlet />
         </main>
       </div>
     </div>

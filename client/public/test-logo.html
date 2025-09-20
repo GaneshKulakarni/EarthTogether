@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .logo-container {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    .logo {
+      max-width: 200px;
+      height: auto;
+      margin: 10px 0;
+      border: 1px solid #eee;
+      padding: 10px;
+      background: white;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Logo Test Page</h1>
+  <p>This page tests if the logo files are being served correctly.</p>
+  
+  <div class="logo-container">
+    <h2>Logo 192x192</h2>
+    <p>Path: <code>/logo192.png</code></p>
+    <img id="logo192" src="/logo192.png" alt="Logo 192x192" class="logo">
+    <p id="logo192-status">Loading...</p>
+  </div>
+
+  <div class="logo-container">
+    <h2>Logo 512x512</h2>
+    <p>Path: <code>/logo512.png</code></p>
+    <img id="logo512" src="/logo512.png" alt="Logo 512x512" class="logo">
+    <p id="logo512-status">Loading...</p>
+  </div>
+
+  <div class="logo-container">
+    <h2>Favicon</h2>
+    <p>Path: <code>/favicon.ico</code></p>
+    <img id="favicon" src="/favicon.ico" alt="Favicon" class="logo">
+    <p id="favicon-status">Loading...</p>
+  </div>
+
+  <script>
+    // Test if images loaded successfully
+    document.addEventListener('DOMContentLoaded', () => {
+      const testImage = (id) => {
+        const img = document.getElementById(id);
+        const status = document.getElementById(`${id}-status`);
+        
+        if (img.complete) {
+          if (img.naturalWidth === 0) {
+            status.innerHTML = '<span class="error">Error: Image failed to load</span>';
+            console.error(`Failed to load ${id}`, img.src);
+          } else {
+            status.innerHTML = '<span class="success">✓ Loaded successfully</span>';
+            console.log(`Loaded ${id} successfully`, img.src);
+          }
+        } else {
+          img.onload = () => {
+            status.innerHTML = '<span class="success">✓ Loaded successfully</span>';
+            console.log(`Loaded ${id} successfully`, img.src);
+          };
+          img.onerror = () => {
+            status.innerHTML = '<span class="error">Error: Image failed to load</span>';
+            console.error(`Failed to load ${id}`, img.src);
+          };
+        }
+      };
+
+      // Test each image
+      ['logo192', 'logo512', 'favicon'].forEach(testImage);
+    });
+  </script>
+</body>
+</html>

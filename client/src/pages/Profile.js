@@ -1,24 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import HabitCard from '../components/HabitCard';
 import PostCard from '../components/PostCard';
 
 const Profile = () => {
-  const { user, loadUser } = useAuth();
+  const navigate = useNavigate();
+  const { user, loadUser, isAuthenticated } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile'); // New state for active tab
-  const [userHabits, setUserHabits] = useState([]); // State for user's habits
-  const [userPosts, setUserPosts] = useState([]); // State for user's posts
+  const [activeTab, setActiveTab] = useState('profile');
+  const [userHabits, setUserHabits] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
   const [formData, setFormData] = useState({
-    username: user?.username || '',
-    bio: user?.bio || '',
-    avatar: user?.avatar || '' // Add avatar to form data
+    username: '',
+    bio: '',
+    avatar: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [shouldFetchHabits, setShouldFetchHabits] = useState(false);
+  const [shouldFetchPosts, setShouldFetchPosts] = useState(false);
 
+  // Load user data when component mounts or when user changes
+  useEffect(() => {
+    console.log('Profile useEffect - Initial load', { user, isAuthenticated, loading });
+    
+    let isMounted = true;
+    
+    const fetchUserData = async () => {
+      try {
+        console.log('Fetching user data...');
+        if (!user && isAuthenticated) {
+          console.log('User not loaded but authenticated, calling loadUser()');
+          await loadUser();
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        if (isMounted) {
+          toast.error('Failed to load profile data');
+        }
+      } finally {
+        if (isMounted) {
+          console.log('Finished loading user data, setting loading to false');
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+    
+    // Cleanup function
+    return () => {
+      console.log('Profile component unmounting or dependencies changed');
+      isMounted = false;
+    };
+  }, [user, isAuthenticated, loadUser]);
+
+  // Update form data when user data is available
   useEffect(() => {
     if (user) {
       setFormData({
@@ -29,43 +70,61 @@ const Profile = () => {
     }
   }, [user]);
 
-  // Fetch user's habits
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const fetchUserHabits = async () => {
-      if (activeTab === 'habits' && user) {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get('/api/habits/my-habits', {
-            headers: { 'x-auth-token': token }
-          });
-          setUserHabits(res.data);
-        } catch (error) {
-          console.error('Error fetching user habits:', error);
-          toast.error('Failed to load habits.');
-        }
-      }
-    };
-    fetchUserHabits();
+    if (!isAuthenticated && !loading) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  // Set up effect triggers based on active tab
+  useEffect(() => {
+    setShouldFetchHabits(activeTab === 'habits' && !!user);
+    setShouldFetchPosts(activeTab === 'feed' && !!user);
   }, [activeTab, user]);
 
-  // Fetch user's posts
+  // Fetch user's habits when needed
   useEffect(() => {
-    const fetchUserPosts = async () => {
-      if (activeTab === 'feed' && user) {
-        try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get('/api/posts/my-posts', {
-            headers: { 'x-auth-token': token }
-          });
-          setUserPosts(res.data);
-        } catch (error) {
-          console.error('Error fetching user posts:', error);
-          toast.error('Failed to load posts.');
-        }
+    const fetchUserHabits = async () => {
+      if (!shouldFetchHabits) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/habits', {
+          headers: { 
+            'x-auth-token': token,
+            'Content-Type': 'application/json'
+          }
+        });
+        setUserHabits(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error('Error fetching user habits:', error);
+        toast.error('Failed to load habits.');
       }
     };
+
+    fetchUserHabits();
+  }, [shouldFetchHabits]);
+
+  // Fetch user's posts when needed
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      if (!shouldFetchPosts) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('/api/posts/my-posts', {
+          headers: { 'x-auth-token': token }
+        });
+        setUserPosts(res.data);
+      } catch (error) {
+        console.error('Error fetching user posts:', error);
+        toast.error('Failed to load posts.');
+      }
+    };
+
     fetchUserPosts();
-  }, [activeTab, user]);
+  }, [shouldFetchPosts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,37 +161,93 @@ const Profile = () => {
     setSelectedFile(e.target.files[0]);
   };
 
-  if (!user) {
+  // Debug logging
+  console.log('Profile render state:', { 
+    user, 
+    isAuthenticated, 
+    loading, 
+    hasUser: !!user,
+    token: localStorage.getItem('token') ? 'exists' : 'missing' 
+  });
+
+  // Show loading state only when we're actually loading and don't have user data yet
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
+        <span className="ml-4 text-gray-600">Loading profile...</span>
       </div>
     );
   }
 
+  // If not loading but no user (and we should have one), show error
+  if (!loading && !user && isAuthenticated) {
+    console.error('No user data available but user is authenticated');
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          Error loading profile data. Please try refreshing the page.
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
+
+  const handleCreateHabit = () => {
+    navigate('/habits');
+  };
+
+  const handleCreatePost = () => {
+    navigate('/create-post');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8 flex justify-center space-x-4">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-6 py-2 rounded-lg font-medium ${activeTab === 'profile' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-          >
-            Profile
-          </button>
-          <button
-            onClick={() => setActiveTab('habits')}
-            className={`px-6 py-2 rounded-lg font-medium ${activeTab === 'habits' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-          >
-            My Habits
-          </button>
-          <button
-            onClick={() => setActiveTab('feed')}
-            className={`px-6 py-2 rounded-lg font-medium ${activeTab === 'feed' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-          >
-            My Posts
-          </button>
+        {/* Tab Navigation and Action Buttons */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-2 flex space-x-2 w-full md:w-auto justify-center">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'profile' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              Profile
+            </button>
+            <button
+              onClick={() => setActiveTab('habits')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'habits' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              My Habits
+            </button>
+            <button
+              onClick={() => setActiveTab('feed')}
+              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'feed' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              My Posts
+            </button>
+          </div>
+          
+          <div className="flex space-x-2 w-full md:w-auto">
+            <button
+              onClick={handleCreateHabit}
+              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg w-full justify-center md:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Habit</span>
+            </button>
+            <button
+              onClick={handleCreatePost}
+              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg w-full justify-center md:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Post</span>
+            </button>
+          </div>
         </div>
 
         {/* Profile Content */}
