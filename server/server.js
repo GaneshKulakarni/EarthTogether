@@ -13,7 +13,7 @@ const app = express();
 app.use(helmet());
 app.use(cors({
   // In development the React dev server runs on 3000 — allow it by default.
-  origin: process.env.CORS_ORIGIN || ['http://localhost:4501', 'http://localhost:6102'],
+  origin: process.env.CORS_ORIGIN || ['http://localhost:6000', 'http://localhost:7000'],
   credentials: true
 }));
 app.use(compression());
@@ -85,7 +85,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const PORT = process.env.PORT || 4501;
+const PORT = process.env.PORT || 8000;
 // Bind explicitly to 0.0.0.0 to avoid IPv6/IPv4 ambiguity on some Windows setups
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
