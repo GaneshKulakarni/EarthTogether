@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{Navigate} from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 // import Navbar from './components/Navbar'; // Navbar is now part of MainLayout
@@ -32,74 +32,34 @@ function App() {
         }}
       >
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-          {/* <Navbar /> */}
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
-            <Route element={<MainLayout />}>
-              <Route path="/welcome" element={
-                <PrivateRoute>
-                  <Home />
-                </PrivateRoute>
-              } />
-              <Route path="/dashboard" element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              } />
-              <Route path="/habits" element={
-                <PrivateRoute>
-                  <Habits />
-                </PrivateRoute>
-              } />
-              <Route path="/feed" element={
-                <PrivateRoute>
-                  <Feed />
-                </PrivateRoute>
-              } />
-              <Route path="/challenges" element={
-                <PrivateRoute>
-                  <Challenges />
-                </PrivateRoute>
-              } />
-              <Route path="/profile" element={
-                <PrivateRoute>
-                  <Profile />
-                </PrivateRoute>
-              } />
-              <Route path="/leaderboard" element={
-                <PrivateRoute>
-                  <Leaderboard />
-                </PrivateRoute>
-              } />
-              <Route path="/news" element={
-                <PrivateRoute>
-                  <News />
-                </PrivateRoute>
-              } />
-              <Route path="/memes" element={
-                <PrivateRoute>
-                  <MemePage />
-                </PrivateRoute>
-              } />
-              <Route path="/quizzes" element={
-                <PrivateRoute>
-                  <QuizGames />
-                </PrivateRoute>
-              } />
-              <Route path="/waste-management" element={
-                <PrivateRoute>
-                  <WasteManagement />
-                </PrivateRoute>
-              } />
-              <Route path="/researches" element={
-                <PrivateRoute>
-                  <Researches />
-                </PrivateRoute>
-              } />
+            {/* Protected Routes with MainLayout */}
+            <Route element={
+              <PrivateRoute>
+                <MainLayout />
+              </PrivateRoute>
+            }>
+              <Route path="/welcome" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/habits" element={<Habits />} />
+              <Route path="/feed" element={<Feed />} />
+              <Route path="/challenges" element={<Challenges />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/memes" element={<MemePage />} />
+              <Route path="/quizzes" element={<QuizGames />} />
+              <Route path="/waste-management" element={<WasteManagement />} />
+              <Route path="/researches" element={<Researches />} />
             </Route>
+            
+            {/* Catch all - replace with 404 component if you want */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster position="top-right" />
         </div>

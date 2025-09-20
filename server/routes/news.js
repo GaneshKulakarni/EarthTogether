@@ -1,9 +1,15 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const router = express.Router();
+const { getEnvironmentNews } = require('../controllers/newsController');
 
 // @route   GET api/news
-// @desc    Get eco news
+// @desc    Get eco news from Gemini API
+// @access  Public
+router.get('/gemini', getEnvironmentNews);
+
+// @route   GET api/news
+// @desc    Get saved eco news from database
 // @access  Private
 const NewsArticle = require('../models/NewsArticle');
 
