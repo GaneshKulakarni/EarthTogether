@@ -9,9 +9,12 @@ const MainLayout = () => {
 
   const sidebarLinks = [
     { name: 'News', path: '/news' },
-    { name: 'Quiz and Flashcards', path: '/quizzes' },
+    { name: 'Research', path: '/researches' },
+    { name: 'Quiz & Flashcards', path: '/quizzes' },
     { name: 'Waste Management', path: '/waste-management' },
-    { name: 'Researches', path: '/researches' },
+    { name: 'Memes', path: '/memes' },
+    { name: 'Leaderboard', path: '/leaderboard' },
+    { name: 'Admin Panel', path: '/admin' },
   ];
 
   return (

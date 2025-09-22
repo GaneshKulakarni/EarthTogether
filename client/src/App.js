@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import WasteManagement from './pages/WasteManagement';
 import Researches from './pages/Researches';
+import AdminPanel from './pages/AdminPanel';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import MainLayout from './components/MainLayout';
@@ -56,6 +57,8 @@ function App() {
               <Route path="/quizzes" element={<QuizGames />} />
               <Route path="/waste-management" element={<WasteManagement />} />
               <Route path="/researches" element={<Researches />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/admin" element={<AdminPanel />} />
             </Route>
             
             {/* Catch all - replace with 404 component if you want */}

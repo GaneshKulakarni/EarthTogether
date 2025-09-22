@@ -45,7 +45,8 @@ const Home = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Community Feed</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">🏠 EarthTogether Feed</h1>
+      <p className="text-center text-gray-600 mb-8">Your daily dose of eco-inspiration, community posts, and sustainability updates</p>
       <motion.div
         className="max-w-2xl mx-auto space-y-6"
         variants={containerVariants}
