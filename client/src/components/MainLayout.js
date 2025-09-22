@@ -22,22 +22,25 @@ const MainLayout = () => {
       <Navbar />
       <div className="flex flex-1">
         {isAuthenticated && (
-          <aside className="w-64 bg-white shadow-md fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-10">
-            <nav className="p-4">
-              <div className="mb-6 px-2">
-                <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
+          <aside className="w-64 bg-white/95 backdrop-blur-md shadow-xl fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-10 border-r border-gray-100">
+            <nav className="p-6">
+              <div className="mb-8">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Navigation</h2>
               </div>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {sidebarLinks.map((link) => (
                   <li key={link.name}>
                     <Link
                       to={link.path}
-                      className={`block px-4 py-2 text-sm rounded-md transition-colors ${
+                      className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                         location.pathname === link.path
-                          ? 'bg-green-100 text-green-800 font-medium'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg transform scale-105'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:transform hover:scale-105'
                       }`}
                     >
+                      <span className={`w-2 h-2 rounded-full mr-3 transition-all ${
+                        location.pathname === link.path ? 'bg-white' : 'bg-gray-400 group-hover:bg-green-500'
+                      }`}></span>
                       {link.name}
                     </Link>
                   </li>
@@ -47,11 +50,11 @@ const MainLayout = () => {
           </aside>
         )}
         <main
-          className={`flex-1 bg-gray-50 min-h-[calc(100vh-4rem)] mt-16 ${
+          className={`flex-1 bg-gradient-to-br from-gray-50 via-green-50/30 to-blue-50/30 min-h-[calc(100vh-4rem)] mt-16 ${
             isAuthenticated ? 'ml-64' : ''
           }`}
         >
-          <div className="p-6">
+          <div className="p-8">
             <Outlet />
           </div>
         </main>

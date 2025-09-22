@@ -7,15 +7,59 @@ const router = express.Router();
 // @access  Private
 const Meme = require('../models/Meme');
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 // @route   GET api/memes
-// @desc    Get all memes
+// @desc    Get AI generated eco memes
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const memes = await Meme.find().sort({ createdAt: -1 });
-    res.json(memes);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
+    const prompt = `Generate 6 funny environmental memes with titles and captions. Format as JSON array:
+    [{
+      "title": "Catchy meme title",
+      "description": "Funny environmental caption or joke with emojis",
+      "imageUrl": "https://via.placeholder.com/400x300?text=Eco+Meme"
+    }]
+    Topics: recycling fails, climate change, solar power, electric cars, plastic pollution, green living. Make them relatable and humorous but eco-positive.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text().replace(/```json\n?|```\n?/g, '').trim();
+    
+    let aiMemes = [];
+    try {
+      aiMemes = JSON.parse(text);
+      console.log('Generated memes:', aiMemes.length, 'memes');
+    } catch (parseError) {
+      console.log('Meme parse error, using fallback');
+      aiMemes = [
+        {
+          title: "Reusable Bag Victory",
+          description: "When you actually remember your reusable bags at the store 🎆🛍️",
+          imageUrl: "https://via.placeholder.com/400x300?text=Eco+Win"
+        },
+        {
+          title: "Solar Panel Flex",
+          description: "My electricity bill: $12. My neighbor's: $200. Solar panels go brrr ☀️💰",
+          imageUrl: "https://via.placeholder.com/400x300?text=Solar+Power"
+        }
+      ];
+    }
+    
+    // Add random engagement stats
+    aiMemes = aiMemes.map(meme => ({
+      ...meme,
+      _id: Math.random().toString(36).substr(2, 9),
+      likes: Math.floor(Math.random() * 200) + 10,
+      comments: Math.floor(Math.random() * 50) + 2
+    }));
+    
+    res.json(aiMemes);
   } catch (err) {
-    console.error(err.message);
+    console.error('Meme generation error:', err.message);
     res.status(500).send('Server Error');
   }
 });
