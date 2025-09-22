@@ -1,30 +1,27 @@
 import React from 'react';
-import { Container, Typography, Box, Button } from '@mui/material';
 import EnvironmentNews from '../components/EnvironmentNews';
 
 const News = () => {
   return (
-    <Box sx={{ py: 4 }}>
-      <Container maxWidth="lg">
-        <Box mb={4} textAlign="center">
-          <Typography variant="h3" component="h1" gutterBottom>
-            Environment & Sustainability News
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary" paragraph>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Environment & Sustainability News 🌍
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
             Stay informed about the latest developments in environmental protection, climate change, and sustainability efforts worldwide.
-          </Typography>
-          <Button 
-            variant="contained" 
-            color="primary" 
+          </p>
+          <button 
             onClick={() => window.location.reload()}
-            sx={{ mt: 2 }}
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors"
           >
             Refresh News
-          </Button>
-        </Box>
+          </button>
+        </div>
         <EnvironmentNews />
-      </Container>
-    </Box>
+      </div>
+    </div>
   );
 };
 

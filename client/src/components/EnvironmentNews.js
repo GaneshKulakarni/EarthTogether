@@ -1,103 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { getEnvironmentNews } from '../services/api';
 
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  Avatar, 
-  CircularProgress,
-  Paper,
-  Container
-} from '@mui/material';
-import { green } from '@mui/material/colors';
-
-
 const EnvironmentNews = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  console.log('EnvironmentNews component mounted');
-  
 
   useEffect(() => {
-    let isMounted = true;
-    let retryCount = 0;
-    const maxRetries = 2;
-    
-    const fetchNews = async (retry = false) => {
-      if (!isMounted) return;
-      
-      if (!retry) {
-        console.log('Starting to fetch news...');
+    const fetchNews = async () => {
+      try {
         setLoading(true);
         setError(null);
-      }
-      
-      try {
-        console.log('Calling getEnvironmentNews()...');
+
         const response = await getEnvironmentNews();
-        
-        if (!isMounted) {
-          console.log('Component unmounted, aborting...');
-          return;
-        }
-        
-        console.log('News API response received:', response);
-        
-        // Handle the response format
+
+        // Normalize response into an array
         let newsData = [];
-        
         if (response && Array.isArray(response)) {
           newsData = response;
-        } else if (response && response.data && Array.isArray(response.data)) {
-          newsData = response.data;
+        } else if (response && response.data) {
+          newsData = Array.isArray(response.data) ? response.data : [response.data];
         } else {
-          // Use fallback data immediately
+          // fallback if nothing valid returned
           newsData = [
             {
               headline: "COP29 Climate Summit Reaches Historic $300 Billion Deal",
-              summary: "World leaders at COP29 in Baku agreed to provide $300 billion annually by 2035 to help developing nations combat climate change.",
-              source: "Reuters Climate"
+              summary:
+                "World leaders at COP29 in Baku agreed to provide $300 billion annually by 2035 to help developing nations combat climate change.",
+              source: "Reuters Climate",
             },
             {
               headline: "Antarctic Ice Sheet Melting Accelerates to Critical Levels",
-              summary: "New satellite data reveals Antarctic ice loss has tripled in the past decade. Scientists warn of irreversible tipping points.",
-              source: "Nature Climate Change"
+              summary:
+                "New satellite data reveals Antarctic ice loss has tripled in the past decade. Scientists warn of irreversible tipping points.",
+              source: "Nature Climate Change",
             },
             {
               headline: "Solar Power Becomes Cheapest Energy Source in History",
-              summary: "Solar photovoltaic costs have dropped 90% since 2010, making it the most affordable electricity source globally.",
-              source: "International Energy Agency"
+              summary:
+                "Solar photovoltaic costs have dropped 90% since 2010, making it the most affordable electricity source globally.",
+              source: "International Energy Agency",
             },
-            {
-              headline: "Amazon Rainforest Deforestation Drops 30% in 2024",
-              summary: "Brazil reports significant reduction in Amazon deforestation following enhanced monitoring and enforcement.",
-              source: "Environmental Protection Agency"
-            },
-            {
-              headline: "Microplastics Found in Human Blood Raise Health Concerns",
-              summary: "Scientists detect microplastic particles in human bloodstream for the first time.",
-              source: "Science Journal"
-            }
           ];
         }
-        
+
         setNews(newsData);
-        setError(null);
-        
       } catch (err) {
-        console.error('Error in fetchNews:', err);
-        
-        if (!isMounted) {
-          console.log('Component unmounted during error handling, aborting...');
-          return;
-        }
-        
-        // Log additional error details
+        console.error('Error fetching news:', err);
+
+        // Log extra error details (from main branch)
         if (err.response) {
           console.error('Error response data:', err.response.data);
           console.error('Error status:', err.response.status);
@@ -107,137 +58,93 @@ const EnvironmentNews = () => {
         } else {
           console.error('Error setting up request:', err.message);
         }
-        
-        // Only retry on network errors
-        const isNetworkError = !err.response && err.request;
-        
-        if (isNetworkError && retryCount < maxRetries) {
-          retryCount++;
-          const retryDelay = 1000 * retryCount; // Exponential backoff
-          console.log(`Retrying... (${retryCount}/${maxRetries}) in ${retryDelay}ms`);
-          
-          setTimeout(() => {
-            console.log(`Retry attempt ${retryCount}...`);
-            fetchNews(true);
-          }, retryDelay);
-          return;
-        }
-        
-        const errorMessage = isNetworkError 
-          ? 'Unable to connect to the server. Please check your internet connection.'
-          : err.message || 'Error loading environment news. Please try again later.';
-        
-        console.error('Setting error message:', errorMessage);
-        setError(errorMessage);
-        
-        // Use current environmental news as fallback
+
+        setError('Error loading environment news. Please try again later.');
+
+        // Fallback mock data
         setNews([
           {
-            headline: "COP29 Climate Summit Reaches Historic $300 Billion Deal",
-            summary: "World leaders at COP29 in Baku agreed to provide $300 billion annually by 2035 to help developing nations combat climate change.",
-            source: "Reuters Climate"
+            headline: "Welcome to EarthTogether News!",
+            summary:
+              "Stay tuned for the latest environmental news and updates. We're working on bringing you fresh content.",
+            source: "EarthTogether",
           },
-          {
-            headline: "Antarctic Ice Sheet Melting Accelerates to Critical Levels",
-            summary: "New satellite data reveals Antarctic ice loss has tripled in the past decade. Scientists warn of irreversible tipping points.",
-            source: "Nature Climate Change"
-          },
-          {
-            headline: "Solar Power Becomes Cheapest Energy Source in History",
-            summary: "Solar photovoltaic costs have dropped 90% since 2010, making it the most affordable electricity source globally.",
-            source: "International Energy Agency"
-          },
-          {
-            headline: "Amazon Rainforest Deforestation Drops 30% in 2024",
-            summary: "Brazil reports significant reduction in Amazon deforestation following enhanced monitoring and enforcement.",
-            source: "Environmental Protection Agency"
-          },
-          {
-            headline: "Microplastics Found in Human Blood Raise Health Concerns",
-            summary: "Scientists detect microplastic particles in human bloodstream for the first time.",
-            source: "Science Journal"
-          },
-          {
-            headline: "Green Hydrogen Production Reaches Commercial Viability",
-            summary: "Major breakthrough in green hydrogen technology makes clean fuel economically competitive.",
-            source: "Clean Energy Wire"
-          }
         ]);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     fetchNews();
-    
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" my={4}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box my={2} textAlign="center">
-        <Typography color="error">{error}</Typography>
-      </Box>
+      <div className="text-center py-8">
+        <p className="text-red-600">{error}</p>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="md">
-      <Box mb={4}>
-        <Typography variant="h4" component="h2" gutterBottom>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Latest Environment News
-        </Typography>
-        <Typography variant="subtitle1" color="textSecondary" paragraph>
+        </h2>
+        <p className="text-gray-600">
           Stay updated with the latest developments in environmental protection and sustainability.
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {news.length > 0 ? (
-        <Box>
+        <div className="space-y-6">
           {news.map((item, index) => (
-            <Card key={index} sx={{ mb: 3, boxShadow: 3 }}>
-              <CardHeader
-                avatar={
-                  <Avatar sx={{ bgcolor: green[500] }}>
-                    🌱
-                  </Avatar>
-                }
-                title={
-                  <Typography variant="h6" component="div">
-                    {item.headline}
-                  </Typography>
-                }
-                subheader={item.source && `Source: ${item.source}`}
-              />
-              <CardContent>
-                <Typography variant="body1" color="text.primary" paragraph>
-                  {item.summary}
-                </Typography>
-              </CardContent>
-            </Card>
+            <div
+              key={index}
+              className="bg-white rounded-lg shadow-md overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl">
+                      🌱
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {item.headline}
+                    </h3>
+                    {item.source && (
+                      <p className="text-sm text-gray-500 mb-3">
+                        Source: {item.source}
+                      </p>
+                    )}
+                    <p className="text-gray-700 leading-relaxed">
+                      {item.summary}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : (
-        <Paper elevation={3} sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="body1">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <p className="text-gray-600">
             No environment news available at the moment. Please check back later.
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       )}
-    </Container>
+    </div>
   );
 };
 
