@@ -17,9 +17,9 @@ const MainLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1">
         {isAuthenticated && (
-          <aside className="w-64 bg-white shadow-md fixed left-0 h-full overflow-y-auto">
+          <aside className="w-64 bg-white shadow-md fixed left-0 top-16 h-[calc(100vh-4rem)] overflow-y-auto z-10">
             <nav className="p-4">
               <div className="mb-6 px-2">
                 <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
@@ -44,11 +44,13 @@ const MainLayout = () => {
           </aside>
         )}
         <main
-          className={`flex-1 p-6 bg-gray-50 min-h-screen ${
+          className={`flex-1 bg-gray-50 min-h-[calc(100vh-4rem)] mt-16 ${
             isAuthenticated ? 'ml-64' : ''
           }`}
         >
-          <Outlet />
+          <div className="p-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

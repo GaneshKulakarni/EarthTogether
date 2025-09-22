@@ -11,7 +11,7 @@ const PrivateRoute = ({ children }) => {
     if (!isAuthenticated && !loading) {
       loadUser();
     }
-  }, [isAuthenticated, loading, loadUser]);
+  }, [isAuthenticated, loading]); // Removed loadUser from dependencies
 
   if (loading) {
     return (

@@ -13,7 +13,7 @@ import {
   Container
 } from '@mui/material';
 import { green } from '@mui/material/colors';
-import SpaIcon from '@mui/icons-material/Spa';
+
 
 const EnvironmentNews = () => {
   const [news, setNews] = useState([]);
@@ -171,7 +171,7 @@ const EnvironmentNews = () => {
               <CardHeader
                 avatar={
                   <Avatar sx={{ bgcolor: green[500] }}>
-                    <SpaIcon />
+                    🌱
                   </Avatar>
                 }
                 title={

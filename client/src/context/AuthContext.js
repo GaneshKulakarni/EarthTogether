@@ -1,22 +1,9 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
-// Configure axios - using relative URLs that will be proxied
+// Configure axios defaults
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 axios.defaults.withCredentials = true;
-
-// Add a request interceptor to include the auth token in all requests
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['x-auth-token'] = token;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 const AuthContext = createContext();
 
@@ -67,14 +54,10 @@ export const AuthProvider = ({ children }) => {
 
   // Load user
   const loadUser = async () => {
-    console.group('AuthContext - loadUser');
     const token = localStorage.getItem('token');
-    console.log('Token exists:', !!token);
 
     if (!token) {
-      console.log('No token found, dispatching AUTH_ERROR');
       dispatch({ type: 'AUTH_ERROR' });
-      console.groupEnd();
       return;
     }
 
@@ -128,21 +111,21 @@ export const AuthProvider = ({ children }) => {
   // Login user
   const login = async (email, password) => {
     try {
-      console.log('Attempting login for:', email);
       const res = await axios.post('/api/auth/login', { email, password });
-      console.log('Login API response:', res.data);
       
-      // Store the token in localStorage
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: res.data
+        });
+        
+        // Load user data
+        await loadUser();
       }
-      
-      // Load user data
-      await loadUser();
       
       return { success: true };
     } catch (err) {
-      console.error('Login error:', err.response?.data || err.message);
       dispatch({ type: 'LOGIN_FAIL' });
       const serverErrors = err.response?.data?.errors;
       const message = serverErrors 
@@ -202,7 +185,7 @@ export const AuthProvider = ({ children }) => {
     loadUser
   };
 
-  console.log('AuthContext value:', contextValue);
+  // console.log('AuthContext value:', contextValue);
 
   return (
     <AuthContext.Provider value={contextValue}>

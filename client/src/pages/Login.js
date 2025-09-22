@@ -29,8 +29,7 @@ const Login = () => {
     const result = await login(email, password);
     if (result.success) {
       toast.success('Login successful!');
-      console.log('Login successful, isAuthenticated:', isAuthenticated);
-      // Removed direct navigation here, now handled by useEffect
+      setTimeout(() => navigate('/dashboard'), 100);
     } else {
       toast.error(result.error || 'Login failed');
     }
