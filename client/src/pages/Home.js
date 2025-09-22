@@ -44,9 +44,16 @@ const Home = () => {
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-8">🏠 EarthTogether Feed</h1>
-      <p className="text-center text-gray-600 mb-8">Your daily dose of eco-inspiration, community posts, and sustainability updates</p>
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg mb-6">
+          <span className="text-3xl">🏠</span>
+        </div>
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-4">
+          EarthTogether Feed
+        </h1>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">Your daily dose of eco-inspiration, community posts, and sustainability updates</p>
+      </div>
       <motion.div
         className="max-w-2xl mx-auto space-y-6"
         variants={containerVariants}
@@ -57,9 +64,9 @@ const Home = () => {
           <p className="text-center text-gray-500">No posts yet. Be the first to share!</p>
         ) : (
           posts.map((post) => (
-            <motion.div // Wrap with motion.div
+            <motion.div
               key={post._id}
-              className="bg-white shadow-md rounded-lg p-6"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8"
               variants={cardVariants}
               whileHover="hover"
               whileTap="tap"

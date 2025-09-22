@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
 // Configure axios defaults
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8450';
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();
