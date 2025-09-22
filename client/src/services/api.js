@@ -108,4 +108,14 @@ export const sharePost = async (postId) => {
   }
 };
 
+export const createPost = async (postData) => {
+  try {
+    const response = await api.post('/posts', postData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating post:', error);
+    throw error;
+  }
+};
+
 export default api;

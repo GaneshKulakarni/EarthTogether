@@ -6,13 +6,15 @@ const User = require('../models/User');
 const router = express.Router();
 
 // @route   GET api/posts
-// @desc    Get all posts
+// @desc    Get all posts from all users (public feed)
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const posts = await Post.find()
+    const posts = await Post.find({ status: 'active' })
       .populate('user', ['username', 'ecoPoints', 'avatar'])
-      .sort({ createdAt: -1 });
+      .populate('comments.user', ['username'])
+      .sort({ createdAt: -1 })
+      .limit(50); // Limit to recent 50 posts for performance
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -23,32 +25,28 @@ router.get('/', auth, async (req, res) => {
 // @route   POST api/posts
 // @desc    Create a new post
 // @access  Private
-router.post('/', [
-  auth,
-  [check('content', 'Content is required').not().isEmpty()]
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+router.post('/', auth, async (req, res) => {
   try {
-    const { content, category, imageUrl } = req.body;
+    const { content, category } = req.body;
+
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ message: 'Content is required' });
+    }
 
     const newPost = new Post({
       user: req.user.id,
-      content,
-      category: category || 'general',
-      imageUrl
+      content: content.trim(),
+      category: category || 'General'
     });
 
     const post = await newPost.save();
-    await post.populate('user', ['username', 'ecoPoints']);
+    await post.populate('user', ['username', 'ecoPoints', 'avatar']);
     
+    console.log('Post created successfully:', post._id);
     res.json(post);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Error creating post:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -113,19 +111,22 @@ router.post('/like/:id', auth, async (req, res) => {
     }
 
     // Check if post has already been liked
-    if (post.likes.some(like => like.user.toString() === req.user.id)) {
-      // Unlike
-      post.likes = post.likes.filter(like => like.user.toString() !== req.user.id);
+    const likeIndex = post.likes.findIndex(like => like.user.toString() === req.user.id);
+    
+    if (likeIndex > -1) {
+      // Unlike - remove the like
+      post.likes.splice(likeIndex, 1);
     } else {
-      // Like
-      post.likes.unshift({ user: req.user.id });
+      // Like - add the like
+      post.likes.push({ user: req.user.id });
     }
 
     await post.save();
-    res.json(post.likes);
+    console.log(`Post ${post._id} ${likeIndex > -1 ? 'unliked' : 'liked'} by user ${req.user.id}`);
+    res.json({ likes: post.likes, likeCount: post.likes.length });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Error liking post:', err.message);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -152,16 +153,18 @@ router.post('/comment/:id', [
     const newComment = {
       content: req.body.content,
       user: req.user.id,
-      username: user.username
+      username: user.username,
+      createdAt: new Date()
     };
 
-    post.comments.unshift(newComment);
+    post.comments.push(newComment);
     await post.save();
 
-    res.json(post.comments);
+    console.log(`Comment added to post ${post._id} by user ${user.username}`);
+    res.json({ comments: post.comments, commentCount: post.comments.length });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Error adding comment:', err.message);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

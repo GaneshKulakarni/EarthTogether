@@ -10,12 +10,8 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    if (!process.env.JWT_SECRET) {
-      console.error("JWT_SECRET not configured");
-      return res.status(500).json({ message: "Server configuration error" });
-    }
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const JWT_SECRET = 'your_super_secret_jwt_key_for_earthtogether_app_2024';
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = await User.findById(decoded.user.id).select("-password");
     if (!req.user) {
       console.log("User not found for token:", decoded.user.id);

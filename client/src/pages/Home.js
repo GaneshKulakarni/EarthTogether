@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getPosts, likePost, commentOnPost, sharePost } from '../services/api';
+import { getPosts, likePost, commentOnPost, sharePost, createPost } from '../services/api';
 import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from 'lucide-react';
 
 const Home = () => {
@@ -9,6 +9,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPost, setNewPost] = useState({ content: '', category: 'General' });
 
   // Mock posts data with plant images
   const mockPosts = [
@@ -136,12 +138,36 @@ const Home = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      // Always start with mock posts to ensure content is visible
+      setPosts(mockPosts);
+      
       try {
         const data = await getPosts();
-        setPosts(data);
+        if (data && data.length > 0) {
+          // Format real posts to match UI structure
+          const formattedPosts = data.map(post => ({
+            id: post._id,
+            _id: post._id,
+            user: {
+              name: post.user?.username || 'User',
+              avatar: '🌱',
+              title: 'EarthTogether Member'
+            },
+            content: post.content,
+            image: post.imageUrl || null,
+            likes: post.likes?.length || 0,
+            comments: post.comments?.length || 0,
+            shares: post.shares?.length || 0,
+            timeAgo: new Date(post.createdAt).toLocaleDateString(),
+            liked: false,
+            category: post.category || 'General'
+          }));
+          // Add real posts to the top of mock posts
+          setPosts([...formattedPosts, ...mockPosts]);
+        }
       } catch (error) {
-        // Fallback to mock data if API fails
-        setPosts(mockPosts);
+        console.error('Error fetching posts:', error);
+        // Mock posts are already set, so just continue
       } finally {
         setLoading(false);
       }
@@ -196,6 +222,50 @@ const Home = () => {
     setShowComments({ ...showComments, [postId]: !showComments[postId] });
   };
 
+  const handleCreatePost = async () => {
+    if (!newPost.content.trim()) return;
+    
+    try {
+      const postData = {
+        content: newPost.content,
+        category: newPost.category
+      };
+      
+      // Save to backend first
+      const savedPost = await createPost(postData);
+      
+      // Create formatted post object
+      const newPostObj = {
+        id: savedPost._id,
+        _id: savedPost._id,
+        user: { 
+          name: user?.username || 'User', 
+          avatar: '🌱', 
+          title: 'EarthTogether Member' 
+        },
+        content: newPost.content,
+        image: null,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        timeAgo: 'now',
+        liked: false,
+        category: newPost.category
+      };
+      
+      // Add to posts at the top
+      setPosts([newPostObj, ...posts]);
+      
+      // Reset form
+      setNewPost({ content: '', category: 'General' });
+      setShowCreatePost(false);
+      
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
@@ -215,14 +285,63 @@ const Home = () => {
 
         {/* Create Post */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.username?.[0]?.toUpperCase() || 'U'}
+          {!showCreatePost ? (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                {user?.username?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <button 
+                onClick={() => setShowCreatePost(true)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-left text-gray-500 transition-colors"
+              >
+                Share your eco-journey...
+              </button>
             </div>
-            <button className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-left text-gray-500 transition-colors">
-              Share your eco-journey...
-            </button>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{user?.username || 'User'}</h3>
+                  <select 
+                    value={newPost.category}
+                    onChange={(e) => setNewPost({...newPost, category: e.target.value})}
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none"
+                  >
+                    <option value="General">General</option>
+                    <option value="Achievement">Achievement</option>
+                    <option value="Tip">Tip</option>
+                    <option value="Question">Question</option>
+                    <option value="Challenge">Challenge</option>
+                  </select>
+                </div>
+              </div>
+              <textarea
+                value={newPost.content}
+                onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                placeholder="What's your eco-story today?"
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-green-500"
+                rows={4}
+              />
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={() => {setShowCreatePost(false); setNewPost({content: '', category: 'General'});}}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreatePost}
+                  disabled={!newPost.content.trim()}
+                  className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Posts Feed */}

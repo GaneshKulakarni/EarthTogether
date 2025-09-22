@@ -13,8 +13,8 @@ const postSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true,
-    enum: ['Achievement', 'Tip', 'Question', 'Challenge', 'General']
+    required: false,
+    default: 'General'
   },
   imageUrl: {
     type: String,
