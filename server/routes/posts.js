@@ -165,4 +165,28 @@ router.post('/comment/:id', [
   }
 });
 
+// @route   POST api/posts/share/:id
+// @desc    Share a post
+// @access  Private
+router.post('/share/:id', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+
+    // Check if post has already been shared by this user
+    if (!post.shares.some(share => share.user.toString() === req.user.id)) {
+      post.shares.unshift({ user: req.user.id });
+      await post.save();
+    }
+
+    res.json(post.shares);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 module.exports = router;

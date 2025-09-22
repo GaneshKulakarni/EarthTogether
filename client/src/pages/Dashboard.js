@@ -17,16 +17,21 @@ const Dashboard = () => {
   
 
   const fetchHabits = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/habits', {
-        headers: { 'x-auth-token': token }
-      });
+      const response = await axios.get('/api/habits');
       setHabits(response.data);
-      
-      // setEstimatedCarbon(est);
     } catch (error) {
       console.error('Error fetching habits:', error);
+      if (error.response?.status === 401) {
+        // Token is invalid, clear it
+        localStorage.removeItem('token');
+      }
     } finally {
       setLoading(false);
     }
@@ -38,10 +43,7 @@ const Dashboard = () => {
 
   const markHabitComplete = async (habitId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`/api/habits/${habitId}/complete`, {}, {
-        headers: { 'x-auth-token': token }
-      });
+      await axios.post(`/api/habits/${habitId}/complete`);
       fetchHabits(); // Refresh habits
     } catch (error) {
       console.error('Error marking habit complete:', error);

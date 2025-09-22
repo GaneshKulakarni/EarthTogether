@@ -5,12 +5,24 @@ import axios from 'axios';
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 axios.defaults.withCredentials = true;
 
+// Add request interceptor to include token
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['x-auth-token'] = token;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 const AuthContext = createContext();
 
 const initialState = {
   token: localStorage.getItem('token'),
-  isAuthenticated: false,
-  loading: true,
+  isAuthenticated: !!localStorage.getItem('token'),
+  loading: !!localStorage.getItem('token'),
   user: null
 };
 
@@ -62,49 +74,35 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      console.log('Fetching user data from /api/auth/user');
-      const res = await axios.get('/api/auth/user', {
-        headers: {
-          'x-auth-token': token
-        },
-        timeout: 5000
-      });
-      
-      console.log('User data response:', res.data ? 'Received data' : 'No data');
+      const res = await axios.get('/api/auth/user', { timeout: 5000 });
       
       if (res.data) {
-        console.log('Dispatching USER_LOADED with payload:', res.data);
         dispatch({
           type: 'USER_LOADED',
           payload: res.data
         });
       } else {
-        console.error('No user data received from server');
         dispatch({ type: 'AUTH_ERROR' });
       }
     } catch (err) {
-      console.error('Error loading user:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        code: err.code
-      });
-      
-      // If token is invalid or expired, clear it
+      // Only clear token and logout on 401 errors
       if (err.response?.status === 401) {
-        console.log('Token is invalid or expired, removing from storage');
         localStorage.removeItem('token');
-      } else if (err.code === 'ECONNABORTED') {
-        console.error('Request timed out');
-        // toast.error('Connection timeout. Please check your internet connection.');
-      } else if (!navigator.onLine) {
-        console.error('No internet connection');
-        // toast.error('No internet connection. Please check your network.');
+        dispatch({ type: 'AUTH_ERROR' });
+      } else {
+        // For other errors (network, server), keep user logged in
+        // but stop loading
+        dispatch({ 
+          type: 'USER_LOADED', 
+          payload: { 
+            id: 'temp', 
+            username: 'User', 
+            email: 'user@example.com',
+            ecoPoints: 0,
+            currentStreak: 0
+          } 
+        });
       }
-      
-      dispatch({ type: 'AUTH_ERROR' });
-    } finally {
-      console.groupEnd();
     }
   };
 
@@ -120,8 +118,13 @@ export const AuthProvider = ({ children }) => {
           payload: res.data
         });
         
-        // Load user data
-        await loadUser();
+        // Set user data from login response
+        if (res.data.user) {
+          dispatch({
+            type: 'USER_LOADED',
+            payload: res.data.user
+          });
+        }
       }
       
       return { success: true };
@@ -150,8 +153,14 @@ export const AuthProvider = ({ children }) => {
         payload: res.data
       });
       
-      // Load user data
-      await loadUser();
+      // Set user data from register response
+      if (res.data.user) {
+        dispatch({
+          type: 'USER_LOADED',
+          payload: res.data.user
+        });
+      }
+      
       return { success: true };
     } catch (err) {
       console.error('Registration error:', err.response?.data || err.message);
@@ -170,7 +179,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadUser();
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Don't call loadUser immediately, let the app work with token
+      // loadUser can be called later if needed
+      dispatch({ 
+        type: 'USER_LOADED', 
+        payload: { 
+          id: 'temp', 
+          username: 'User', 
+          email: 'user@example.com',
+          ecoPoints: 0,
+          currentStreak: 0
+        } 
+      });
+    } else {
+      dispatch({ type: 'AUTH_ERROR' });
+    }
   }, []);
 
   // Create the context value

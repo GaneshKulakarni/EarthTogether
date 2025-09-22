@@ -19,11 +19,12 @@ const mockNews = [
 
 // Get environment news
 exports.getEnvironmentNews = async (req, res) => {
-  console.log('Received request for environment news');
-  
   try {
-    // Return mock news data
-    return res.json(mockNews);
+    // Return mock news data with success wrapper
+    return res.json({
+      success: true,
+      data: mockNews
+    });
     
   } catch (error) {
     console.error('Error in getEnvironmentNews:', error);
