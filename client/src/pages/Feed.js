@@ -10,6 +10,7 @@ const Feed = () => {
   const [loading, setLoading] = useState(true);
   const { fetchNotifications } = useNotifications();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [userChallenges, setUserChallenges] = useState([]);
   const [newPost, setNewPost] = useState({
     content: '',
     category: 'energy',
@@ -18,6 +19,7 @@ const Feed = () => {
 
   useEffect(() => {
     fetchPosts();
+    fetchUserChallenges();
   }, []);
 
   const fetchPosts = async () => {
@@ -29,6 +31,35 @@ const Feed = () => {
       toast.error('Failed to fetch posts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserChallenges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/challenges', {
+        headers: { 'x-auth-token': token }
+      });
+      const joinedChallenges = response.data.filter(challenge => 
+        challenge.participants.some(p => p.user === JSON.parse(localStorage.getItem('user'))?._id)
+      );
+      setUserChallenges(joinedChallenges.map(c => c._id));
+    } catch (error) {
+      console.error('Error fetching user challenges:', error);
+    }
+  };
+
+  const joinChallenge = async (challengeId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/challenges/${challengeId}/join`, {}, {
+        headers: { 'x-auth-token': token }
+      });
+      setUserChallenges(prev => [...prev, challengeId]);
+      toast.success('Successfully joined the challenge!');
+    } catch (error) {
+      console.error('Error joining challenge:', error);
+      toast.error(error.response?.data?.msg || 'Failed to join challenge');
     }
   };
 
@@ -227,6 +258,8 @@ const Feed = () => {
                 post={post}
                 onLike={handleLike}
                 onComment={handleComment}
+                onJoinChallenge={joinChallenge}
+                userChallenges={userChallenges}
               />
             ))
           )}

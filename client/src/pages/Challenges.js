@@ -12,6 +12,18 @@ const Challenges = () => {
   const [loading, setLoading] = useState(true);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newChallenge, setNewChallenge] = useState({
+    title: '',
+    description: '',
+    category: 'General',
+    difficulty: 'Medium',
+    duration: 7,
+    ecoPoints: 100,
+    carbonSaved: 5,
+    requirements: [''],
+    rewards: ['']
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,7 +38,9 @@ const Challenges = () => {
         const challengesRes = await axios.get('/api/challenges', config);
         const challengesWithJoinStatus = challengesRes.data.map(challenge => ({
           ...challenge,
-          isJoined: challenge.participants.some(p => p.user === user._id)
+          isJoined: challenge.participants.some(p => 
+            (typeof p.user === 'object' ? p.user._id : p.user) === user._id
+          )
         }));
         setChallenges(challengesWithJoinStatus);
         
@@ -56,9 +70,16 @@ const Challenges = () => {
         },
       };
       await axios.post(`/api/challenges/${challengeId}/join`, {}, config);
+      
+      // Update challenges state
       setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { ...c, isJoined: true, participants: [...c.participants, { user: user._id, joinedAt: new Date(), progress: 0 }] } : c
+        c._id === challengeId ? { 
+          ...c, 
+          isJoined: true, 
+          participants: [...c.participants, { user: user._id, joinedAt: new Date(), progress: 0 }]
+        } : c
       ));
+      
       toast.success('Successfully joined the challenge!');
     } catch (error) {
       console.error(error);
@@ -68,15 +89,64 @@ const Challenges = () => {
 
   const leaveChallenge = async (challengeId) => {
     try {
-      // Assuming there's a leave endpoint or simply remove from frontend for now
-      // If a backend endpoint is needed, it would be similar to joinChallenge
+      const config = {
+        headers: {
+          'x-auth-token': localStorage.getItem('token'),
+        },
+      };
+      await axios.post(`/api/challenges/${challengeId}/leave`, {}, config);
+      
+      // Update challenges state
       setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { ...c, isJoined: false, participants: c.participants.filter(p => p.user !== user._id) } : c
+        c._id === challengeId ? { 
+          ...c, 
+          isJoined: false, 
+          participants: c.participants.filter(p => 
+            (typeof p.user === 'object' ? p.user._id : p.user) !== user._id
+          )
+        } : c
       ));
+      
       toast.success('Left the challenge');
     } catch (error) {
       console.error(error);
       toast.error('Failed to leave challenge');
+    }
+  };
+
+  const createChallenge = async (e) => {
+    e.preventDefault();
+    try {
+      const config = {
+        headers: {
+          'x-auth-token': localStorage.getItem('token'),
+        },
+      };
+      
+      const challengeData = {
+        ...newChallenge,
+        requirements: newChallenge.requirements.filter(r => r.trim()),
+        rewards: newChallenge.rewards.filter(r => r.trim())
+      };
+      
+      const response = await axios.post('/api/challenges', challengeData, config);
+      setChallenges(prev => [...prev, { ...response.data, isJoined: false }]);
+      setShowCreateModal(false);
+      setNewChallenge({
+        title: '',
+        description: '',
+        category: 'General',
+        difficulty: 'Medium',
+        duration: 7,
+        ecoPoints: 100,
+        carbonSaved: 5,
+        requirements: [''],
+        rewards: ['']
+      });
+      toast.success('Challenge created successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to create challenge');
     }
   };
 
@@ -155,7 +225,7 @@ const Challenges = () => {
                 <Trophy className="w-6 h-6 text-purple-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                {joinedChallenges.reduce((sum, c) => sum + c.ecoPoints, 0)}
+                {joinedChallenges.reduce((sum, c) => sum + (c.ecoPoints || 0), 0)}
               </h3>
               <p className="text-gray-600">Points Available</p>
             </div>
@@ -163,26 +233,35 @@ const Challenges = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-md mb-8">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-md">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`py-2 px-4 rounded-md font-medium transition-colors ${
+                activeTab === 'active'
+                  ? 'bg-green-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All Challenges ({activeChallenges.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('joined')}
+              className={`py-2 px-4 rounded-md font-medium transition-colors ${
+                activeTab === 'joined'
+                  ? 'bg-green-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              My Challenges ({joinedChallenges.length})
+            </button>
+          </div>
           <button
-            onClick={() => setActiveTab('active')}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              activeTab === 'active'
-                ? 'bg-green-500 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            onClick={() => setShowCreateModal(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
           >
-            All Challenges ({activeChallenges.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('joined')}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              activeTab === 'joined'
-                ? 'bg-green-500 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            My Challenges ({joinedChallenges.length})
+            <Plus className="w-4 h-4" />
+            <span>Create Challenge</span>
           </button>
         </div>
 
@@ -219,12 +298,12 @@ const Challenges = () => {
                   <div className="mb-4">
                     <div className="flex justify-between text-sm text-gray-600 mb-1">
                       <span>Progress</span>
-                      <span>{challenge.progress}%</span>
+                      <span>{challenge.progress || 0}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${challenge.progress}%` }}
+                        style={{ width: `${challenge.progress || 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -237,7 +316,7 @@ const Challenges = () => {
                     <div className="text-xs text-gray-500">Days</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-gray-900">{challenge.participants.toLocaleString()}</div>
+                    <div className="text-lg font-bold text-gray-900">{challenge.participants?.length?.toLocaleString()}</div>
                     <div className="text-xs text-gray-500">Participants</div>
                   </div>
                   <div>
@@ -260,7 +339,7 @@ const Challenges = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Trophy className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm text-gray-600">{challenge.rewards.length} rewards</span>
+                    <span className="text-sm text-gray-600">{challenge.rewards?.length || 0} rewards</span>
                   </div>
                 </div>
 
@@ -335,7 +414,6 @@ const Challenges = () => {
                         headers: { 'x-auth-token': token }
                       });
                       
-                      // Update local state with complete post data
                       setChallengePosts(prevPosts => 
                         prevPosts.map(post => 
                           post._id === postId 
@@ -354,7 +432,6 @@ const Challenges = () => {
                       await axios.post(`/api/posts/comment/${postId}`, { content: comment }, {
                         headers: { 'x-auth-token': token }
                       });
-                      // Refresh challenge posts
                       const postsRes = await axios.get('/api/posts', {
                         headers: { 'x-auth-token': localStorage.getItem('token') }
                       });
@@ -367,6 +444,8 @@ const Challenges = () => {
                       toast.error('Failed to add comment');
                     }
                   }}
+                  onJoinChallenge={joinChallenge}
+                  userChallenges={joinedChallenges.map(c => c._id)}
                 />
               ))}
             </div>
@@ -396,7 +475,7 @@ const Challenges = () => {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
                     <ul className="space-y-1">
-                      {selectedChallenge.requirements.map((req, index) => (
+                      {selectedChallenge.requirements?.map((req, index) => (
                         <li key={index} className="flex items-center space-x-2 text-sm text-gray-600">
                           <CheckCircle className="w-4 h-4 text-green-500" />
                           <span>{req}</span>
@@ -408,7 +487,7 @@ const Challenges = () => {
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-2">Rewards</h4>
                     <ul className="space-y-1">
-                      {selectedChallenge.rewards.map((reward, index) => (
+                      {selectedChallenge.rewards?.map((reward, index) => (
                         <li key={index} className="flex items-center space-x-2 text-sm text-gray-600">
                           <Trophy className="w-4 h-4 text-yellow-500" />
                           <span>{reward}</span>
@@ -418,33 +497,156 @@ const Challenges = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={() => setSelectedChallenge(null)}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Close
-                  </button>
-                  {!selectedChallenge.isJoined ? (
+                {selectedChallenge.isJoined && (
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-2">Your Progress</h4>
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                      <div 
+                        className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${selectedChallenge.progress || 0}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-600">{selectedChallenge.progress || 0}% completed</p>
+                  </div>
+                )}
+                
+                <div className="flex space-x-3">
+                  {selectedChallenge.isJoined ? (
+                    <button
+                      onClick={() => setSelectedChallenge(null)}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <TrendingUp className="w-5 h-5" />
+                      <span>Update Progress</span>
+                    </button>
+                  ) : (
                     <button
                       onClick={() => {
                         joinChallenge(selectedChallenge._id);
                         setSelectedChallenge(null);
                       }}
-                      className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                     >
-                      Join Challenge
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setSelectedChallenge(null)}
-                      className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-                    >
-                      Update Progress
+                      <Plus className="w-5 h-5" />
+                      <span>Join Challenge</span>
                     </button>
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Challenge Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">Create New Challenge</h2>
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <form onSubmit={createChallenge} className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={newChallenge.title}
+                      onChange={(e) => setNewChallenge({...newChallenge, title: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select
+                      value={newChallenge.category}
+                      onChange={(e) => setNewChallenge({...newChallenge, category: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="Waste Reduction">Waste Reduction</option>
+                      <option value="Energy">Energy</option>
+                      <option value="Transportation">Transportation</option>
+                      <option value="Water">Water</option>
+                      <option value="Food">Food</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={newChallenge.description}
+                    onChange={(e) => setNewChallenge({...newChallenge, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                    <select
+                      value={newChallenge.difficulty}
+                      onChange={(e) => setNewChallenge({...newChallenge, difficulty: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
+                    <input
+                      type="number"
+                      value={newChallenge.duration}
+                      onChange={(e) => setNewChallenge({...newChallenge, duration: parseInt(e.target.value)})}
+                      min="1"
+                      max="365"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Eco Points</label>
+                    <input
+                      type="number"
+                      value={newChallenge.ecoPoints}
+                      onChange={(e) => setNewChallenge({...newChallenge, ecoPoints: parseInt(e.target.value)})}
+                      min="10"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                  >
+                    Create Challenge
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

@@ -16,6 +16,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [userHabits, setUserHabits] = useState([]);
   const [userPosts, setUserPosts] = useState([]);
+  const [userChallenges, setUserChallenges] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -83,7 +84,37 @@ const Profile = () => {
   useEffect(() => {
     setShouldFetchHabits(activeTab === 'habits' && !!user);
     setShouldFetchPosts(activeTab === 'feed' && !!user);
+    if (user) fetchUserChallenges();
   }, [activeTab, user]);
+
+  const fetchUserChallenges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/challenges', {
+        headers: { 'x-auth-token': token }
+      });
+      const joinedChallenges = response.data.filter(challenge => 
+        challenge.participants.some(p => p.user === user?._id)
+      );
+      setUserChallenges(joinedChallenges.map(c => c._id));
+    } catch (error) {
+      console.error('Error fetching user challenges:', error);
+    }
+  };
+
+  const joinChallenge = async (challengeId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/challenges/${challengeId}/join`, {}, {
+        headers: { 'x-auth-token': token }
+      });
+      setUserChallenges(prev => [...prev, challengeId]);
+      toast.success('Successfully joined the challenge!');
+    } catch (error) {
+      console.error('Error joining challenge:', error);
+      toast.error(error.response?.data?.msg || 'Failed to join challenge');
+    }
+  };
 
   // Fetch user's habits when needed
   useEffect(() => {
@@ -529,6 +560,8 @@ const Profile = () => {
                         toast.error('Failed to delete post');
                       }
                     }}
+                    onJoinChallenge={joinChallenge}
+                    userChallenges={userChallenges}
                   />
                 ))}
               </div>
