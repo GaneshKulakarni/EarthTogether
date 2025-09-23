@@ -120,7 +120,120 @@ const Home = () => {
                   onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
                   className="text-sm text-gray-600 bg-transparent border-none focus:outline-none"
                 >
-                  <option value="General">General</option>
+                  <option value="General">Generaimport React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { usePost } from '../context/PostContext';
+import { useNotifications } from '../context/NotificationContext';
+import { Heart, MessageCircle, Share2, Send } from 'lucide-react';
+
+const Home = () => {
+  const { user } = useAuth();
+  const { posts, loading, fetchPosts, addPost, toggleLike, addComment, sharePost } = usePost();
+  const { fetchNotifications } = useNotifications();
+  const [showComments, setShowComments] = useState({});
+  const [commentText, setCommentText] = useState({});
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPost, setNewPost] = useState({ content: '', category: 'General' });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const handleLike = (postId) => toggleLike(postId);
+
+  const handleComment = async (postId) => {
+    const content = commentText[postId];
+    if (!content?.trim()) return;
+    
+    await addComment(postId, content);
+    setCommentText({ ...commentText, [postId]: '' });
+  };
+
+  const handleShare = (postId) => sharePost(postId);
+
+  const toggleComments = (postId) => {
+    setShowComments({ ...showComments, [postId]: !showComments[postId] });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!newPost.content.trim()) return;
+    
+    try {
+      const postData = {
+        content: newPost.content,
+        category: newPost.category
+      };
+      
+      if (selectedImage) {
+        postData.imageUrl = imagePreview;
+      }
+      
+      await addPost(postData);
+      
+      setNewPost({ content: '', category: 'General' });
+      setSelectedImage(null);
+      setImagePreview(null);
+      setShowCreatePost(false);
+    } catch (error) {
+      alert('Failed to create post. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">🏠 EarthTogether Feed</h1>
+          <p className="text-gray-600">Your daily dose of eco-inspiration and community updates</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          {!showCreatePost ? (
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                {user?.username?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <button 
+                onClick={() => setShowCreatePost(true)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-left text-gray-500 transition-colors"
+              >
+                Share your eco-journey...
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{user?.username || 'User'}</h3>
+                  <select 
+                    value={newPost.category}
+                    onChange={(e) => setNewPost({...newPost, category: e.target.value})}
+                    className="text-sm text-gray-600 bg-transparent border-none focus:outline-none"
+                  >
+                    <option value="General">General</option>
                   <option value="Achievement">Achievement</option>
                   <option value="Tip">Tip</option>
                   <option value="Question">Question</option>
