@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePost } from '../context/PostContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus } from 'lucide-react';
 import axios from 'axios';
@@ -10,6 +11,7 @@ import PostCard from '../components/PostCard';
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loadUser, isAuthenticated } = useAuth();
+  const { fetchUserPosts } = usePost();
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [userHabits, setUserHabits] = useState([]);
@@ -90,7 +92,7 @@ const Profile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/habits', {
+        const res = await axios.get('/api/habits', {
           headers: { 
             'x-auth-token': token,
             'Content-Type': 'application/json'
@@ -108,44 +110,38 @@ const Profile = () => {
 
   // Fetch user's posts when needed
   useEffect(() => {
-    const fetchUserPosts = async () => {
+    const loadUserPosts = async () => {
       if (!shouldFetchPosts) return;
       
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/posts/my-posts', {
-          headers: { 'x-auth-token': token }
-        });
-        setUserPosts(res.data);
+        const posts = await fetchUserPosts();
+        setUserPosts(posts);
       } catch (error) {
         console.error('Error fetching user posts:', error);
         toast.error('Failed to load posts.');
       }
     };
 
-    fetchUserPosts();
-  }, [shouldFetchPosts]);
+    loadUserPosts();
+  }, [shouldFetchPosts, fetchUserPosts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append('username', formData.username);
-    data.append('bio', formData.bio);
-    if (selectedFile) {
-      data.append('avatar', selectedFile);
-    }
-
+    
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/users/profile', data, {
+      await axios.put('/api/users/profile', {
+        username: formData.username,
+        bio: formData.bio
+      }, {
         headers: {
           'x-auth-token': token,
-          'Content-Type': 'multipart/form-data' // Important for file uploads
+          'Content-Type': 'application/json'
         }
       });
       toast.success('Profile updated successfully!');
       setEditing(false);
-      setSelectedFile(null); // Clear selected file after upload
+      setSelectedFile(null);
       loadUser(); // Refresh user data
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -245,7 +241,7 @@ const Profile = () => {
               className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg w-full justify-center md:w-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>New Post</span>
+              <span onClick={()=> navigate('/create-post')}>New Post</span>
             </button>
           </div>
         </div>
@@ -477,16 +473,67 @@ const Profile = () => {
 
         {/* My Posts Section */}
         {activeTab === 'feed' && (
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">My Posts</h2>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">My Posts</h2>
             {userPosts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="max-w-2xl mx-auto space-y-6">
                 {userPosts.map(post => (
-                  <PostCard key={post._id} post={post} />
+                  <PostCard 
+                    key={post._id} 
+                    post={post} 
+                    showDelete={true}
+                    onLike={async (postId) => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const response = await axios.put(`/api/posts/like/${postId}`, {}, {
+                          headers: { 'x-auth-token': token }
+                        });
+                        
+                        // Update local state with complete post data
+                        setUserPosts(prevPosts => 
+                          prevPosts.map(post => 
+                            post._id === postId 
+                              ? response.data
+                              : post
+                          )
+                        );
+                      } catch (error) {
+                        console.error('Error liking post:', error);
+                      }
+                    }}
+                    onComment={async (postId, comment) => {
+                      if (!comment.trim()) return;
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.post(`/api/posts/comment/${postId}`, { content: comment }, {
+                          headers: { 'x-auth-token': token }
+                        });
+                        const posts = await fetchUserPosts();
+                        setUserPosts(posts);
+                      } catch (error) {
+                        console.error('Error adding comment:', error);
+                        toast.error('Failed to add comment');
+                      }
+                    }}
+                    onDelete={async (postId) => {
+                      if (!window.confirm('Are you sure you want to delete this post?')) return;
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.delete(`/api/posts/${postId}`, {
+                          headers: { 'x-auth-token': token }
+                        });
+                        setUserPosts(prevPosts => prevPosts.filter(post => post._id !== postId));
+                        toast.success('Post deleted successfully');
+                      } catch (error) {
+                        console.error('Error deleting post:', error);
+                        toast.error('Failed to delete post');
+                      }
+                    }}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="bg-white rounded-lg shadow-md p-8 text-center">
                 <Newspaper className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
                 <p className="text-gray-500">Share your eco-journey with the community!</p>

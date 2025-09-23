@@ -173,6 +173,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update user data
+  const updateUser = (userData) => {
+    dispatch({
+      type: 'USER_LOADED',
+      payload: { ...state.user, ...userData }
+    });
+  };
+
   // Logout
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
@@ -181,18 +189,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Don't call loadUser immediately, let the app work with token
-      // loadUser can be called later if needed
-      dispatch({ 
-        type: 'USER_LOADED', 
-        payload: { 
-          id: 'temp', 
-          username: 'User', 
-          email: 'user@example.com',
-          ecoPoints: 0,
-          currentStreak: 0
-        } 
-      });
+      loadUser();
     } else {
       dispatch({ type: 'AUTH_ERROR' });
     }
@@ -207,7 +204,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    loadUser
+    loadUser,
+    updateUser
   };
 
   // console.log('AuthContext value:', contextValue);

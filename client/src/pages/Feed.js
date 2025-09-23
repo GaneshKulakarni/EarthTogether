@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-
 import { Plus, Image, Send } from 'lucide-react';
 import PostCard from '../components/PostCard';
+import { useNotifications } from '../context/NotificationContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { fetchNotifications } = useNotifications();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPost, setNewPost] = useState({
     content: '',
@@ -56,10 +57,35 @@ const Feed = () => {
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`/api/posts/like/${postId}`, {}, {
+      const currentUserId = JSON.parse(localStorage.getItem('user'))?._id;
+      const post = posts.find(p => p._id === postId);
+      const wasLiked = post?.likes?.some(like => 
+        (typeof like.user === 'object' ? like.user._id : like.user) === currentUserId
+      );
+      
+      const response = await axios.put(`/api/posts/like/${postId}`, {}, {
         headers: { 'x-auth-token': token }
       });
-      fetchPosts(); // Refresh to get updated like count
+      
+      // Show notification if user just liked someone else's post
+      const isNowLiked = response.data.likes?.some(like => 
+        (typeof like.user === 'object' ? like.user._id : like.user) === currentUserId
+      );
+      
+      if (!wasLiked && isNowLiked && response.data.user._id !== currentUserId) {
+        toast.success(`You liked ${response.data.user.username}'s post! ❤️`, {
+          duration: 3000
+        });
+      }
+      
+      // Update local state with complete post data
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post._id === postId 
+            ? response.data
+            : post
+        )
+      );
     } catch (error) {
       console.error('Error liking post:', error);
     }
@@ -181,7 +207,7 @@ const Feed = () => {
         )}
 
         {/* Posts Feed */}
-        <div className="space-y-6">
+        <div className="max-w-2xl mx-auto space-y-6">
           {posts.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow-md">
               <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />

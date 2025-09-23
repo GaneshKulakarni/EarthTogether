@@ -40,7 +40,7 @@ const Register = () => {
       const result = await register(formData.username, formData.email, formData.password);
       if (result.success) {
         toast.success('Registration successful! Welcome to EarthTogether!');
-        navigate('/dashboard');
+        navigate('/welcome');
       } else {
         toast.error(result.error);
       }

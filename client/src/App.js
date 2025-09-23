@@ -18,7 +18,10 @@ import Register from './pages/Register';
 import WasteManagement from './pages/WasteManagement';
 import Researches from './pages/Researches';
 import AdminPanel from './pages/AdminPanel';
+import CreatePost from './pages/CreatePost';
 import { AuthProvider } from './context/AuthContext';
+import { PostProvider } from './context/PostContext';
+import { NotificationProvider } from './context/NotificationContext';
 import PrivateRoute from './components/PrivateRoute';
 import MainLayout from './components/MainLayout';
 
@@ -26,12 +29,14 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
+      <NotificationProvider>
+        <PostProvider>
+        <Router
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
           <Routes>
             {/* Public Routes */}
@@ -59,6 +64,7 @@ function App() {
               <Route path="/researches" element={<Researches />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/create-post" element={<CreatePost />} />
             </Route>
             
             {/* Catch all - replace with 404 component if you want */}
@@ -66,7 +72,9 @@ function App() {
           </Routes>
           <Toaster position="top-right" />
         </div>
-      </Router>
+        </Router>
+        </PostProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

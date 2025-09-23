@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getPosts, likePost, commentOnPost, sharePost, createPost } from '../services/api';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from 'lucide-react';
+import { usePost } from '../context/PostContext';
+import { useNotifications } from '../context/NotificationContext';
+import { Heart, MessageCircle, Share2, Send } from 'lucide-react';
+
 
 const Home = () => {
   const { user } = useAuth();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { posts, loading, fetchPosts, addPost, toggleLike, addComment, sharePost, deletePost } = usePost();
+  const { fetchNotifications } = useNotifications();
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({ content: '', category: 'General' });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Mock posts data with plant images
   const mockPosts = [
@@ -137,89 +141,33 @@ const Home = () => {
   ];
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      // Always start with mock posts to ensure content is visible
-      setPosts(mockPosts);
-      
-      try {
-        const data = await getPosts();
-        if (data && data.length > 0) {
-          // Format real posts to match UI structure
-          const formattedPosts = data.map(post => ({
-            id: post._id,
-            _id: post._id,
-            user: {
-              name: post.user?.username || 'User',
-              avatar: '🌱',
-              title: 'EarthTogether Member'
-            },
-            content: post.content,
-            image: post.imageUrl || null,
-            likes: post.likes?.length || 0,
-            comments: post.comments?.length || 0,
-            shares: post.shares?.length || 0,
-            timeAgo: new Date(post.createdAt).toLocaleDateString(),
-            liked: false,
-            category: post.category || 'General'
-          }));
-          // Add real posts to the top of mock posts
-          setPosts([...formattedPosts, ...mockPosts]);
-        }
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-        // Mock posts are already set, so just continue
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPosts();
   }, []);
 
-  const handleLike = async (postId) => {
-    try {
-      await likePost(postId);
-      setPosts(posts.map(post => 
-        post.id === postId || post._id === postId
-          ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
-          : post
-      ));
-    } catch (error) {
-      console.error('Error liking post:', error);
-    }
-  };
+  const handleLike = (postId) => toggleLike(postId);
 
   const handleComment = async (postId) => {
     const content = commentText[postId];
     if (!content?.trim()) return;
     
-    try {
-      await commentOnPost(postId, content);
-      setPosts(posts.map(post => 
-        post.id === postId || post._id === postId
-          ? { ...post, comments: post.comments + 1 }
-          : post
-      ));
-      setCommentText({ ...commentText, [postId]: '' });
-    } catch (error) {
-      console.error('Error commenting:', error);
-    }
+    await addComment(postId, content);
+    setCommentText({ ...commentText, [postId]: '' });
   };
 
-  const handleShare = async (postId) => {
-    try {
-      await sharePost(postId);
-      setPosts(posts.map(post => 
-        post.id === postId || post._id === postId
-          ? { ...post, shares: post.shares + 1 }
-          : post
-      ));
-    } catch (error) {
-      console.error('Error sharing post:', error);
-    }
-  };
+  const handleShare = (postId) => sharePost(postId);
 
   const toggleComments = (postId) => {
     setShowComments({ ...showComments, [postId]: !showComments[postId] });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleCreatePost = async () => {
@@ -231,37 +179,20 @@ const Home = () => {
         category: newPost.category
       };
       
-      // Save to backend first
-      const savedPost = await createPost(postData);
+      // If image is selected, add it to post data
+      if (selectedImage) {
+        // For now, we'll use the preview URL as the image
+        // In a real app, you'd upload to a file service first
+        postData.imageUrl = imagePreview;
+      }
       
-      // Create formatted post object
-      const newPostObj = {
-        id: savedPost._id,
-        _id: savedPost._id,
-        user: { 
-          name: user?.username || 'User', 
-          avatar: '🌱', 
-          title: 'EarthTogether Member' 
-        },
-        content: newPost.content,
-        image: null,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timeAgo: 'now',
-        liked: false,
-        category: newPost.category
-      };
+      await addPost(postData);
       
-      // Add to posts at the top
-      setPosts([newPostObj, ...posts]);
-      
-      // Reset form
       setNewPost({ content: '', category: 'General' });
+      setSelectedImage(null);
+      setImagePreview(null);
       setShowCreatePost(false);
-      
     } catch (error) {
-      console.error('Error creating post:', error);
       alert('Failed to create post. Please try again.');
     }
   };
@@ -325,9 +256,50 @@ const Home = () => {
                 className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-green-500"
                 rows={4}
               />
+              
+              {/* Image Upload */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-gray-700"
+                >
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg" />
+                      <button
+                        type="button"
+                        onClick={() => {setSelectedImage(null); setImagePreview(null);}}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <span className="text-sm">Click to add an image</span>
+                    </>
+                  )}
+                </label>
+              </div>
+              
               <div className="flex justify-between items-center">
                 <button
-                  onClick={() => {setShowCreatePost(false); setNewPost({content: '', category: 'General'});}}
+                  onClick={() => {
+                    setShowCreatePost(false); 
+                    setNewPost({content: '', category: 'General'});
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                  }}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   Cancel
@@ -360,9 +332,7 @@ const Home = () => {
                       <p className="text-sm text-gray-500">{post.user.title} • {post.timeAgo}</p>
                     </div>
                   </div>
-                  <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <MoreHorizontal className="w-5 h-5 text-gray-500" />
-                  </button>
+
                 </div>
               </div>
 

@@ -115,6 +115,7 @@ app.use('/api/challenges', require('./routes/challenges'));
 app.use('/api/memes', require('./routes/memes'));
 app.use('/api/quizzes', require('./routes/quizzes'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

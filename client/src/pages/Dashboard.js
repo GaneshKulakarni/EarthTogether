@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
@@ -7,7 +8,8 @@ import HabitCard from '../components/HabitCard';
 import EmptyState from '../components/EmptyState';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +45,16 @@ const Dashboard = () => {
 
   const markHabitComplete = async (habitId) => {
     try {
-      await axios.post(`/api/habits/${habitId}/complete`);
+      const response = await axios.post(`/api/habits/${habitId}/complete`);
+      
+      // Update user stats if returned from backend
+      if (response.data.userStats) {
+        updateUser({
+          ecoPoints: response.data.userStats.ecoPoints,
+          currentStreak: response.data.userStats.currentStreak
+        });
+      }
+      
       fetchHabits(); // Refresh habits
     } catch (error) {
       console.error('Error marking habit complete:', error);
@@ -148,7 +159,7 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
+              <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
                 Add New Habit
               </button>
               <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg transition-colors">

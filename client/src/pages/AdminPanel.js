@@ -1,14 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Users, FileText, Image, Award, Settings } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AdminPanel = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activePosts: 0,
+    pendingMemes: 0,
+    totalChallenges: 0
+  });
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const stats = {
-    totalUsers: 1247,
-    activePosts: 89,
-    pendingMemes: 12,
-    totalChallenges: 25
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // Restrict access to test@gmail.com only
+  if (user?.email !== 'test@gmail.com') {
+    return <Navigate to="/welcome" replace />;
+  }
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/admin/stats', {
+        headers: { 'x-auth-token': token }
+      });
+      setStats(response.data);
+      setRecentActivity(response.data.recentActivity || []);
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTimeAgo = (timestamp) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInHours = Math.floor((now - time) / (1000 * 60 * 60));
+    if (diffInHours < 1) return 'Less than an hour ago';
+    if (diffInHours === 1) return '1 hour ago';
+    return `${diffInHours} hours ago`;
   };
 
   const adminTabs = [
@@ -76,18 +114,22 @@ const AdminPanel = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <span>New user registration: EcoWarrior2024</span>
-                <span className="text-sm text-gray-500">2 hours ago</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <span>Meme submitted for review</span>
-                <span className="text-sm text-gray-500">4 hours ago</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                <span>Challenge completed by 15 users</span>
-                <span className="text-sm text-gray-500">6 hours ago</span>
-              </div>
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                </div>
+              ) : recentActivity.length > 0 ? (
+                recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <span>{activity.message}</span>
+                    <span className="text-sm text-gray-500">{formatTimeAgo(activity.timestamp)}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  No recent activity
+                </div>
+              )}
             </div>
           </div>
         </div>
