@@ -25,13 +25,7 @@ export const NotificationProvider = ({ children }) => {
         !n.read && !previousUnreadIds.includes(n._id)
       );
       
-      newUnreadNotifications.forEach(notification => {
-        if (notification.type === 'like') {
-          toast.success(`${notification.sender.username} liked your post! ❤️`, {
-            duration: 4000
-          });
-        }
-      });
+      // No like notifications to show
       
       previousNotificationsRef.current = newNotifications;
       setNotifications(newNotifications);

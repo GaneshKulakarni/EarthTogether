@@ -124,18 +124,6 @@ router.put('/like/:id', auth, async (req, res) => {
     } else {
       // Like - add the like
       post.likes.push({ user: req.user.id });
-      
-      // Create notification if liking someone else's post
-      if (post.user._id.toString() !== req.user.id) {
-        const liker = await User.findById(req.user.id).select('username');
-        await Notification.create({
-          recipient: post.user._id,
-          sender: req.user.id,
-          type: 'like',
-          post: post._id,
-          message: `${liker.username} liked your post`
-        });
-      }
     }
 
     const savedPost = await post.save();
