@@ -29,7 +29,7 @@ const Login = () => {
     const result = await login(email, password);
     if (result.success) {
       toast.success('Login successful!');
-      setTimeout(() => navigate('/dashboard'), 100);
+      setTimeout(() => navigate('/welcome'), 100);
     } else {
       toast.error(result.error || 'Login failed');
     }

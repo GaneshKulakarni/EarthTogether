@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -59,7 +59,7 @@ api.interceptors.response.use(
 // News API
 export const getEnvironmentNews = async () => {
   try {
-    const response = await api.get('/news/gemini');
+    const response = await api.get('/api/news/gemini');
     return response.data;
   } catch (error) {
     console.error('Error fetching news:', error);
@@ -70,7 +70,7 @@ export const getEnvironmentNews = async () => {
 // Posts API
 export const getPosts = async () => {
   try {
-    const response = await api.get('/posts');
+    const response = await api.get('/api/posts');
     return response.data;
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -80,7 +80,7 @@ export const getPosts = async () => {
 
 export const likePost = async (postId) => {
   try {
-    const response = await api.post(`/posts/like/${postId}`);
+    const response = await api.post(`/api/posts/like/${postId}`);
     return response.data;
   } catch (error) {
     console.error('Error liking post:', error);
@@ -90,7 +90,7 @@ export const likePost = async (postId) => {
 
 export const commentOnPost = async (postId, content) => {
   try {
-    const response = await api.post(`/posts/comment/${postId}`, { content });
+    const response = await api.post(`/api/posts/comment/${postId}`, { content });
     return response.data;
   } catch (error) {
     console.error('Error commenting on post:', error);
@@ -100,7 +100,7 @@ export const commentOnPost = async (postId, content) => {
 
 export const sharePost = async (postId) => {
   try {
-    const response = await api.post(`/posts/share/${postId}`);
+    const response = await api.post(`/api/posts/share/${postId}`);
     return response.data;
   } catch (error) {
     console.error('Error sharing post:', error);
@@ -110,7 +110,7 @@ export const sharePost = async (postId) => {
 
 export const createPost = async (postData) => {
   try {
-    const response = await api.post('/posts', postData);
+    const response = await api.post('/api/posts', postData);
     return response.data;
   } catch (error) {
     console.error('Error creating post:', error);

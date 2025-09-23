@@ -80,7 +80,7 @@ const Landing = () => {
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
-          <source src="public\videos\landing_video.mp4" type="video/mp4" />
+          <source src="/videos/landing video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         <div className="absolute inset-0 bg-black opacity-50 z-10"></div> {/* Overlay for text readability */}
@@ -105,18 +105,29 @@ const Landing = () => {
               transition={{ delay: 0.4, ...heroVariants.visible.transition }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              {!user ? <Link
-                to="/register"
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
-              >
-                Get Started
-              </Link> : ''}
-              <Link
-                to="/login"
-                className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
-              >
-               {user ? 'Profile' : 'Sign In'}
-              </Link>
+              {!user ? (
+                <>
+                  <Link
+                    to="/register"
+                    className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
+                  >
+                    Get Started
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  to="/dashboard"
+                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
+                >
+                  Go to Dashboard
+                </Link>
+              )}
             </motion.div>
           </div>
         </div>
@@ -176,7 +187,7 @@ const Landing = () => {
           <p className="text-xl text-white mb-8">
             Join thousands of eco-warriors already making the world a better place, one habit at a time.
           </p>
-          {!user && (
+          {!user ? (
             <motion.div
               variants={ctaButtonVariants}
               whileHover="hover"
@@ -187,6 +198,19 @@ const Landing = () => {
                 className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
               >
                 Start Your Eco-Journey Today
+              </Link>
+            </motion.div>
+          ) : (
+            <motion.div
+              variants={ctaButtonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Link
+                to="/home"
+                className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
+              >
+                Continue Your Journey
               </Link>
             </motion.div>
           )}

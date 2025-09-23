@@ -7,7 +7,7 @@ import {
   sharePost,
   createPost,
 } from "../services/api";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Send, Camera, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const containerVariants = {
@@ -33,7 +33,7 @@ const Home = () => {
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPost, setNewPost] = useState({ content: "", category: "General" });
+  const [newPost, setNewPost] = useState({ content: "", category: "General", image: null });
 
   // Mock posts data
   const mockPosts = [
@@ -55,31 +55,36 @@ const Home = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      setPosts(mockPosts); // Always show mock posts first
       try {
         const data = await getPosts();
         if (data && data.length > 0) {
-          const formattedPosts = data.map((post) => ({
-            id: post._id,
-            _id: post._id,
-            user: {
-              name: post.user?.username || "User",
-              avatar: "🌱",
-              title: "EarthTogether Member",
-            },
-            content: post.content,
-            image: post.imageUrl || null,
-            likes: post.likes?.length || 0,
-            comments: post.comments?.length || 0,
-            shares: post.shares?.length || 0,
-            timeAgo: new Date(post.createdAt).toLocaleDateString(),
-            liked: false,
-            category: post.category || "General",
-          }));
-          setPosts([...formattedPosts, ...mockPosts]);
+          const formattedPosts = data.map((post) => {
+            console.log('Post data:', post); // Debug log
+            return {
+              id: post._id || post.id,
+              _id: post._id || post.id,
+              user: {
+                name: post.user?.username || post.user?.name || "EcoUser",
+                avatar: "🌱",
+                title: "EarthTogether Member",
+              },
+              content: post.content,
+              image: post.imageUrl || null,
+              likes: post.likes?.length || 0,
+              comments: post.comments?.length || 0,
+              shares: post.shares?.length || 0,
+              timeAgo: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "now",
+              liked: false,
+              category: post.category || "General",
+            };
+          });
+          setPosts(formattedPosts);
+        } else {
+          setPosts(mockPosts);
         }
       } catch (error) {
         console.error("Error fetching posts:", error);
+        setPosts(mockPosts);
       } finally {
         setLoading(false);
       }
@@ -88,21 +93,24 @@ const Home = () => {
   }, []);
 
   const handleLike = async (postId) => {
+    // Update UI immediately
+    setPosts(
+      posts.map((post) =>
+        post.id === postId || post._id === postId
+          ? {
+              ...post,
+              liked: !post.liked,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+            }
+          : post
+      )
+    );
+    
+    // Try API call (will fail for mock posts, but that's ok)
     try {
       await likePost(postId);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? {
-                ...post,
-                liked: !post.liked,
-                likes: post.liked ? post.likes - 1 : post.likes + 1,
-              }
-            : post
-        )
-      );
     } catch (error) {
-      console.error("Error liking post:", error);
+      console.log("Like updated locally (mock post)");
     }
   };
 
@@ -110,33 +118,39 @@ const Home = () => {
     const content = commentText[postId];
     if (!content?.trim()) return;
 
+    // Update UI immediately
+    setPosts(
+      posts.map((post) =>
+        post.id === postId || post._id === postId
+          ? { ...post, comments: post.comments + 1 }
+          : post
+      )
+    );
+    setCommentText({ ...commentText, [postId]: "" });
+
+    // Try API call
     try {
       await commentOnPost(postId, content);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? { ...post, comments: post.comments + 1 }
-            : post
-        )
-      );
-      setCommentText({ ...commentText, [postId]: "" });
     } catch (error) {
-      console.error("Error commenting:", error);
+      console.log("Comment added locally (mock post)");
     }
   };
 
   const handleShare = async (postId) => {
+    // Update UI immediately
+    setPosts(
+      posts.map((post) =>
+        post.id === postId || post._id === postId
+          ? { ...post, shares: post.shares + 1 }
+          : post
+      )
+    );
+
+    // Try API call
     try {
       await sharePost(postId);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? { ...post, shares: post.shares + 1 }
-            : post
-        )
-      );
     } catch (error) {
-      console.error("Error sharing post:", error);
+      console.log("Share updated locally (mock post)");
     }
   };
 
@@ -151,6 +165,7 @@ const Home = () => {
       const postData = {
         content: newPost.content,
         category: newPost.category,
+        imageUrl: newPost.image,
       };
 
       const savedPost = await createPost(postData);
@@ -164,7 +179,7 @@ const Home = () => {
           title: "EarthTogether Member",
         },
         content: newPost.content,
-        image: null,
+        image: newPost.image,
         likes: 0,
         comments: 0,
         shares: 0,
@@ -174,7 +189,7 @@ const Home = () => {
       };
 
       setPosts([newPostObj, ...posts]);
-      setNewPost({ content: "", category: "General" });
+      setNewPost({ content: "", category: "General", image: null });
       setShowCreatePost(false);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -254,11 +269,45 @@ const Home = () => {
               className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-green-500"
               rows={4}
             />
+            
+            {/* Image Upload */}
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
+                <Camera className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-600">Add Photo</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (e) => {
+                        setNewPost({ ...newPost, image: e.target.result });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
+              {newPost.image && (
+                <div className="relative">
+                  <img src={newPost.image} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />
+                  <button
+                    onClick={() => setNewPost({ ...newPost, image: null })}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="flex justify-between items-center">
               <button
                 onClick={() => {
                   setShowCreatePost(false);
-                  setNewPost({ content: "", category: "General" });
+                  setNewPost({ content: "", category: "General", image: null });
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
