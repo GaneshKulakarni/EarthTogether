@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Trash2, Target, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
-const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false }) => {
+const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false, onJoinChallenge, userChallenges = [] }) => {
   const { user: currentUser } = useAuth();
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+
   
   const currentUserId = currentUser?._id || currentUser?.id;
   const isLikedByCurrentUser = post.likes.some(like => {
@@ -19,6 +21,26 @@ const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false }) => 
     onComment(post._id, commentText);
     setCommentText('');
     setShowCommentInput(false);
+  };
+
+
+
+  const handleJoinFirstChallenge = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/challenges', {
+        headers: { 'x-auth-token': token }
+      });
+      const availableChallenges = response.data.filter(challenge => 
+        challenge.status === 'active' && !userChallenges.includes(challenge._id)
+      );
+      
+      if (availableChallenges.length > 0 && onJoinChallenge) {
+        await onJoinChallenge(availableChallenges[0]._id);
+      }
+    } catch (error) {
+      console.error('Error joining challenge:', error);
+    }
   };
 
   return (
@@ -86,6 +108,25 @@ const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false }) => 
         </button>
       </div>
 
+      {/* Challenge Join Button */}
+      {(post.category === 'Challenge' || post.type === 'challenge') && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Target className="w-5 h-5 text-green-600" />
+              <span className="text-sm font-medium text-green-800">Challenge Post</span>
+            </div>
+            <button
+              onClick={handleJoinFirstChallenge}
+              className="flex items-center space-x-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Join Challenge</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {showCommentInput && (
         <form onSubmit={handleCommentSubmit} className="flex items-center space-x-2 mt-4">
           <input
@@ -124,6 +165,8 @@ const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false }) => 
           ))}
         </div>
       )}
+
+
     </div>
   );
 };
