@@ -79,4 +79,38 @@ router.get('/database-stats', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/admin/stats
+// @desc    Get admin panel statistics
+// @access  Private
+router.get('/stats', auth, async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activePosts = await Post.countDocuments();
+    const totalChallenges = await Challenge.countDocuments();
+    
+    // Get recent activity (last 10 users)
+    const recentUsers = await User.find()
+      .select('username createdAt')
+      .sort({ createdAt: -1 })
+      .limit(3);
+    
+    const recentActivity = recentUsers.map(user => ({
+      type: 'user_registration',
+      message: `New user registration: ${user.username}`,
+      timestamp: user.createdAt
+    }));
+    
+    res.json({
+      totalUsers,
+      activePosts,
+      pendingMemes: 0, // Placeholder since no meme model yet
+      totalChallenges,
+      recentActivity
+    });
+  } catch (err) {
+    console.error('Error fetching admin stats:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

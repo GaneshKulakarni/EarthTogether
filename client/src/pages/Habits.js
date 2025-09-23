@@ -28,7 +28,7 @@ const Habits = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No authentication token found');
 
-      const response = await axios.get('http://localhost:5000/api/habits', {
+      const response = await axios.get('/api/habits', {
         headers: { 'x-auth-token': token, 'Content-Type': 'application/json' },
         timeout: 10000,
       });
@@ -68,10 +68,10 @@ const Habits = () => {
       const headers = { 'x-auth-token': token, 'Content-Type': 'application/json' };
 
       if (editingHabit) {
-        await axios.put(`http://localhost:5000/api/habits/${editingHabit._id}`, formData, { headers });
+        await axios.put(`/api/habits/${editingHabit._id}`, formData, { headers });
         toast.success('Habit updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/habits', formData, { headers });
+        await axios.post('/api/habits', formData, { headers });
         toast.success('Habit created successfully!');
       }
 
@@ -110,7 +110,7 @@ const Habits = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('No authentication token found');
 
-        await axios.delete(`http://localhost:5000/api/habits/${habitId}`, {
+        await axios.delete(`/api/habits/${habitId}`, {
           headers: { 'x-auth-token': token, 'Content-Type': 'application/json' },
         });
 

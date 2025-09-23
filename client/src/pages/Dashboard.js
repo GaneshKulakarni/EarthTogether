@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
@@ -7,7 +8,8 @@ import HabitCard from '../components/HabitCard';
 import EmptyState from '../components/EmptyState';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +45,16 @@ const Dashboard = () => {
 
   const markHabitComplete = async (habitId) => {
     try {
-      await axios.post(`/api/habits/${habitId}/complete`);
+      const response = await axios.post(`/api/habits/${habitId}/complete`);
+      
+      // Update user stats if returned from backend
+      if (response.data.userStats) {
+        updateUser({
+          ecoPoints: response.data.userStats.ecoPoints,
+          currentStreak: response.data.userStats.currentStreak
+        });
+      }
+      
       fetchHabits(); // Refresh habits
     } catch (error) {
       console.error('Error marking habit complete:', error);
@@ -149,11 +160,11 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h3>
-            <div className="space-y-4">
-              <button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+              <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
                 Add New Habit
               </button>
               <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">

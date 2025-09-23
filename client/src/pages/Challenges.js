@@ -3,37 +3,49 @@ import { useAuth } from '../context/AuthContext';
 import { Target, Users, Trophy, Plus, Star, TrendingUp, CheckCircle, Clock, Zap, Leaf, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import PostCard from '../components/PostCard';
 
 const Challenges = () => {
   const { user } = useAuth();
   const [challenges, setChallenges] = useState([]);
+  const [challengePosts, setChallengePosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
 
   useEffect(() => {
-    const fetchChallenges = async () => {
+    const fetchData = async () => {
       try {
         const config = {
           headers: {
             'x-auth-token': localStorage.getItem('token'),
           },
         };
-        const res = await axios.get('/api/challenges', config);
-        const challengesWithJoinStatus = res.data.map(challenge => ({
+        
+        // Fetch challenges
+        const challengesRes = await axios.get('/api/challenges', config);
+        const challengesWithJoinStatus = challengesRes.data.map(challenge => ({
           ...challenge,
           isJoined: challenge.participants.some(p => p.user === user._id)
         }));
         setChallenges(challengesWithJoinStatus);
+        
+        // Fetch challenge posts
+        const postsRes = await axios.get('/api/posts', config);
+        const challengeTypePosts = postsRes.data.filter(post => 
+          post.category === 'Challenge' || post.type === 'challenge'
+        );
+        setChallengePosts(challengeTypePosts);
+        
         setLoading(false);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to fetch challenges.');
+        toast.error('Failed to fetch data.');
         setLoading(false);
       }
     };
 
-    fetchChallenges();
+    fetchData();
   }, [user._id]);
 
   const joinChallenge = async (challengeId) => {
@@ -304,6 +316,60 @@ const Challenges = () => {
             >
               Browse Challenges
             </button>
+          </div>
+        )}
+
+        {/* Challenge Posts Section */}
+        {challengePosts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Challenge Posts</h2>
+            <div className="max-w-2xl mx-auto space-y-6">
+              {challengePosts.map((post) => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  onLike={async (postId) => {
+                    try {
+                      const token = localStorage.getItem('token');
+                      const response = await axios.put(`/api/posts/like/${postId}`, {}, {
+                        headers: { 'x-auth-token': token }
+                      });
+                      
+                      // Update local state with complete post data
+                      setChallengePosts(prevPosts => 
+                        prevPosts.map(post => 
+                          post._id === postId 
+                            ? response.data
+                            : post
+                        )
+                      );
+                    } catch (error) {
+                      console.error('Error liking post:', error);
+                    }
+                  }}
+                  onComment={async (postId, comment) => {
+                    if (!comment.trim()) return;
+                    try {
+                      const token = localStorage.getItem('token');
+                      await axios.post(`/api/posts/comment/${postId}`, { content: comment }, {
+                        headers: { 'x-auth-token': token }
+                      });
+                      // Refresh challenge posts
+                      const postsRes = await axios.get('/api/posts', {
+                        headers: { 'x-auth-token': localStorage.getItem('token') }
+                      });
+                      const challengeTypePosts = postsRes.data.filter(post => 
+                        post.category === 'Challenge' || post.type === 'challenge'
+                      );
+                      setChallengePosts(challengeTypePosts);
+                    } catch (error) {
+                      console.error('Error adding comment:', error);
+                      toast.error('Failed to add comment');
+                    }
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
 
