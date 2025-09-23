@@ -423,15 +423,15 @@ const Profile = () => {
               {user.badges && user.badges.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {user.badges.map((badge, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div key={index} className="border border-green-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-blue-50 hover:shadow-md transition-shadow">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                          <Trophy className="w-5 h-5 text-yellow-600" />
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-xl">
+                          {badge.icon || "🏆"}
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{badge.name}</h3>
                           <p className="text-sm text-gray-600">{badge.description}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-green-600 font-medium">
                             Earned {new Date(badge.earnedAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -442,15 +442,23 @@ const Profile = () => {
               ) : (
                 <div className="text-center py-8">
                   <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No badges yet</h3>
-                  <p className="text-gray-500">Complete eco-habits to earn badges and achievements!</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No achievements yet</h3>
+                  <p className="text-gray-500">Complete eco-habits and maintain streaks to earn achievements!</p>
                 </div>
               )}
             </div>
 
             {/* Certifications Section */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Certifications</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Certifications</h2>
+                <button
+                  onClick={() => window.open('/images/sample_certificate.jpg', '_blank')}
+                  className="text-sm bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                >
+                  View Sample Certificate
+                </button>
+              </div>
               
               {user.certifications && user.certifications.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
