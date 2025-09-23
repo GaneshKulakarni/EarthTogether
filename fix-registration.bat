@@ -1,0 +1,6 @@
+@echo off
+echo Fixing registration issues...
+cd server
+npm install
+echo Starting server...
+node server.js

@@ -109,14 +109,17 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
         {/* Welcome Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Welcome back, {user?.username}! 🌱
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg mb-6">
+            <span className="text-3xl">🌱</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-4">
+            Welcome back, {user?.username}!
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             {randomQuote}
           </p>
         </div>
@@ -137,10 +140,12 @@ const Dashboard = () => {
         </div>
 
         {/* Today's Habits */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="flex items-center mb-6">
-            <Calendar className="w-6 h-6 text-green-600 mr-3" />
-            <h2 className="text-2xl font-bold text-gray-900">Today's Eco-Habits</h2>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-12">
+          <div className="flex items-center mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
+              <Calendar className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Today's Eco-Habits</h2>
           </div>
           
           {habits.length === 0 ? (
@@ -162,17 +167,17 @@ const Dashboard = () => {
               <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
                 Add New Habit
               </button>
-              <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg transition-colors">
+              <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                 Share Progress
               </button>
-              <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg transition-colors">
+              <button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                 Join Challenge
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Achievements</h3>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Recent Achievements</h3>
             {user?.badges && user.badges.length > 0 ? (
               <div className="space-y-3">
                 {user.badges.slice(0, 3).map((badge, index) => (

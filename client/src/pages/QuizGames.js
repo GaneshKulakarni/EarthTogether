@@ -17,34 +17,49 @@ const QuizGames = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Mock data for development
-        setQuizzes([
-          {
-            question: "What percentage of plastic waste is recycled globally?",
-            options: ["9%", "25%", "50%", "75%"],
-            correctAnswer: "9%"
-          },
-          {
-            question: "Which renewable energy source is the fastest growing?",
-            options: ["Solar", "Wind", "Hydro", "Geothermal"],
-            correctAnswer: "Solar"
-          }
-        ]);
+        const token = localStorage.getItem('token');
         
-        setFlashcards([
-          {
-            question: "What is carbon footprint?",
-            answer: "The total amount of greenhouse gases produced directly and indirectly by human activities, measured in CO2 equivalents."
-          },
-          {
-            question: "What is biodegradable waste?",
-            answer: "Organic waste that can be broken down naturally by microorganisms into harmless substances."
-          },
-          {
-            question: "What is renewable energy?",
-            answer: "Energy from sources that are naturally replenished, such as solar, wind, hydro, and geothermal power."
-          }
-        ]);
+        // Fetch quizzes
+        try {
+          const quizRes = await axios.get('/api/quizzes', {
+            headers: { 'x-auth-token': token }
+          });
+          setQuizzes(quizRes.data);
+        } catch (err) {
+          console.log('Using fallback quiz data');
+          setQuizzes([
+            {
+              question: "What percentage of plastic waste is recycled globally?",
+              options: ["9%", "25%", "50%", "75%"],
+              correctAnswer: "9%"
+            },
+            {
+              question: "Which renewable energy source is the fastest growing?",
+              options: ["Solar", "Wind", "Hydro", "Geothermal"],
+              correctAnswer: "Solar"
+            }
+          ]);
+        }
+        
+        // Fetch flashcards
+        try {
+          const flashRes = await axios.get('/api/quizzes/flashcards', {
+            headers: { 'x-auth-token': token }
+          });
+          setFlashcards(flashRes.data);
+        } catch (err) {
+          console.log('Using fallback flashcard data');
+          setFlashcards([
+            {
+              question: "What is carbon footprint?",
+              answer: "The total amount of greenhouse gases produced directly and indirectly by human activities, measured in CO2 equivalents."
+            },
+            {
+              question: "What is biodegradable waste?",
+              answer: "Organic waste that can be broken down naturally by microorganisms into harmless substances."
+            }
+          ]);
+        }
         
         setLoading(false);
       } catch (err) {

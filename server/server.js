@@ -13,55 +13,20 @@ const app = express();
 app.use(helmet());
 
 // Enable CORS with both env-based and dev-friendly options
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',') // allow comma-separated origins in .env
-  : [
-      'http://localhost:3000',
-      'http://localhost:4501',
-      'http://localhost:6102',
-      'http://localhost:6000',
-      'http://localhost:7000'
-    ];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:4501', 
+  'http://localhost:6102',
+  'http://localhost:6000',
+  'http://localhost:7000'
+];
 
-app.use((req, res, next) => {
-  // Log incoming request
-  console.log(
-    `[${new Date().toISOString()}] ${req.method} ${req.path} from ${
-      req.headers.origin || 'unknown origin'
-    }`
-  );
-
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-
-  res.header(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, OPTIONS'
-  );
-  res.header(
-    'Access-Control-Allow-Headers',
-    [
-      'Origin',
-      'X-Requested-With',
-      'Content-Type',
-      'Accept',
-      'Authorization',
-      'x-auth-token',
-      'cache-control',
-      'pragma'
-    ].join(', ')
-  );
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  if (req.method === 'OPTIONS') {
-    console.log('Handling preflight request');
-    return res.status(200).end();
-  }
-
-  next();
-});
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'x-auth-token']
+}));
 
 app.use(compression());
 app.use(morgan('combined'));
@@ -114,6 +79,7 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/challenges', require('./routes/challenges'));
 app.use('/api/memes', require('./routes/memes'));
 app.use('/api/quizzes', require('./routes/quizzes'));
+app.use('/api/research', require('./routes/research'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/notifications', require('./routes/notifications'));
 
@@ -151,7 +117,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8450;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
