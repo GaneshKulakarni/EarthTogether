@@ -34,6 +34,7 @@ const Home = () => {
   const [commentText, setCommentText] = useState({});
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({ content: "", category: "General", image: null });
+  const [highlights, setHighlights] = useState([]);
 
   // Mock posts data
   const mockPosts = [
@@ -91,6 +92,54 @@ const Home = () => {
     };
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    const topPost = posts[0];
+    const fallback = [
+      {
+        id: "challenge",
+        title: "Join the Plastic-Free Challenge",
+        type: "Challenge",
+        cta: "View challenges",
+        href: "/challenges",
+        accent: "from-green-500 to-emerald-500",
+        desc: "Cut single-use plastics for 7 days and earn a badge."
+      },
+      {
+        id: "news",
+        title: "Latest eco-news",
+        type: "News",
+        cta: "Read news",
+        href: "/news",
+        accent: "from-blue-500 to-cyan-500",
+        desc: "Stay updated with sustainability breakthroughs."
+      },
+      {
+        id: "research",
+        title: "Research spotlight",
+        type: "Research",
+        cta: "Explore research",
+        href: "/researches",
+        accent: "from-purple-500 to-pink-500",
+        desc: "Dive into curated studies on climate and energy."
+      }
+    ];
+
+    const built = [];
+    if (topPost) {
+      built.push({
+        id: `post-${topPost.id || topPost._id}`,
+        title: topPost.content?.slice(0, 60) || "Community highlight",
+        type: "Community Post",
+        cta: "View post",
+        href: "/feed",
+        accent: "from-emerald-500 to-green-500",
+        desc: `${topPost.user?.name || "EcoUser"} • ${topPost.category || "General"}`
+      });
+    }
+
+    setHighlights([...built, ...fallback].slice(0, 3));
+  }, [posts]);
 
   const handleLike = async (postId) => {
     // Update UI immediately
@@ -219,6 +268,22 @@ const Home = () => {
           Your daily dose of eco-inspiration, community posts, and sustainability
           updates
         </p>
+      </div>
+
+      {/* Highlights rail */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        {highlights.map((item) => (
+          <div key={item.id} className="rounded-xl p-5 bg-white/80 backdrop-blur-sm shadow border border-white/30">
+            <div className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r ${item.accent} text-white`}>
+              {item.type}
+            </div>
+            <h3 className="mt-3 text-lg font-semibold text-gray-900 line-clamp-2">{item.title}</h3>
+            <p className="mt-2 text-sm text-gray-600 line-clamp-3">{item.desc}</p>
+            <a href={item.href} className="mt-4 inline-flex items-center text-sm font-semibold text-green-600 hover:text-green-700">
+              {item.cta} →
+            </a>
+          </div>
+        ))}
       </div>
 
       {/* Create Post */}

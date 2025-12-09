@@ -33,14 +33,15 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve uploaded assets (avatars, etc.)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Database connection with enhanced options
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/earthtogether',
+      process.env.MONGO_URI || 'mongodb+srv://Ganesh:kulkarni123@earth.qlxus4c.mongodb.net/earthtogether?retryWrites=true&w=majority',
       {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
         maxPoolSize: 10, // Maintain up to 10 socket connections
         serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
         socketTimeoutMS: 45000 // Close sockets after 45 seconds of inactivity

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 import HabitCard from '../components/HabitCard';
 import PostCard from '../components/PostCard';
@@ -89,13 +89,7 @@ const Profile = () => {
       if (!shouldFetchHabits) return;
       
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/habits', {
-          headers: { 
-            'x-auth-token': token,
-            'Content-Type': 'application/json'
-          }
-        });
+        const res = await api.get('/api/habits');
         setUserHabits(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error('Error fetching user habits:', error);
@@ -112,10 +106,7 @@ const Profile = () => {
       if (!shouldFetchPosts) return;
       
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('/api/posts/my-posts', {
-          headers: { 'x-auth-token': token }
-        });
+        const res = await api.get('/api/posts/my-posts');
         setUserPosts(res.data);
       } catch (error) {
         console.error('Error fetching user posts:', error);
@@ -136,10 +127,8 @@ const Profile = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.put('/api/users/profile', data, {
+      await api.put('/api/users/profile', data, {
         headers: {
-          'x-auth-token': token,
           'Content-Type': 'multipart/form-data' // Important for file uploads
         }
       });
@@ -205,6 +194,11 @@ const Profile = () => {
   const handleCreatePost = () => {
     navigate('/create-post');
   };
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450';
+  const resolvedAvatar = user?.avatar
+    ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL}${user.avatar}`)
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
@@ -332,8 +326,8 @@ const Profile = () => {
               ) : (
                 <div className="flex items-start space-x-6">
                   <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="User Avatar" className="w-full h-full object-cover" />
+                    {resolvedAvatar ? (
+                      <img src={resolvedAvatar} alt="User Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User className="w-12 h-12 text-green-600" />
                     )}

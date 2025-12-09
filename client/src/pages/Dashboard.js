@@ -11,11 +11,6 @@ const Dashboard = () => {
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Simple client-side estimator: per-habit estimated kg CO2 saved per completion.
-  // If a habit provides an explicit `impactKg` field we use that; otherwise we
-  // fall back to a small default or category-based heuristic.
-  
-
   const fetchHabits = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -60,35 +55,6 @@ const Dashboard = () => {
 
   const randomQuote = dailyQuotes[Math.floor(Math.random() * dailyQuotes.length)];
 
-  // Simple client-side estimator: per-habit estimated kg CO2 saved per completion.
-  // If a habit provides an explicit `impactKg` field we use that; otherwise we
-  // fall back to a small default or category-based heuristic.
-  // const computeCarbonFromHabits = (habitsArray) => {
-  //   if (!habitsArray || habitsArray.length === 0) return 0;
-  //   const categoryMap = {
-  //     'transport': 2.5, // example: using bike instead of car
-  //     'food': 0.5, // example: plant-based meal instead of meat
-  //     'consumption': 0.2,
-  //     'energy': 0.8,
-  //     'waste': 0.1,
-  //     'default': 0.1
-  //   };
-  
-  //   let total = 0;
-  //   habitsArray.forEach((h) => {
-  //     // prefer explicit impactKg
-  //     const impact = (typeof h.impactKg === 'number') ? h.impactKg : (
-  //       (h.category && categoryMap[h.category.toLowerCase()]) || categoryMap.default
-  //     );
-  
-  //     // if habit has been completed today, count it; otherwise treat as potential (still add)
-  //     // Many apps want to show both potential and actual; here we show today's potential sum.
-  //     total += impact;
-  //   });
-  
-  //   return Number(total.toFixed(2));
-  // };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -115,17 +81,12 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
             <StatsCard icon={<Trophy className="w-6 h-6 text-green-600" />} title="Eco Points" value={user?.ecoPoints || 0} color="green" />
             <StatsCard icon={<TrendingUp className="w-6 h-6 text-blue-600" />} title="Day Streak" value={user?.currentStreak || 0} color="blue" />
-            
+            <StatsCard icon={<Leaf className="w-6 h-6 text-emerald-600" />} title="CO₂ Saved (kg)" value={user?.totalCarbonSaved || 0} color="emerald" />
             <StatsCard icon={<Target className="w-6 h-6 text-yellow-600" />} title="Active Habits" value={habits.length} color="yellow" />
           </div>
-        </div>
-
-        {/* Small note about the CO2 estimate when backend value is not available */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-          <p className="text-sm text-gray-500">Showing estimated CO₂ saved when backend value is not provided. Estimates are heuristic and for motivational purposes only.</p>
         </div>
 
         {/* Today's Habits */}

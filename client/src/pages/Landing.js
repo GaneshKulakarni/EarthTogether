@@ -105,33 +105,62 @@ const Landing = () => {
               transition={{ delay: 0.4, ...heroVariants.visible.transition }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              {!user ? (
-                <>
-                  <Link
-                    to="/register"
-                    className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
-                  >
-                    Get Started
-                  </Link>
-                  <Link
-                    to="/login"
-                    className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
-                  >
-                    Sign In
-                  </Link>
-                </>
-              ) : (
-                <Link
-                  to="/dashboard"
-                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200"
-                >
-                  Go to Dashboard
-                </Link>
-              )}
+              <Link
+                to="/register"
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-lg shadow-green-500/30"
+              >
+                Sign Up Free
+              </Link>
+              <Link
+                to="/login"
+                className="bg-white/10 border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 backdrop-blur"
+              >
+                Log In
+              </Link>
             </motion.div>
           </div>
         </div>
       </motion.div>
+
+      {/* How it works */}
+      <div className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <p className="text-sm uppercase tracking-[0.2em] text-green-600 font-semibold">How it works</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Start fast. Stay motivated.</h2>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Sign up",
+                desc: "Create your account and set your first eco-goal.",
+                icon: "🌱"
+              },
+              {
+                title: "Track & learn",
+                desc: "Build streaks, complete quizzes, and join challenges.",
+                icon: "📊"
+              },
+              {
+                title: "Earn & share",
+                desc: "Collect eco-points, badges, and celebrate your impact.",
+                icon: "🏅"
+              }
+            ].map((item, idx) => (
+              <div key={idx} className="bg-white shadow-sm border border-gray-100 rounded-xl p-6 hover:shadow-md transition">
+                <div className="text-3xl mb-4">{item.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Features Section */}
       <div className="py-20 bg-white">

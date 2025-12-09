@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { CheckCircle, XCircle, RotateCcw, Brain, GamepadIcon } from 'lucide-react';
 
 const QuizGames = () => {
@@ -13,18 +13,23 @@ const QuizGames = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [quizSource, setQuizSource] = useState('loading');
+  const [cardSource, setCardSource] = useState('loading');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        
         // Fetch quizzes
         try {
-          const quizRes = await axios.get('/api/quizzes', {
-            headers: { 'x-auth-token': token }
-          });
-          setQuizzes(quizRes.data);
+          const quizRes = await api.get('/api/quizzes');
+          const payload = quizRes.data;
+          if (payload?.items) {
+            setQuizzes(payload.items);
+            setQuizSource(payload.source || 'gemini');
+          } else {
+            setQuizzes(Array.isArray(payload) ? payload : []);
+            setQuizSource('fallback');
+          }
         } catch (err) {
           console.log('Using fallback quiz data');
           setQuizzes([
@@ -39,14 +44,20 @@ const QuizGames = () => {
               correctAnswer: "Solar"
             }
           ]);
+          setQuizSource('fallback');
         }
         
         // Fetch flashcards
         try {
-          const flashRes = await axios.get('/api/quizzes/flashcards', {
-            headers: { 'x-auth-token': token }
-          });
-          setFlashcards(flashRes.data);
+          const flashRes = await api.get('/api/quizzes/flashcards');
+          const payload = flashRes.data;
+          if (payload?.items) {
+            setFlashcards(payload.items);
+            setCardSource(payload.source || 'gemini');
+          } else {
+            setFlashcards(Array.isArray(payload) ? payload : []);
+            setCardSource('fallback');
+          }
         } catch (err) {
           console.log('Using fallback flashcard data');
           setFlashcards([
@@ -59,6 +70,7 @@ const QuizGames = () => {
               answer: "Organic waste that can be broken down naturally by microorganisms into harmless substances."
             }
           ]);
+          setCardSource('fallback');
         }
         
         setLoading(false);
@@ -139,7 +151,13 @@ const QuizGames = () => {
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">🎮 Eco-Learning Hub</h1>
-        <p className="text-gray-600">Test your knowledge and learn with interactive quizzes and flashcards!</p>
+        <p className="text-gray-600">
+          Test your knowledge and learn with interactive quizzes and flashcards!
+        </p>
+        <div className="mt-3 text-sm text-gray-500">
+          Quizzes: {quizSource === 'gemini' ? 'AI generated via Gemini' : 'Fallback set'} ·
+          Flashcards: {cardSource === 'gemini' ? 'AI generated via Gemini' : 'Fallback set'}
+        </div>
       </div>
 
       {mode === 'menu' && (

@@ -63,6 +63,14 @@ const Navbar = () => {
                 >
                   Challenges
                 </Link>
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="text-gray-700 hover:text-green-600 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:bg-green-50"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <div className="flex items-center space-x-4">
                   <Link
                     to="/profile"

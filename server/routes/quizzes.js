@@ -8,13 +8,31 @@ const router = express.Router();
 const Quiz = require('../models/Quiz');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 // @route   GET api/quizzes
 // @desc    Get AI generated quizzes
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
+    if (!genAI) {
+      // Return fallback data if GEMINI_API_KEY is not configured
+      return res.json({
+        source: 'fallback',
+        items: [
+          {
+            question: "What percentage of plastic waste is recycled globally?",
+            options: ["9%", "25%", "50%", "75%"],
+            correctAnswer: "9%"
+          },
+          {
+            question: "Which renewable energy source is fastest growing?",
+            options: ["Solar", "Wind", "Hydro", "Geothermal"],
+            correctAnswer: "Solar"
+          }
+        ]
+      });
+    }
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     const prompt = `Generate 5 environmental quiz questions with 4 options each. Format as JSON array:
@@ -49,7 +67,7 @@ router.get('/', auth, async (req, res) => {
       ];
     }
     
-    res.json(quizzes);
+    res.json({ source: 'gemini', items: quizzes });
   } catch (err) {
     console.error('Quiz generation error:', err.message);
     res.status(500).send('Server Error');
@@ -61,6 +79,22 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/flashcards', auth, async (req, res) => {
   try {
+    if (!genAI) {
+      // Return fallback data if GEMINI_API_KEY is not configured
+      return res.json({
+        source: 'fallback',
+        items: [
+          {
+            question: "What is carbon footprint?",
+            answer: "The total amount of greenhouse gases produced by human activities, measured in CO2 equivalents."
+          },
+          {
+            question: "What is renewable energy?",
+            answer: "Energy from sources that naturally replenish, like solar, wind, and hydro power."
+          }
+        ]
+      });
+    }
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     const prompt = `Generate 6 environmental education flashcards. Format as JSON array:
@@ -92,7 +126,7 @@ router.get('/flashcards', auth, async (req, res) => {
       ];
     }
     
-    res.json(flashcards);
+    res.json({ source: 'gemini', items: flashcards });
   } catch (err) {
     console.error('Flashcard generation error:', err.message);
     res.status(500).send('Server Error');

@@ -6,7 +6,7 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-const JWT_SECRET = 'your_super_secret_jwt_key_for_earthtogether_app_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key_for_earthtogether_app_2024';
 
 // @route   POST api/auth/register
 // @desc    Register user

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -9,14 +9,8 @@ const Login = () => {
     password: ''
   });
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
 
   const { email, password } = formData;
 
@@ -44,6 +38,27 @@ const Login = () => {
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-green-800 bg-clip-text text-transparent">Welcome Back</h2>
           <p className="text-gray-600 mt-2">Sign in to continue your eco-journey</p>
+          {isAuthenticated && (
+            <div className="mt-3 text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg p-3">
+              You are already signed in.
+              <div className="mt-2 flex gap-2 justify-center">
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard')}
+                  className="px-3 py-1 rounded-md bg-green-500 text-white text-sm"
+                >
+                  Go to dashboard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="px-3 py-1 rounded-md border border-green-300 text-green-700 text-sm bg-white"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
