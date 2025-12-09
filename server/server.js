@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 
 const app = express();
 
@@ -40,7 +40,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
-      process.env.MONGO_URI || 'mongodb+srv://Ganesh:kulkarni123@earth.qlxus4c.mongodb.net/earthtogether?retryWrites=true&w=majority',
+
+e
+
+      process.env.MONGODB_URI,
+
       {
         maxPoolSize: 10, // Maintain up to 10 socket connections
         serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
@@ -82,6 +86,7 @@ app.use('/api/memes', require('./routes/memes'));
 app.use('/api/quizzes', require('./routes/quizzes'));
 app.use('/api/research', require('./routes/research'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -117,7 +122,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-const PORT = process.env.PORT || 8450;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

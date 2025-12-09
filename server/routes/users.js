@@ -1,9 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middleware/auth");
 const User = require("../models/User");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
 const router = express.Router();
 
@@ -34,44 +31,54 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 });
 
-// @route   GET /api/users/profile
-// @desc    Get logged in user profile
+// @route   PUT api/users/profile
+// @desc    Update user profile
 // @access  Private
-router.get("/profile", authMiddleware, async (req, res) => {
-  res.json(req.user);
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { username, bio } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    if (username) user.username = username;
+    if (bio !== undefined) user.bio = bio;
+
+    await user.save();
+    
+    // Return updated user without password
+    const updatedUser = await User.findById(req.user.id).select('-password');
+    res.json(updatedUser);
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-// @route   PUT /api/users/profile
-// @desc    Update profile info and optional avatar upload
+// @route   GET api/users/leaderboard
+// @desc    Get leaderboard of all users sorted by points
 // @access  Private
-router.put(
-  "/profile",
-  authMiddleware,
-  upload.single("avatar"),
-  async (req, res) => {
-    try {
-      const updates = {
-        username: req.body.username,
-        bio: req.body.bio,
-      };
-
-      if (req.file) {
-        const relativePath = `/uploads/avatars/${req.file.filename}`;
-        updates.avatar = relativePath;
-      }
-
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        { $set: updates },
-        { new: true, runValidators: true }
-      ).select("-password");
-
-      res.json(user);
-    } catch (error) {
-      console.error("Profile update error:", error.message);
-      res.status(500).json({ message: "Failed to update profile" });
-    }
+router.get('/leaderboard', auth, async (req, res) => {
+  try {
+    const { sortBy = 'ecoPoints' } = req.query;
+    
+    let sortField = 'ecoPoints';
+    if (sortBy === 'streaks') sortField = 'currentStreak';
+    if (sortBy === 'impact') sortField = 'totalCarbonSaved';
+    
+    const users = await User.find({})
+      .select('username ecoPoints currentStreak totalCarbonSaved')
+      .sort({ [sortField]: -1 })
+      .limit(100);
+    
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching leaderboard:', err);
+    res.status(500).json({ message: 'Server error' });
   }
-);
+});
 
 module.exports = router;

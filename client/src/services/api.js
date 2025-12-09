@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -80,7 +80,7 @@ export const getPosts = async () => {
 
 export const likePost = async (postId) => {
   try {
-    const response = await api.post(`/api/posts/like/${postId}`);
+    const response = await api.post(`/posts/like/${postId}`);
     return response.data;
   } catch (error) {
     console.error('Error liking post:', error);
@@ -114,6 +114,26 @@ export const createPost = async (postData) => {
     return response.data;
   } catch (error) {
     console.error('Error creating post:', error);
+    throw error;
+  }
+};
+
+export const getUserPosts = async () => {
+  try {
+    const response = await api.get('/api/posts/my-posts');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user posts:', error);
+    throw error;
+  }
+};
+
+export const deletePost = async (postId) => {
+  try {
+    const response = await api.delete(`/api/posts/${postId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting post:', error);
     throw error;
   }
 };

@@ -14,8 +14,13 @@ const MainLayout = () => {
     { name: 'Waste Management', path: '/waste-management' },
     { name: 'Memes', path: '/memes' },
     { name: 'Leaderboard', path: '/leaderboard' },
-    ...(user?.role === 'admin' ? [{ name: 'Admin Panel', path: '/admin' }] : []),
+    { name: 'Admin Panel', path: '/admin' },
   ];
+
+  // Only show admin panel for test@gmail.com
+  if (user?.email === 'test@gmail.com') {
+    sidebarLinks.push({ name: 'Admin Panel', path: '/admin' });
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

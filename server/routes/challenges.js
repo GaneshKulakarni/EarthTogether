@@ -20,6 +20,34 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/challenges/joined
+// @desc    Get challenges joined by current user
+// @access  Private
+router.get('/joined', auth, async (req, res) => {
+  try {
+    const challenges = await Challenge.find({
+      status: 'active',
+      'participants.user': req.user.id
+    })
+    .populate('participants.user', ['username', 'ecoPoints'])
+    .sort({ startDate: -1 });
+    
+    // Add progress for current user
+    const challengesWithProgress = challenges.map(challenge => {
+      const participant = challenge.participants.find(p => p.user._id.toString() === req.user.id);
+      return {
+        ...challenge.toObject(),
+        progress: participant ? participant.progress : 0
+      };
+    });
+    
+    res.json(challengesWithProgress);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // @route   POST api/challenges
 // @desc    Create a new challenge
 // @access  Private
@@ -55,21 +83,22 @@ router.post('/', [
       description,
       category,
       difficulty: difficulty || 'Medium',
-      duration,
-      ecoPoints: ecoPoints || 100,
-      carbonSaved: carbonSaved || 10,
-      requirements: requirements || [],
-      rewards: rewards || [],
+      duration: parseInt(duration),
+      ecoPoints: parseInt(ecoPoints) || 100,
+      carbonSaved: parseFloat(carbonSaved) || 10,
+      requirements: Array.isArray(requirements) ? requirements.filter(r => r.trim()) : [],
+      rewards: Array.isArray(rewards) ? rewards.filter(r => r.trim()) : [],
       createdBy: req.user.id,
       startDate: new Date(),
-      endDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000)
+      endDate: new Date(Date.now() + parseInt(duration) * 24 * 60 * 60 * 1000),
+      status: 'active'
     });
 
     const challenge = await newChallenge.save();
     res.json(challenge);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Challenge creation error:', err.message);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
 });
 
@@ -105,6 +134,37 @@ router.post('/:id/join', auth, async (req, res) => {
 
     await challenge.save();
     res.json(challenge);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   POST api/challenges/:id/leave
+// @desc    Leave a challenge
+// @access  Private
+router.post('/:id/leave', auth, async (req, res) => {
+  try {
+    const challenge = await Challenge.findById(req.params.id);
+
+    if (!challenge) {
+      return res.status(404).json({ msg: 'Challenge not found' });
+    }
+
+    // Check if user is participating
+    const participantIndex = challenge.participants.findIndex(
+      p => p.user.toString() === req.user.id
+    );
+
+    if (participantIndex === -1) {
+      return res.status(400).json({ msg: 'Not participating in this challenge' });
+    }
+
+    // Remove participant
+    challenge.participants.splice(participantIndex, 1);
+    await challenge.save();
+    
+    res.json({ msg: 'Successfully left the challenge' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

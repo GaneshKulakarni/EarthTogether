@@ -7,7 +7,7 @@ import {
   sharePost,
   createPost,
 } from "../services/api";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Send, Camera, X } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 const containerVariants = {
@@ -28,13 +28,12 @@ const cardVariants = {
 
 const Home = () => {
   const { user } = useAuth();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { posts, loading, fetchPosts, addPost, toggleLike, addComment, sharePost } = usePost();
+  const { fetchNotifications } = useNotifications();
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPost, setNewPost] = useState({ content: "", category: "General", image: null });
-  const [highlights, setHighlights] = useState([]);
+  const [newPost, setNewPost] = useState({ content: "", category: "General" });
 
   // Mock posts data
   const mockPosts = [
@@ -56,36 +55,31 @@ const Home = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setPosts(mockPosts); // Always show mock posts first
       try {
         const data = await getPosts();
         if (data && data.length > 0) {
-          const formattedPosts = data.map((post) => {
-            console.log('Post data:', post); // Debug log
-            return {
-              id: post._id || post.id,
-              _id: post._id || post.id,
-              user: {
-                name: post.user?.username || post.user?.name || "EcoUser",
-                avatar: "🌱",
-                title: "EarthTogether Member",
-              },
-              content: post.content,
-              image: post.imageUrl || null,
-              likes: post.likes?.length || 0,
-              comments: post.comments?.length || 0,
-              shares: post.shares?.length || 0,
-              timeAgo: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "now",
-              liked: false,
-              category: post.category || "General",
-            };
-          });
-          setPosts(formattedPosts);
-        } else {
-          setPosts(mockPosts);
+          const formattedPosts = data.map((post) => ({
+            id: post._id,
+            _id: post._id,
+            user: {
+              name: post.user?.username || "User",
+              avatar: "🌱",
+              title: "EarthTogether Member",
+            },
+            content: post.content,
+            image: post.imageUrl || null,
+            likes: post.likes?.length || 0,
+            comments: post.comments?.length || 0,
+            shares: post.shares?.length || 0,
+            timeAgo: new Date(post.createdAt).toLocaleDateString(),
+            liked: false,
+            category: post.category || "General",
+          }));
+          setPosts([...formattedPosts, ...mockPosts]);
         }
       } catch (error) {
         console.error("Error fetching posts:", error);
-        setPosts(mockPosts);
       } finally {
         setLoading(false);
       }
@@ -142,24 +136,21 @@ const Home = () => {
   }, [posts]);
 
   const handleLike = async (postId) => {
-    // Update UI immediately
-    setPosts(
-      posts.map((post) =>
-        post.id === postId || post._id === postId
-          ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-            }
-          : post
-      )
-    );
-    
-    // Try API call (will fail for mock posts, but that's ok)
     try {
       await likePost(postId);
+      setPosts(
+        posts.map((post) =>
+          post.id === postId || post._id === postId
+            ? {
+                ...post,
+                liked: !post.liked,
+                likes: post.liked ? post.likes - 1 : post.likes + 1,
+              }
+            : post
+        )
+      );
     } catch (error) {
-      console.log("Like updated locally (mock post)");
+      console.error("Error liking post:", error);
     }
   };
 
@@ -167,39 +158,33 @@ const Home = () => {
     const content = commentText[postId];
     if (!content?.trim()) return;
 
-    // Update UI immediately
-    setPosts(
-      posts.map((post) =>
-        post.id === postId || post._id === postId
-          ? { ...post, comments: post.comments + 1 }
-          : post
-      )
-    );
-    setCommentText({ ...commentText, [postId]: "" });
-
-    // Try API call
     try {
       await commentOnPost(postId, content);
+      setPosts(
+        posts.map((post) =>
+          post.id === postId || post._id === postId
+            ? { ...post, comments: post.comments + 1 }
+            : post
+        )
+      );
+      setCommentText({ ...commentText, [postId]: "" });
     } catch (error) {
-      console.log("Comment added locally (mock post)");
+      console.error("Error commenting:", error);
     }
   };
 
   const handleShare = async (postId) => {
-    // Update UI immediately
-    setPosts(
-      posts.map((post) =>
-        post.id === postId || post._id === postId
-          ? { ...post, shares: post.shares + 1 }
-          : post
-      )
-    );
-
-    // Try API call
     try {
       await sharePost(postId);
+      setPosts(
+        posts.map((post) =>
+          post.id === postId || post._id === postId
+            ? { ...post, shares: post.shares + 1 }
+            : post
+        )
+      );
     } catch (error) {
-      console.log("Share updated locally (mock post)");
+      console.error("Error sharing post:", error);
     }
   };
 
@@ -207,14 +192,23 @@ const Home = () => {
     setShowComments({ ...showComments, [postId]: !showComments[postId] });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleCreatePost = async () => {
     if (!newPost.content.trim()) return;
-
+    
     try {
       const postData = {
         content: newPost.content,
         category: newPost.category,
-        imageUrl: newPost.image,
       };
 
       const savedPost = await createPost(postData);
@@ -228,7 +222,7 @@ const Home = () => {
           title: "EarthTogether Member",
         },
         content: newPost.content,
-        image: newPost.image,
+        image: null,
         likes: 0,
         comments: 0,
         shares: 0,
@@ -238,11 +232,10 @@ const Home = () => {
       };
 
       setPosts([newPostObj, ...posts]);
-      setNewPost({ content: "", category: "General", image: null });
+      setNewPost({ content: "", category: "General" });
       setShowCreatePost(false);
     } catch (error) {
-      console.error("Error creating post:", error);
-      alert("Failed to create post. Please try again.");
+      alert('Failed to create post. Please try again.');
     }
   };
 
@@ -268,22 +261,6 @@ const Home = () => {
           Your daily dose of eco-inspiration, community posts, and sustainability
           updates
         </p>
-      </div>
-
-      {/* Highlights rail */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-        {highlights.map((item) => (
-          <div key={item.id} className="rounded-xl p-5 bg-white/80 backdrop-blur-sm shadow border border-white/30">
-            <div className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r ${item.accent} text-white`}>
-              {item.type}
-            </div>
-            <h3 className="mt-3 text-lg font-semibold text-gray-900 line-clamp-2">{item.title}</h3>
-            <p className="mt-2 text-sm text-gray-600 line-clamp-3">{item.desc}</p>
-            <a href={item.href} className="mt-4 inline-flex items-center text-sm font-semibold text-green-600 hover:text-green-700">
-              {item.cta} →
-            </a>
-          </div>
-        ))}
       </div>
 
       {/* Create Post */}
@@ -334,45 +311,11 @@ const Home = () => {
               className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-green-500"
               rows={4}
             />
-            
-            {/* Image Upload */}
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-colors">
-                <Camera className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-600">Add Photo</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        setNewPost({ ...newPost, image: e.target.result });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                />
-              </label>
-              {newPost.image && (
-                <div className="relative">
-                  <img src={newPost.image} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />
-                  <button
-                    onClick={() => setNewPost({ ...newPost, image: null })}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
             <div className="flex justify-between items-center">
               <button
                 onClick={() => {
                   setShowCreatePost(false);
-                  setNewPost({ content: "", category: "General", image: null });
+                  setNewPost({ content: "", category: "General" });
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -390,123 +333,103 @@ const Home = () => {
         )}
       </div>
 
-      {/* Posts Feed */}
-      <motion.div
-        className="max-w-2xl mx-auto space-y-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {posts.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No posts yet. Be the first to share!
-          </p>
-        ) : (
-          posts.map((post) => (
-            <motion.div
-              key={post._id || post.id}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6"
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
+        {/* Posts Feed */}
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <div key={post.id || post._id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {/* Post Header */}
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
-                  {post.user.avatar}
+              <div className="p-4 pb-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+                      {post.user.avatar}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{post.user.name}</h3>
+                      <p className="text-sm text-gray-500">{post.user.title} • {post.timeAgo}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="ml-3">
-                  <h3 className="font-semibold text-gray-900">
-                    {post.user.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {post.user.title} • {post.timeAgo}
-                  </p>
-                </div>
-                <button className="ml-auto p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <MoreHorizontal className="w-5 h-5 text-gray-500" />
-                </button>
               </div>
 
               {/* Post Content */}
-              <div className="mb-4">
-                <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  {post.category}
-                </span>
-                <p className="text-gray-800 mt-2">{post.content}</p>
+              <div className="p-4">
+                <div className="mb-2">
+                  <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    {post.category}
+                  </span>
+                </div>
+                <p className="text-gray-800 mb-4">{post.content}</p>
+                
+                {/* Post Image */}
                 {post.image && (
-                  <img
-                    src={post.image}
-                    alt="Post content"
-                    className="w-full h-64 object-cover rounded-lg mt-4"
+                  <img 
+                    src={post.image} 
+                    alt="Post content" 
+                    className="w-full h-64 object-cover rounded-lg mb-4"
                   />
                 )}
               </div>
 
               {/* Post Stats */}
-              <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-2">
-                <span>{post.likes} likes</span>
-                <div className="flex space-x-4">
-                  <span>{post.comments} comments</span>
-                  <span>{post.shares} shares</span>
+              <div className="px-4 py-2 border-t border-gray-100">
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>{post.likes} likes</span>
+                  <div className="flex space-x-4">
+                    <span>{post.comments} comments</span>
+                    <span>{post.shares} shares</span>
+                  </div>
                 </div>
               </div>
 
               {/* Post Actions */}
-              <div className="flex items-center justify-around mt-3 border-t border-gray-100 pt-3">
-                <button
-                  onClick={() => handleLike(post.id || post._id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    post.liked
-                      ? "text-red-600 bg-red-50 hover:bg-red-100"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${post.liked ? "fill-current" : ""}`}
-                  />
-                  <span>Like</span>
-                </button>
-
-                <button
-                  onClick={() => toggleComments(post.id || post._id)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Comment</span>
-                </button>
-
-                <button
-                  onClick={() => handleShare(post.id || post._id)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                  <span>Share</span>
-                </button>
+              <div className="px-4 py-3 border-t border-gray-100">
+                <div className="flex items-center justify-around">
+                  <button 
+                    onClick={() => handleLike(post.id || post._id)}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                      post.liked 
+                        ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 ${post.liked ? 'fill-current' : ''}`} />
+                    <span>Like</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => toggleComments(post.id || post._id)}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Comment</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => handleShare(post.id || post._id)}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    <span>Share</span>
+                  </button>
+                </div>
               </div>
 
               {/* Comments Section */}
               {showComments[post.id || post._id] && (
-                <div className="mt-4 border-t border-gray-100 pt-3 bg-gray-50 rounded-lg p-3">
+                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {user?.username?.[0]?.toUpperCase() || "U"}
+                      {user?.username?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="flex-1 flex items-center space-x-2">
                       <input
                         type="text"
                         placeholder="Write a comment..."
-                        value={commentText[post.id || post._id] || ""}
-                        onChange={(e) =>
-                          setCommentText({
-                            ...commentText,
-                            [post.id || post._id]: e.target.value,
-                          })
-                        }
+                        value={commentText[post.id || post._id] || ''}
+                        onChange={(e) => setCommentText({ ...commentText, [post.id || post._id]: e.target.value })}
                         className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-green-500"
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && handleComment(post.id || post._id)
-                        }
+                        onKeyPress={(e) => e.key === 'Enter' && handleComment(post.id || post._id)}
                       />
                       <button
                         onClick={() => handleComment(post.id || post._id)}
@@ -516,8 +439,8 @@ const Home = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Sample Comment */}
+                  
+                  {/* Sample comments */}
                   <div className="space-y-2">
                     <div className="flex items-start space-x-3">
                       <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
@@ -525,12 +448,8 @@ const Home = () => {
                       </div>
                       <div className="flex-1">
                         <div className="bg-white rounded-lg px-3 py-2">
-                          <p className="text-sm font-semibold text-gray-900">
-                            John Eco
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            Great work! This is so inspiring! 🌱
-                          </p>
+                          <p className="text-sm font-semibold text-gray-900">John Eco</p>
+                          <p className="text-sm text-gray-700">Great work! This is so inspiring! 🌱</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-1 ml-3">2h ago</p>
                       </div>
@@ -538,10 +457,10 @@ const Home = () => {
                   </div>
                 </div>
               )}
-            </motion.div>
-          ))
-        )}
-      </motion.div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -142,6 +142,45 @@ router.post('/:id/complete', auth, async (req, res) => {
       user.currentStreak = 1;
     }
     
+    // Award first habit completion achievement
+    if (user.currentStreak === 1) {
+      const firstHabitBadge = user.badges.find(badge => badge.name === "Eco Starter");
+      if (!firstHabitBadge) {
+        user.badges.push({
+          name: "Eco Starter",
+          description: "Completed your first habit",
+          icon: "🌱",
+          earnedAt: new Date()
+        });
+      }
+    }
+    
+    // Check for streak achievements
+    const streakMilestones = [
+      { days: 7, name: "Week Warrior", description: "Maintained a 7-day streak", icon: "🔥" },
+      { days: 14, name: "Fortnight Fighter", description: "Maintained a 14-day streak", icon: "⚡" },
+      { days: 30, name: "Monthly Master", description: "Maintained a 30-day streak", icon: "🌟" },
+      { days: 50, name: "Eco Champion", description: "Maintained a 50-day streak", icon: "🏆" },
+      { days: 100, name: "Century Saver", description: "Maintained a 100-day streak", icon: "💎" },
+      { days: 200, name: "Eco Legend", description: "Maintained a 200-day streak", icon: "👑" },
+      { days: 365, name: "Year-Long Hero", description: "Maintained a 365-day streak", icon: "🌍" }
+    ];
+    
+    // Award new streak achievements
+    for (const milestone of streakMilestones) {
+      if (user.currentStreak === milestone.days) {
+        const existingBadge = user.badges.find(badge => badge.name === milestone.name);
+        if (!existingBadge) {
+          user.badges.push({
+            name: milestone.name,
+            description: milestone.description,
+            icon: milestone.icon,
+            earnedAt: new Date()
+          });
+        }
+      }
+    }
+    
     await user.save();
 
     res.json({ habit, completion, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak } });

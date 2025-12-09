@@ -4,12 +4,14 @@ import { Search, BookOpen, TrendingUp, Users, Calendar, ExternalLink } from 'luc
 const Researches = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [expandedArticles, setExpandedArticles] = useState(new Set());
 
   const researchArticles = [
     {
       id: 1,
       title: "Impact of Renewable Energy on Global Carbon Emissions",
       summary: "Comprehensive analysis of how renewable energy adoption has reduced global CO2 emissions by 15% over the past decade.",
+      fullContent: "This comprehensive study examines the transformative impact of renewable energy technologies on global carbon emissions over the past decade. Our research, conducted across 50 countries, reveals that the widespread adoption of solar, wind, and hydroelectric power has led to a significant 15% reduction in global CO2 emissions. The study utilized advanced climate modeling and real-time emission data from major industrial sectors. Key findings include: 1) Solar energy adoption has grown by 300% since 2014, 2) Wind power now accounts for 25% of electricity generation in leading countries, 3) Hydroelectric systems have improved efficiency by 40% through modern turbine technology. The research also highlights policy frameworks that have accelerated renewable adoption, including carbon pricing mechanisms, renewable energy certificates, and government incentives. Looking forward, our projections suggest that continued investment in renewable infrastructure could achieve a 40% reduction in global emissions by 2035, provided current growth trends continue and emerging technologies like energy storage and smart grids are fully integrated.",
       category: "energy",
       author: "Dr. Sarah Chen",
       date: "2024-01-15",
@@ -20,6 +22,7 @@ const Researches = () => {
       id: 2,
       title: "Microplastics in Ocean Ecosystems: Latest Findings",
       summary: "Recent research reveals the extent of microplastic pollution and its effects on marine biodiversity and food chains.",
+      fullContent: "Our latest marine research expedition has uncovered alarming new data about microplastic pollution in ocean ecosystems worldwide. Using advanced filtration techniques and microscopic analysis, we've documented microplastic concentrations that exceed previous estimates by 40%. The study, conducted across 15 major ocean regions, reveals that microplastics are now present in 95% of marine species tested, including fish, shellfish, and marine mammals. These particles, measuring less than 5mm, originate primarily from synthetic textiles (35%), tire wear (28%), and plastic packaging breakdown (22%). The impact on marine food chains is profound: filter-feeding organisms like mussels and oysters show the highest contamination levels, with an average of 90 particles per gram of tissue. Larger predators, including tuna and sharks, accumulate microplastics through bioaccumulation, with concentrations increasing up the food chain. Our research also documents the presence of toxic chemicals attached to these particles, including persistent organic pollutants and heavy metals. The study's most concerning finding is the detection of microplastics in 78% of commercial seafood samples, raising significant questions about human health implications. Recommendations include immediate action on single-use plastics, improved waste management systems, and development of biodegradable alternatives.",
       category: "pollution",
       author: "Marine Research Institute",
       date: "2024-01-10",
@@ -55,6 +58,16 @@ const Researches = () => {
     { key: 'urban', label: 'Urban Planning' },
     { key: 'agriculture', label: 'Agriculture' }
   ];
+
+  const toggleArticle = (articleId) => {
+    const newExpanded = new Set(expandedArticles);
+    if (newExpanded.has(articleId)) {
+      newExpanded.delete(articleId);
+    } else {
+      newExpanded.add(articleId);
+    }
+    setExpandedArticles(newExpanded);
+  };
 
   const filteredArticles = researchArticles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,7 +151,18 @@ const Researches = () => {
                     {article.title}
                   </h3>
                   
-                  <p className="text-gray-600 mb-4">{article.summary}</p>
+                  <div className="text-gray-600 mb-4">
+                    {expandedArticles.has(article.id) ? (
+                      <div>
+                        <p className="mb-4">{article.summary}</p>
+                        <div className="prose max-w-none">
+                          <p className="whitespace-pre-line">{article.fullContent}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p>{article.summary}</p>
+                    )}
+                  </div>
                   
                   <div className="flex flex-wrap gap-2 mb-4">
                     {article.tags.map(tag => (
@@ -155,8 +179,11 @@ const Researches = () => {
                       <Calendar className="w-4 h-4 ml-2" />
                       <span>{new Date(article.date).toLocaleDateString()}</span>
                     </div>
-                    <button className="flex items-center gap-2 text-green-600 hover:text-green-700 font-medium">
-                      Read More
+                    <button 
+                      onClick={() => toggleArticle(article.id)}
+                      className="flex items-center gap-2 text-green-600 hover:text-green-700 font-medium"
+                    >
+                      {expandedArticles.has(article.id) ? 'Read Less' : 'Read More'}
                       <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>

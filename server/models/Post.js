@@ -11,24 +11,22 @@ const postSchema = new mongoose.Schema({
     required: true,
     maxlength: 2000
   },
+  type: {
+    type: String,
+    default: 'general'
+  },
   category: {
     type: String,
-    required: false,
     default: 'General'
   },
   imageUrl: {
     type: String,
     default: ''
   },
-  tags: [String],
   likes: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
     }
   }],
   comments: [{
@@ -36,53 +34,20 @@ const postSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
-    username: String,
     content: {
       type: String,
-      required: true,
-      maxlength: 500
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
+      required: true
     }
   }],
   shares: [{
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
-    },
-    sharedAt: {
-      type: Date,
-      default: Date.now
     }
   }],
-  ecoImpact: {
-    carbonSaved: {
-      type: Number,
-      default: 0
-    },
-    wasteReduced: {
-      type: Number,
-      default: 0
-    },
-    energySaved: {
-      type: Number,
-      default: 0
-    }
-  },
   status: {
     type: String,
-    enum: ['active', 'moderated', 'deleted'],
     default: 'active'
-  },
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  viewCount: {
-    type: Number,
-    default: 0
   }
 }, {
   timestamps: true

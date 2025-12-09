@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
+import { Leaf, Trophy, Target, TrendingUp, Calendar, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import StatsCard from '../components/StatsCard';
 import HabitCard from '../components/HabitCard';
 import EmptyState from '../components/EmptyState';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [habits, setHabits] = useState([]);
+  const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchHabits = useCallback(async () => {
@@ -32,13 +35,37 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchChallenges = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+      const response = await axios.get('/api/challenges/joined', {
+        headers: { 'x-auth-token': token }
+      });
+      setChallenges(response.data.slice(0, 3)); // Show only first 3
+    } catch (error) {
+      console.error('Error fetching challenges:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchHabits();
-  }, [fetchHabits]);
+    fetchChallenges();
+  }, [fetchHabits, fetchChallenges]);
 
   const markHabitComplete = async (habitId) => {
     try {
-      await axios.post(`/api/habits/${habitId}/complete`);
+      const response = await axios.post(`/api/habits/${habitId}/complete`);
+      
+      // Update user stats if returned from backend
+      if (response.data.userStats) {
+        updateUser({
+          ecoPoints: response.data.userStats.ecoPoints,
+          currentStreak: response.data.userStats.currentStreak
+        });
+      }
+      
       fetchHabits(); // Refresh habits
     } catch (error) {
       console.error('Error marking habit complete:', error);
@@ -89,6 +116,49 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Small note about the CO2 estimate when backend value is not available */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <p className="text-sm text-gray-500">Showing estimated CO₂ saved when backend value is not provided. Estimates are heuristic and for motivational purposes only.</p>
+        </div>
+
+        {/* Active Challenges */}
+        {challenges.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Active Challenges</h2>
+              </div>
+              <button 
+                onClick={() => navigate('/challenges')}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                View All
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {challenges.map((challenge) => (
+                <div key={challenge._id} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
+                  <h3 className="font-semibold text-gray-900 mb-2">{challenge.title}</h3>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${challenge.progress || 0}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">{challenge.progress || 0}% complete</span>
+                    <span className="text-blue-600 font-medium">{challenge.ecoPoints} pts</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         {/* Today's Habits */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-12">
           <div className="flex items-center mb-8">
@@ -110,17 +180,20 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h3>
-            <div className="space-y-4">
-              <button className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+              <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
                 Add New Habit
               </button>
               <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                 Share Progress
               </button>
-              <button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+              <button 
+                onClick={() => navigate('/challenges')}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
                 Join Challenge
               </button>
             </div>

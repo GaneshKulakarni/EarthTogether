@@ -12,6 +12,12 @@ const Login = () => {
   const { login, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
   const { email, password } = formData;
 
   const handleChange = (e) => {
