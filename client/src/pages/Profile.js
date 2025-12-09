@@ -4,6 +4,7 @@ import { usePost } from '../context/PostContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus } from 'lucide-react';
 import api from '../services/api';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 import HabitCard from '../components/HabitCard';
 import PostCard from '../components/PostCard';
@@ -123,7 +124,7 @@ const Profile = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/habits', {
+        const res = await axios.get('/api/habits', {
           headers: { 
             'x-auth-token': token,
             'Content-Type': 'application/json'
@@ -164,7 +165,12 @@ const Profile = () => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/users/profile', data, {
+      const updateData = new FormData();
+      if (formData.username) updateData.append('username', formData.username);
+      if (formData.bio !== undefined) updateData.append('bio', formData.bio);
+      if (selectedFile) updateData.append('avatar', selectedFile);
+      
+      await axios.put('/api/users/profile', updateData, {
         headers: {
           'x-auth-token': token,
           'Content-Type': 'multipart/form-data' // Important for file uploads
@@ -233,9 +239,9 @@ const Profile = () => {
     navigate('/create-post');
   };
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450';
+  // Using proxy, so avatar URLs should be relative
   const resolvedAvatar = user?.avatar
-    ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL}${user.avatar}`)
+    ? (user.avatar.startsWith('http') ? user.avatar : user.avatar.startsWith('/') ? user.avatar : `/${user.avatar}`)
     : null;
 
   return (

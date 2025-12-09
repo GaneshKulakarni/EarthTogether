@@ -14,11 +14,10 @@ const MainLayout = () => {
     { name: 'Waste Management', path: '/waste-management' },
     { name: 'Memes', path: '/memes' },
     { name: 'Leaderboard', path: '/leaderboard' },
-    { name: 'Admin Panel', path: '/admin' },
   ];
 
-  // Only show admin panel for test@gmail.com
-  if (user?.email === 'test@gmail.com') {
+  // Only show admin panel for admin users
+  if (user?.role === 'admin') {
     sidebarLinks.push({ name: 'Admin Panel', path: '/admin' });
   }
 

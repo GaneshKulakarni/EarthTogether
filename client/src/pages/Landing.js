@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Leaf, Users, Trophy, Target, Zap, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import Navbar from '../components/Navbar';
 
 const featureItems = [
   {
@@ -67,13 +66,28 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      {/* Navbar - Logo only */}
+      <nav className="bg-white/95 backdrop-blur-md shadow-lg fixed top-0 left-0 right-0 z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Leaf className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EarthTogether</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <motion.div
         initial="hidden"
         animate="visible"
         variants={heroVariants}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden pt-16"
       >
         <video
           autoPlay
@@ -82,13 +96,9 @@ const Landing = () => {
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
         >
-
           <source src="/videos/landing video.mp4" type="video/mp4" />
-
-        
-       
         </video>
-        <div className="absolute inset-0 bg-black opacity-50 z-10"></div> {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 z-20">
           <div className="text-center">
             <motion.h1
@@ -221,33 +231,18 @@ const Landing = () => {
           <p className="text-xl text-white mb-8">
             Join thousands of eco-warriors already making the world a better place, one habit at a time.
           </p>
-          {!user ? (
-            <motion.div
-              variants={ctaButtonVariants}
-              whileHover="hover"
-              whileTap="tap"
+          <motion.div
+            variants={ctaButtonVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Link
+              to="/register"
+              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
             >
-              <Link
-                to="/register"
-                className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
-              >
-                Start Your Eco-Journey Today
-              </Link>
-            </motion.div>
-          ) : (
-            <motion.div
-              variants={ctaButtonVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <Link
-                to="/home"
-                className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
-              >
-                Continue Your Journey
-              </Link>
-            </motion.div>
-          )}
+              Start Your Eco-Journey Today
+            </Link>
+          </motion.div>
         </div>
       </motion.div>
     </div>

@@ -18,7 +18,6 @@ import Register from './pages/Register';
 import WasteManagement from './pages/WasteManagement';
 import Researches from './pages/Researches';
 import AdminPanel from './pages/AdminPanel';
-import CreatePost from './pages/CreatePost';
 import { AuthProvider } from './context/AuthContext';
 import { PostProvider } from './context/PostContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -63,7 +62,14 @@ function App() {
               <Route path="/quizzes" element={<QuizGames />} />
               <Route path="/waste-management" element={<WasteManagement />} />
               <Route path="/researches" element={<Researches />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
+            </Route>
+            
+            {/* Admin Route - Separate from other protected routes */}
+            <Route element={
+              <AdminRoute>
+                <MainLayout />
+              </AdminRoute>
+            }>
               <Route path="/admin" element={<AdminPanel />} />
             </Route>
             

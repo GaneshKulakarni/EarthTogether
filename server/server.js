@@ -5,7 +5,13 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
-require('dotenv').config({ path: '../.env' });
+// Try loading .env from root directory first, then fallback to current directory
+const envPath = path.join(__dirname, '..', '.env');
+require('dotenv').config({ path: envPath });
+// Also try loading from current directory as fallback
+if (!process.env.MONGODB_URI) {
+  require('dotenv').config();
+}
 
 const app = express();
 
@@ -39,12 +45,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Database connection with enhanced options
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables. Please create a .env file in the root directory with MONGODB_URI set.');
+    }
+    
     const conn = await mongoose.connect(
-
-e
-
       process.env.MONGODB_URI,
-
       {
         maxPoolSize: 10, // Maintain up to 10 socket connections
         serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8450/api';
+// Using proxy, so baseURL should be relative or empty
+const API_URL = process.env.REACT_APP_API_URL || '';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -80,7 +81,7 @@ export const getPosts = async () => {
 
 export const likePost = async (postId) => {
   try {
-    const response = await api.post(`/posts/like/${postId}`);
+    const response = await api.post(`/api/posts/like/${postId}`);
     return response.data;
   } catch (error) {
     console.error('Error liking post:', error);
