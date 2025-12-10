@@ -89,16 +89,8 @@ const Landing = () => {
         variants={heroVariants}
         className="relative overflow-hidden pt-16"
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        >
-          <source src="/videos/landing video.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-emerald-500 to-blue-600 z-0"></div>
+        <div className="absolute inset-0 bg-black opacity-30 z-10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 z-20">
           <div className="text-center">
             <motion.h1

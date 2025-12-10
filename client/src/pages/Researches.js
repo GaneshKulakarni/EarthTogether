@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Search, BookOpen, TrendingUp, Users, Calendar, ExternalLink } from 'lucide-react';
+import ResearchUploadModal from '../components/ResearchUploadModal';
 
 const Researches = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedArticles, setExpandedArticles] = useState(new Set());
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const researchArticles = [
     {
@@ -205,9 +207,16 @@ const Researches = () => {
         <div className="text-center">
           <h3 className="text-2xl font-bold mb-4">Share Your Research</h3>
           <p className="mb-6 opacity-90">Have environmental research to share? Contribute to our knowledge base and help the community learn.</p>
-          <button className="bg-white text-green-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors">
+          <button 
+            onClick={() => setShowUploadModal(true)}
+            className="bg-white text-green-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors"
+          >
             Submit Research
           </button>
+          <ResearchUploadModal 
+            isOpen={showUploadModal} 
+            onClose={() => setShowUploadModal(false)}
+          />
         </div>
       </div>
     </div>
