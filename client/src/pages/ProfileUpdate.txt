@@ -1,0 +1,53 @@
+// Update formData state initialization (line ~18)
+const [formData, setFormData] = useState({
+  username: '',
+  bio: '',
+  avatar: '',
+  location: '',
+  education: '',
+  institution: ''
+});
+
+// Update useEffect that sets formData (line ~60)
+useEffect(() => {
+  if (user) {
+    setFormData({
+      username: user.username || '',
+      bio: user.bio || '',
+      avatar: user.avatar || '',
+      location: user.location || '',
+      education: user.education || '',
+      institution: user.institution || ''
+    });
+  }
+}, [user]);
+
+// Update handleSubmit (line ~135)
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  try {
+    const token = localStorage.getItem('token');
+    const updateData = new FormData();
+    if (formData.username) updateData.append('username', formData.username);
+    if (formData.bio !== undefined) updateData.append('bio', formData.bio);
+    if (formData.location !== undefined) updateData.append('location', formData.location);
+    if (formData.education !== undefined) updateData.append('education', formData.education);
+    if (formData.institution !== undefined) updateData.append('institution', formData.institution);
+    if (selectedFile) updateData.append('avatar', selectedFile);
+    
+    await axios.put('/api/users/profile', updateData, {
+      headers: {
+        'x-auth-token': token,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    toast.success('Profile updated successfully!');
+    setEditing(false);
+    setSelectedFile(null);
+    loadUser();
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    toast.error('Failed to update profile');
+  }
+};

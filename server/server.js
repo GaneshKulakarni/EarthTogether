@@ -93,6 +93,8 @@ app.use('/api/quizzes', require('./routes/quizzes'));
 app.use('/api/research', require('./routes/research'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api', require('./routes/imageGeneration'));
+app.use('/api', require('./routes/newsImageGenerator'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

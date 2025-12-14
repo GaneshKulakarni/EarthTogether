@@ -35,11 +35,12 @@ router.post('/', [
   }
 
   try {
-    const { title, description, category, frequency, ecoPoints, carbonSaved } = req.body;
+    const { title, name, description, category, frequency, ecoPoints, carbonSaved } = req.body;
 
     const newHabit = new Habit({
       user: req.user.id,
-      title,
+      name: name || title,
+      title: title || name,
       description,
       category,
       frequency,
@@ -124,26 +125,21 @@ router.post('/:id/complete', auth, async (req, res) => {
       return res.status(401).json({ msg: 'Not authorized' });
     }
 
-    // Mark as completed
-    const completion = await habit.markCompleted();
+    // Mark as completed (this handles streak increment and daily limit)
+    try {
+      await habit.markCompleted();
+    } catch (error) {
+      return res.status(400).json({ message: error.message });
+    }
 
     // Update user stats
     const user = await User.findById(req.user.id);
     user.ecoPoints += habit.ecoPoints;
     user.totalCarbonSaved += habit.carbonSaved;
-    
-    // Update streak logic
-    const today = new Date().toDateString();
-    const lastCompletion = habit.completions[habit.completions.length - 2];
-    
-    if (lastCompletion && new Date(lastCompletion.date).toDateString() === new Date(Date.now() - 24*60*60*1000).toDateString()) {
-      user.currentStreak += 1;
-    } else {
-      user.currentStreak = 1;
-    }
+    user.currentStreak = habit.currentStreak;
     
     // Award first habit completion achievement
-    if (user.currentStreak === 1) {
+    if (habit.completions.length === 1) {
       const firstHabitBadge = user.badges.find(badge => badge.name === "Eco Starter");
       if (!firstHabitBadge) {
         user.badges.push({
@@ -168,7 +164,7 @@ router.post('/:id/complete', auth, async (req, res) => {
     
     // Award new streak achievements
     for (const milestone of streakMilestones) {
-      if (user.currentStreak === milestone.days) {
+      if (habit.currentStreak === milestone.days) {
         const existingBadge = user.badges.find(badge => badge.name === milestone.name);
         if (!existingBadge) {
           user.badges.push({
@@ -183,7 +179,7 @@ router.post('/:id/complete', auth, async (req, res) => {
     
     await user.save();
 
-    res.json({ habit, completion, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak } });
+    res.json({ habit, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak } });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

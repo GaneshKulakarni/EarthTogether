@@ -11,6 +11,7 @@ import {
 } from "../services/api";
 import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from "lucide-react";
 import { motion } from "framer-motion";
+import UserProfileModal from "../components/UserProfileModal";
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -39,12 +40,14 @@ const Home = () => {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({ content: "", category: "General" });
   const [highlights, setHighlights] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   // Mock posts data
   const mockPosts = [
     {
       id: 1,
-      user: { name: "Sarah Green", avatar: "🌱", title: "Environmental Activist" },
+      user: { name: "Sarah Green", avatar: "🌱", title: "Environmental Activist", _id: "user1" },
       content:
         "Just completed my 30-day plastic-free challenge! 🌍 Reduced my waste by 80% and discovered so many sustainable alternatives.",
       image:
@@ -71,6 +74,7 @@ const Home = () => {
               name: post.user?.username || "User",
               avatar: "🌱",
               title: "EarthTogether Member",
+              _id: post.user?._id,
             },
             content: post.content,
             image: post.imageUrl || null,
@@ -215,6 +219,7 @@ const Home = () => {
           name: user?.username || "User",
           avatar: "🌱",
           title: "EarthTogether Member",
+          _id: user?._id,
         },
         content: newPost.content,
         image: null,
@@ -336,11 +341,25 @@ const Home = () => {
             <div className="p-4 pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+                  <div 
+                    className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl cursor-pointer hover:opacity-80 transition"
+                    onClick={() => {
+                      setSelectedUserId(post.user._id || post.user.id);
+                      setShowUserProfile(true);
+                    }}
+                  >
                     {post.user.avatar}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{post.user.name}</h3>
+                    <h3 
+                      className="font-semibold text-gray-900 cursor-pointer hover:text-green-600 transition"
+                      onClick={() => {
+                        setSelectedUserId(post.user._id || post.user.id);
+                        setShowUserProfile(true);
+                      }}
+                    >
+                      {post.user.name}
+                    </h3>
                     <p className="text-sm text-gray-500">{post.user.title} • {post.timeAgo}</p>
                   </div>
                 </div>
@@ -455,6 +474,13 @@ const Home = () => {
           </div>
         ))}
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal 
+        userId={selectedUserId} 
+        isOpen={showUserProfile} 
+        onClose={() => setShowUserProfile(false)} 
+      />
     </div>
   );
 };

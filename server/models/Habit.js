@@ -6,9 +6,13 @@ const habitSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  name: {
+    type: String,
+    trim: true,
+    maxlength: 100
+  },
   title: {
     type: String,
-    required: true,
     trim: true,
     maxlength: 100
   },
@@ -65,6 +69,9 @@ const habitSchema = new mongoose.Schema({
       default: false
     }
   }],
+  completedDates: [{
+    type: Date
+  }],
   isActive: {
     type: Boolean,
     default: true
@@ -87,6 +94,16 @@ const habitSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Pre-save hook to ensure name or title exists
+habitSchema.pre('save', function(next) {
+  if (!this.name && !this.title) {
+    return next(new Error('Either name or title is required'));
+  }
+  if (!this.name) this.name = this.title;
+  if (!this.title) this.title = this.name;
+  next();
+});
+
 // Virtual for completion rate
 habitSchema.virtual('completionRate').get(function() {
   if (this.completions.length === 0) return 0;
@@ -103,6 +120,20 @@ habitSchema.virtual('daysSinceLastCompletion').get(function() {
 
 // Method to mark habit as completed
 habitSchema.methods.markCompleted = async function(notes = '', photoUrl = '') {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Check if already completed today
+  const completedToday = this.completedDates.some(date => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() === today.getTime();
+  });
+  
+  if (completedToday) {
+    throw new Error('Habit already completed today');
+  }
+  
   const completion = {
     date: new Date(),
     notes,
@@ -111,15 +142,18 @@ habitSchema.methods.markCompleted = async function(notes = '', photoUrl = '') {
   };
 
   this.completions.push(completion);
+  this.completedDates.push(new Date());
   
   // Update streak
-  if (this.completions.length > 1) {
-    const lastCompletion = this.completions[this.completions.length - 2];
-    const daysDiff = Math.ceil((completion.date - lastCompletion.date) / (1000 * 60 * 60 * 24));
+  if (this.completedDates.length > 1) {
+    const lastDate = new Date(this.completedDates[this.completedDates.length - 2]);
+    lastDate.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
     
-    if (daysDiff === 1) {
+    if (lastDate.getTime() === yesterday.getTime()) {
       this.currentStreak += 1;
-    } else if (daysDiff > 1) {
+    } else {
       this.currentStreak = 1;
     }
   } else {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus } from 'lucide-react';
+import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus, MapPin, GraduationCap, Building2, Users } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import HabitCard from '../components/HabitCard';
@@ -18,7 +18,10 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
-    avatar: ''
+    avatar: '',
+    location: '',
+    education: '',
+    institution: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,10 @@ const Profile = () => {
       setFormData({
         username: user.username || '',
         bio: user.bio || '',
-        avatar: user.avatar || ''
+        avatar: user.avatar || '',
+        location: user.location || '',
+        education: user.education || '',
+        institution: user.institution || ''
       });
     }
   }, [user]);
@@ -134,6 +140,9 @@ const Profile = () => {
       const updateData = new FormData();
       if (formData.username) updateData.append('username', formData.username);
       if (formData.bio !== undefined) updateData.append('bio', formData.bio);
+      if (formData.location !== undefined) updateData.append('location', formData.location);
+      if (formData.education !== undefined) updateData.append('education', formData.education);
+      if (formData.institution !== undefined) updateData.append('institution', formData.institution);
       if (selectedFile) updateData.append('avatar', selectedFile);
       
       await axios.put('/api/users/profile', updateData, {
@@ -293,6 +302,45 @@ const Profile = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="City, Country"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Education
+                    </label>
+                    <input
+                      type="text"
+                      name="education"
+                      value={formData.education}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Degree, Field of Study"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Institution
+                    </label>
+                    <input
+                      type="text"
+                      name="institution"
+                      value={formData.institution}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="University or Organization"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Profile Picture
                     </label>
                     <input
@@ -340,10 +388,40 @@ const Profile = () => {
                     <p className="text-gray-600 mb-4">
                       {user.bio || "No bio yet. Tell us about your eco-journey!"}
                     </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Joined {new Date(user.joinedAt).toLocaleDateString()}</span>
+                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                      {user.location && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-green-600" />
+                          <span>{user.location}</span>
+                        </div>
+                      )}
+                      {user.education && (
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-green-600" />
+                          <span>{user.education}</span>
+                        </div>
+                      )}
+                      {user.institution && (
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-green-600" />
+                          <span>{user.institution}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <span className="font-semibold">{user.followers?.length || 0}</span>
+                        <span className="text-gray-500">Followers</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <span className="font-semibold">{user.following?.length || 0}</span>
+                        <span className="text-gray-500">Following</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-500">Joined {new Date(user.joinedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -399,8 +477,8 @@ const Profile = () => {
                           {badge.icon || "🏆"}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{badge.name}</h3>
-                          <p className="text-sm text-gray-600">{badge.description}</p>
+                          <h3 className="font-semibold text-gray-900">{typeof badge === 'string' ? badge : badge.name}</h3>
+                          {badge.description && <p className="text-sm text-gray-600">{badge.description}</p>}
                         </div>
                       </div>
                     </div>

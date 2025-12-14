@@ -27,4 +27,13 @@ module.exports = function(app) {
       }
     })
   );
+  
+  app.use(
+    '/uploads',
+    createProxyMiddleware({
+      target: 'http://localhost:8451',
+      changeOrigin: true,
+      secure: false
+    })
+  );
 };

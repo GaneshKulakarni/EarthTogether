@@ -18,6 +18,7 @@ import Register from './pages/Register';
 import WasteManagement from './pages/WasteManagement';
 import Researches from './pages/Researches';
 import AdminPanel from './pages/AdminPanel';
+import Chat from './pages/Chat';
 import { AuthProvider } from './context/AuthContext';
 import { PostProvider } from './context/PostContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -62,6 +63,7 @@ function App() {
               <Route path="/quizzes" element={<QuizGames />} />
               <Route path="/waste-management" element={<WasteManagement />} />
               <Route path="/researches" element={<Researches />} />
+              <Route path="/chat" element={<Chat />} />
             </Route>
             
             {/* Admin Route - Separate from other protected routes */}

@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  location: {
+    type: String,
+    default: ''
+  },
   ecoPoints: {
     type: Number,
     default: 0
@@ -88,6 +92,22 @@ const userSchema = new mongoose.Schema({
   lastActive: {
     type: Date,
     default: Date.now
+  },
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  institution: {
+    type: String,
+    default: ''
+  },
+  education: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

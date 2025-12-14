@@ -1,69 +1,108 @@
 import React, { useState, useEffect } from 'react';
 import { getEnvironmentNews } from '../services/api';
-import { X, ExternalLink, Calendar, User } from 'lucide-react';
+import { X, ExternalLink, Calendar, User, Wand2 } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const EnvironmentNews = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [generatingImages, setGeneratingImages] = useState({});
 
   const newsWithImages = [
     {
+      id: 'cop29-climate-summit',
       headline: "COP29 Climate Summit Reaches Historic $300 Billion Deal",
       summary: "World leaders at COP29 in Baku agreed to provide $300 billion annually by 2035 to help developing nations combat climate change.",
       content: "The COP29 climate summit concluded with a landmark agreement on climate finance. Developed nations committed to providing $300 billion annually by 2035 to support developing countries in their climate mitigation and adaptation efforts. This represents a significant increase from previous commitments and is seen as crucial for limiting global warming to 1.5°C. The deal includes provisions for renewable energy transition, forest protection, and climate resilience in vulnerable nations.",
       source: "Reuters Climate",
-      image: "/images/news/climate-summit.jpg",
+      image: null,
       date: "November 2024",
       author: "Climate News Team"
     },
     {
+      id: 'antarctic-ice',
       headline: "Antarctic Ice Sheet Melting Accelerates to Critical Levels",
       summary: "New satellite data reveals Antarctic ice loss has tripled in the past decade. Scientists warn of irreversible tipping points.",
       content: "Recent satellite observations show that Antarctic ice sheet melting has accelerated dramatically, with ice loss now occurring at three times the rate observed a decade ago. Scientists attribute this acceleration to warming ocean temperatures and atmospheric changes. The melting contributes significantly to global sea level rise, threatening coastal communities worldwide. Researchers warn that if current trends continue, we may reach irreversible tipping points that could lead to catastrophic sea level rise.",
       source: "Nature Climate Change",
-      image: "/images/news/antarctic-ice.jpg",
+      image: null,
       date: "October 2024",
       author: "Dr. Sarah Mitchell"
     },
     {
+      id: 'ocean-plastic',
       headline: "Ocean Plastic Pollution Reaches Critical Levels",
       summary: "New research shows over 100 million tons of plastic waste in oceans, threatening marine ecosystems and food chains.",
       content: "A comprehensive study reveals that ocean plastic pollution has reached alarming levels, with over 100 million tons of plastic waste currently in our oceans. This pollution is devastating marine life, from microscopic plankton to large whales. Plastic particles are entering the food chain, affecting fish populations and ultimately impacting human health. Urgent action is needed to reduce plastic consumption, improve waste management, and develop innovative cleanup technologies to address this growing crisis.",
       source: "Ocean Conservancy",
-      image: "/images/news/ocean-plastic.jpg",
+      image: null,
       date: "September 2024",
       author: "Marine Research Institute"
     },
     {
+      id: 'solar-panels',
       headline: "Solar Power Becomes Cheapest Energy Source in History",
       summary: "Solar photovoltaic costs have dropped 90% since 2010, making it the most affordable electricity source globally.",
       content: "A comprehensive analysis by the International Energy Agency reveals that solar photovoltaic technology has become the cheapest source of electricity in history. The cost per watt has plummeted 90% over the past 14 years, making solar energy more affordable than fossil fuels in most regions. This cost reduction is driving rapid adoption of solar technology worldwide, with solar installations now accounting for a significant portion of new electricity generation capacity. Experts predict that solar will continue to dominate renewable energy expansion in the coming decades.",
       source: "International Energy Agency",
-      image: "/images/news/solar-panels.jpg",
+      image: null,
       date: "August 2024",
       author: "Energy Analytics Division"
     },
     {
+      id: 'forest-recovery',
       headline: "Global Forests Show Signs of Recovery After Decades of Loss",
       summary: "New data indicates that reforestation efforts and natural regeneration are reversing deforestation trends in several regions.",
       content: "Encouraging news from the Global Forest Watch shows that forest loss has slowed in several key regions thanks to aggressive reforestation programs and conservation efforts. Countries like Brazil, Indonesia, and the Democratic Republic of Congo have implemented policies that are beginning to reverse decades of deforestation. These efforts are critical for carbon sequestration, biodiversity protection, and climate regulation. However, experts caution that much more work is needed to restore forests to pre-industrial levels and prevent further degradation.",
       source: "Global Forest Watch",
-      image: "/images/news/forest-recovery.jpg",
+      image: null,
       date: "July 2024",
       author: "Conservation Team"
     },
     {
+      id: 'sewage-treatment',
       headline: "Sewage Treatment Innovation Reduces Water Pollution",
       summary: "New advanced treatment systems remove 99% of pollutants from wastewater, protecting rivers and coastal ecosystems.",
       content: "Revolutionary sewage treatment technology has been developed that removes 99% of pollutants from wastewater, including harmful chemicals and microplastics. This innovation is being implemented in major cities worldwide to protect rivers, lakes, and coastal ecosystems from pollution. The new systems are more efficient and cost-effective than traditional methods, making them accessible to developing nations. Early results show significant improvements in water quality and aquatic life recovery in treated areas.",
       source: "Water Technology Today",
-      image: "/images/news/sewage-treatment.jpg",
+      image: null,
       date: "June 2024",
       author: "Environmental Engineers"
     }
   ];
+
+  const generateImageForNews = async (newsItem) => {
+    try {
+      setGeneratingImages(prev => ({ ...prev, [newsItem.id]: true }));
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post('/api/generate-news-image',
+        { newsKey: newsItem.id, headline: newsItem.headline },
+        { 
+          headers: { 'x-auth-token': token },
+          timeout: 30000
+        }
+      );
+      
+      if (response.data && response.data.image) {
+        setNews(prev => prev.map(item => 
+          item.id === newsItem.id ? { ...item, image: response.data.image } : item
+        ));
+        toast.success(response.data.fallback ? 'Image loaded!' : 'Image generated!');
+      } else {
+        toast.error('No image data received');
+      }
+    } catch (error) {
+      console.error('Error generating image:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to generate image';
+      toast.error(errorMsg);
+    } finally {
+      setGeneratingImages(prev => ({ ...prev, [newsItem.id]: false }));
+    }
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -81,7 +120,14 @@ const EnvironmentNews = () => {
           newsData = newsWithImages;
         }
         
-        setNews(newsData.length > 0 ? newsData : newsWithImages);
+        const finalNews = newsData.length > 0 ? newsData : newsWithImages;
+        setNews(finalNews);
+        
+        finalNews.forEach(item => {
+          if (!item.image && item.id) {
+            generateImageForNews(item);
+          }
+        });
       } catch (err) {
         console.error('Error fetching news:', err);
         setError('Error loading news. Showing featured articles.');
@@ -111,12 +157,27 @@ const EnvironmentNews = () => {
             className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
           >
             {/* Image */}
-            <div className="relative h-48 overflow-hidden bg-gray-200">
-              <img
-                src={item.image || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop'}
-                alt={item.headline}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              />
+            <div className="relative h-48 overflow-hidden bg-gray-200 flex items-center justify-center">
+              {item.image ? (
+                <img
+                  src={item.image}
+                  alt={item.headline}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              ) : generatingImages[item.id] ? (
+                <div className="flex flex-col items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
+                  <span className="text-xs text-gray-600">Generating...</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => generateImageForNews(item)}
+                  className="flex flex-col items-center justify-center gap-2 text-gray-600 hover:text-green-600 transition"
+                >
+                  <Wand2 className="w-8 h-8" />
+                  <span className="text-xs">Generate Image</span>
+                </button>
+              )}
               <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                 Featured
               </div>
@@ -175,11 +236,17 @@ const EnvironmentNews = () => {
             {/* Modal Content */}
             <div className="p-8">
               {/* Featured Image */}
-              <img
-                src={selectedArticle.image || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop'}
-                alt={selectedArticle.headline}
-                className="w-full h-96 object-cover rounded-lg mb-6"
-              />
+              {selectedArticle.image ? (
+                <img
+                  src={selectedArticle.image}
+                  alt={selectedArticle.headline}
+                  className="w-full h-96 object-cover rounded-lg mb-6"
+                />
+              ) : (
+                <div className="w-full h-96 bg-gray-200 rounded-lg mb-6 flex items-center justify-center">
+                  <span className="text-gray-500">Image generating...</span>
+                </div>
+              )}
 
               {/* Title */}
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
