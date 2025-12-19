@@ -6,6 +6,7 @@ import axios from 'axios';
 import StatsCard from '../components/StatsCard';
 import HabitCard from '../components/HabitCard';
 import EmptyState from '../components/EmptyState';
+import ShareProgressModal from '../components/ShareProgressModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const [habits, setHabits] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const fetchHabits = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -187,7 +189,10 @@ const Dashboard = () => {
               <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
                 Add New Habit
               </button>
-              <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+              <button 
+                onClick={() => setShowShareModal(true)}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
                 Share Progress
               </button>
               <button 
@@ -224,6 +229,13 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Share Progress Modal */}
+        <ShareProgressModal 
+          isOpen={showShareModal} 
+          onClose={() => setShowShareModal(false)} 
+          user={user} 
+        />
       </div>
     </div>
   );
