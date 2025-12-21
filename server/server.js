@@ -21,6 +21,7 @@ app.use(helmet());
 // Enable CORS with both env-based and dev-friendly options
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
   'http://localhost:4501', 
   'http://localhost:6102',
   'http://localhost:6000',

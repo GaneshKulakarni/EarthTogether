@@ -109,6 +109,39 @@ router.post('/login', [
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
+    // Calculate achievements and contributions
+    const Habit = require('../models/Habit');
+    const Challenge = require('../models/Challenge');
+    
+    const habits = await Habit.find({ user: user._id });
+    const challenges = await Challenge.find({ 'participants.user': user._id });
+    
+    // Calculate totals
+    let totalEcoPoints = 0;
+    let totalCarbonSaved = 0;
+    let maxStreak = 0;
+    
+    habits.forEach(habit => {
+      totalEcoPoints += habit.completions.length * habit.ecoPoints;
+      totalCarbonSaved += habit.calculateCarbonSavings();
+      if (habit.longestStreak > maxStreak) maxStreak = habit.longestStreak;
+    });
+    
+    challenges.forEach(challenge => {
+      const participant = challenge.participants.find(p => p.user.toString() === user._id.toString());
+      if (participant && participant.completed) {
+        totalEcoPoints += challenge.ecoPoints;
+        totalCarbonSaved += challenge.carbonSaved;
+      }
+    });
+    
+    // Update user stats
+    user.ecoPoints = totalEcoPoints;
+    user.totalCarbonSaved = totalCarbonSaved;
+    user.longestStreak = maxStreak;
+    user.lastActive = new Date();
+    await user.save();
+
     const payload = {
       user: {
         id: user.id
@@ -128,7 +161,10 @@ router.post('/login', [
             username: user.username,
             email: user.email,
             ecoPoints: user.ecoPoints,
-            currentStreak: user.currentStreak
+            currentStreak: user.currentStreak,
+            totalCarbonSaved: user.totalCarbonSaved,
+            badges: user.badges,
+            certifications: user.certifications
           }
         });
       }
