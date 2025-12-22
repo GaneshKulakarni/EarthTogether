@@ -22,10 +22,11 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
-  'http://localhost:4501', 
+  'http://localhost:4501',
   'http://localhost:6102',
   'http://localhost:6000',
-  'http://localhost:7000'
+  'http://localhost:7000',
+  'https://earth-together.vercel.app' // Production frontend
 ];
 
 app.use(cors({
@@ -49,7 +50,7 @@ const connectDB = async () => {
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined in environment variables. Please create a .env file in the root directory with MONGODB_URI set.');
     }
-    
+
     const conn = await mongoose.connect(
       process.env.MONGODB_URI,
       {
