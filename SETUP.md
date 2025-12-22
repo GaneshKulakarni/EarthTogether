@@ -24,7 +24,7 @@
    Create a `.env` file in the root directory:
    ```env
    PORT=5000
-   MONGO_URI=mongodb+srv://Ganesh:kulkarni123@earth.qlxus4c.mongodb.net/
+   mongodb.net/
    JWT_SECRET=your_super_secret_jwt_key_here
    NODE_ENV=development
    ```
