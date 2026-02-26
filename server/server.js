@@ -5,6 +5,12 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const path = require('path');
+const dns = require('dns');
+
+// Fix DNS resolution for MongoDB Atlas SRV records
+// Local DNS resolvers sometimes can't handle SRV lookups
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+
 // Try loading .env from root directory first, then fallback to current directory
 const envPath = path.join(__dirname, '..', '.env');
 require('dotenv').config({ path: envPath });

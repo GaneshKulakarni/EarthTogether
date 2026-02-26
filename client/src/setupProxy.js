@@ -1,10 +1,10 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-module.exports = function(app) {
+module.exports = function (app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'http://localhost:8451',
+      target: 'http://localhost:8000',
       changeOrigin: true,
       secure: false,
       onProxyReq: (proxyReq, req, res) => {
@@ -15,7 +15,7 @@ module.exports = function(app) {
           'Access-Control-Allow-Headers',
           'Content-Type, Authorization, x-auth-token'
         );
-        
+
         // Handle preflight requests
         if (req.method === 'OPTIONS') {
           return res.status(200).end();
@@ -27,11 +27,11 @@ module.exports = function(app) {
       }
     })
   );
-  
+
   app.use(
     '/uploads',
     createProxyMiddleware({
-      target: 'http://localhost:8451',
+      target: 'http://localhost:8000',
       changeOrigin: true,
       secure: false
     })

@@ -1,242 +1,670 @@
-import React from 'react';
+import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Users, Trophy, Target, Zap, Globe } from 'lucide-react';
+import { Leaf, Users, Search, Settings, ChevronRight, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, Wind, Droplets, Sun, Award, TrendingUp, BookOpen, ExternalLink, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+import './Landing.css';
 
-const featureItems = [
-  {
-    icon: <Leaf className="w-8 h-8 text-green-600" />,
-    title: "Track Eco-Habits",
-    description: "Monitor your daily sustainable actions and build consistent eco-friendly routines.",
-    bgColor: "bg-green-100",
-    textColor: "text-green-600",
-  },
-  {
-    icon: <Users className="w-8 h-8 text-blue-600" />,
-    title: "Community Support",
-    description: "Connect with like-minded individuals and share your eco-journey with the world.",
-    bgColor: "bg-blue-100",
-    textColor: "text-blue-600",
-  },
-  {
-    icon: <Trophy className="w-8 h-8 text-purple-600" />,
-    title: "Earn Rewards",
-    description: "Get recognized for your contributions with badges, certificates, and eco-points.",
-    bgColor: "bg-purple-100",
-    textColor: "text-purple-600",
-  },
-  {
-    icon: <Target className="w-8 h-8 text-yellow-600" />,
-    title: "Join Challenges",
-    description: "Participate in fun eco-challenges and compete with others to make a difference.",
-    bgColor: "bg-yellow-100",
-    textColor: "text-yellow-600",
-  },
-  {
-    icon: <Zap className="w-8 h-8 text-red-600" />,
-    title: "Learn & Grow",
-    description: "Access educational content, quizzes, and tips to expand your environmental knowledge.",
-    bgColor: "bg-red-100",
-    textColor: "text-red-600",
-  },
-  {
-    icon: <Globe className="w-8 h-8 text-indigo-600" />,
-    title: "Global Impact",
-    description: "See the real impact of your actions with carbon savings and environmental metrics.",
-    bgColor: "bg-indigo-100",
-    textColor: "text-indigo-600",
-  },
-];
+/* ─────────────── Three.js Animated Components ─────────────── */
 
-const Landing = () => {
-  const {user} = useAuth();
+// Floating leaves particle system
+function FloatingLeaves({ count = 60 }) {
+  const mesh = useRef();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const heroVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
-  };
+  const particles = useMemo(() => {
+    const temp = [];
+    for (let i = 0; i < count; i++) {
+      temp.push({
+        position: [
+          (Math.random() - 0.5) * 20,
+          Math.random() * 15 - 2,
+          (Math.random() - 0.5) * 10,
+        ],
+        speed: 0.2 + Math.random() * 0.5,
+        rotationSpeed: (Math.random() - 0.5) * 0.02,
+        swaySpeed: 0.5 + Math.random() * 1.5,
+        swayAmount: 0.3 + Math.random() * 0.7,
+        scale: 0.05 + Math.random() * 0.12,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+    return temp;
+  }, [count]);
 
-  const ctaButtonVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2, ease: "easeOut" } },
-    hover: { scale: 1.05, boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)" },
-    tap: { scale: 0.95 },
-  };
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    particles.forEach((particle, i) => {
+      const { position, speed, rotationSpeed, swaySpeed, swayAmount, scale, phase } = particle;
+      let y = position[1] - speed * 0.01;
+      if (y < -3) y = 12;
+      particle.position[1] = y;
+
+      dummy.position.set(
+        position[0] + Math.sin(time * swaySpeed + phase) * swayAmount,
+        y,
+        position[2] + Math.cos(time * swaySpeed * 0.5 + phase) * swayAmount * 0.5
+      );
+      dummy.rotation.x = time * rotationSpeed * 2;
+      dummy.rotation.y = time * rotationSpeed * 3;
+      dummy.rotation.z = Math.sin(time * swaySpeed + phase) * 0.3;
+      dummy.scale.setScalar(scale);
+      dummy.updateMatrix();
+      mesh.current.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.current.instanceMatrix.needsUpdate = true;
+  });
 
   return (
-    <div className="min-h-screen">
-      {/* Navbar - Logo only */}
-      <nav className="bg-white/95 backdrop-blur-md shadow-lg fixed top-0 left-0 right-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Leaf className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">EarthTogether</span>
+    <instancedMesh ref={mesh} args={[null, null, count]}>
+      <planeGeometry args={[1, 1.2]} />
+      <meshBasicMaterial color="#4a7c59" transparent opacity={0.6} side={THREE.DoubleSide} />
+    </instancedMesh>
+  );
+}
+
+// Animated glowing orbs (fireflies)
+function GlowingOrbs({ count = 30 }) {
+  const mesh = useRef();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  const orbs = useMemo(() => {
+    return Array.from({ length: count }, () => ({
+      position: [
+        (Math.random() - 0.5) * 16,
+        Math.random() * 10 - 1,
+        (Math.random() - 0.5) * 8,
+      ],
+      speed: 0.3 + Math.random() * 0.7,
+      phase: Math.random() * Math.PI * 2,
+      radius: 0.5 + Math.random() * 1.5,
+    }));
+  }, [count]);
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime();
+    orbs.forEach((orb, i) => {
+      const { position, speed, phase, radius } = orb;
+      dummy.position.set(
+        position[0] + Math.sin(time * speed + phase) * radius,
+        position[1] + Math.cos(time * speed * 0.7 + phase) * radius * 0.5,
+        position[2] + Math.sin(time * speed * 0.3 + phase) * radius * 0.3
+      );
+      const pulse = 0.03 + Math.sin(time * 2 + phase) * 0.015;
+      dummy.scale.setScalar(pulse);
+      dummy.updateMatrix();
+      mesh.current.setMatrixAt(i, dummy.matrix);
+    });
+    mesh.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={mesh} args={[null, null, count]}>
+      <sphereGeometry args={[1, 8, 8]} />
+      <meshBasicMaterial color="#8fbc8f" transparent opacity={0.7} />
+    </instancedMesh>
+  );
+}
+
+// Rotating earth wireframe
+function EarthWireframe() {
+  const meshRef = useRef();
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y = state.clock.getElapsedTime() * 0.1;
+      meshRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.05) * 0.1;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 0, 0]}>
+      <sphereGeometry args={[2.5, 32, 32]} />
+      <meshBasicMaterial color="#3d6b4f" wireframe transparent opacity={0.15} />
+    </mesh>
+  );
+}
+
+// Scene for the hero section
+function HeroScene() {
+  return (
+    <>
+      <ambientLight intensity={0.5} />
+      <FloatingLeaves count={50} />
+      <GlowingOrbs count={25} />
+    </>
+  );
+}
+
+// Scene for the impact section
+function EarthScene() {
+  return (
+    <>
+      <ambientLight intensity={0.3} />
+      <EarthWireframe />
+      <GlowingOrbs count={15} />
+    </>
+  );
+}
+
+/* ─────────────── Animated Counter Component ─────────────── */
+function AnimatedCounter({ end, duration = 2000, suffix = '', prefix = '' }) {
+  const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasStarted) {
+          setHasStarted(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [hasStarted]);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+    let startTime = null;
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * end));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [hasStarted, end, duration]);
+
+  return <span ref={ref}>{prefix}{count}{suffix}</span>;
+}
+
+/* ─────────────── Wave SVG Divider ─────────────── */
+function WaveDivider({ fill = '#ffffff', flip = false, className = '' }) {
+  return (
+    <div className={`wave-divider ${flip ? 'wave-flip' : ''} ${className}`}>
+      <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M0,40 C360,100 720,0 1080,60 C1260,90 1380,50 1440,40 L1440,120 L0,120 Z"
+          fill={fill}
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* ─────────────── Main Landing Component ─────────────── */
+const Landing = () => {
+  const { user } = useAuth();
+  const { scrollYProgress } = useScroll();
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 1.1]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: (i = 0) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.7, delay: i * 0.12, ease: [0.25, 0.46, 0.45, 0.94] },
+    }),
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    },
+  };
+
+  const missionItems = [
+    { icon: <Recycle className="landing-mission-icon" />, label: 'Reduce Waste', color: '#5a7c65' },
+    { icon: <Sun className="landing-mission-icon" />, label: 'Climate Action', color: '#7a8c5a' },
+    { icon: <Users className="landing-mission-icon" />, label: 'Community Collaboration', color: '#5a6c7c' },
+  ];
+
+  const impactStats = [
+    { icon: <TreePine className="landing-impact-icon" />, value: 12500, label: 'Trees Planted', suffix: '+' },
+    { icon: <Users className="landing-impact-icon" />, value: 8400, label: 'Volunteers Joined', suffix: '+' },
+    { icon: <Globe className="landing-impact-icon" />, value: 240, label: 'Local Initiatives Started', suffix: '' },
+  ];
+
+  const howItWorks = [
+    { number: '240', label: 'Join the Community', sublabel: 'Active members worldwide', icon: <Users className="landing-hiw-icon" /> },
+    { number: '3', label: 'Take Local Action', sublabel: 'Simple daily steps', icon: <Sprout className="landing-hiw-icon" /> },
+    { number: '73', label: 'Create Real Impact', sublabel: 'Communities reached', icon: <TrendingUp className="landing-hiw-icon" /> },
+    { number: '4%', label: 'Carbon Reduced', sublabel: 'By all members', icon: <Wind className="landing-hiw-icon" /> },
+  ];
+
+  const communityStories = [
+    {
+      name: 'Aarav Sharma',
+      role: 'Volunteer, Mumbai',
+      quote: 'EarthTogether gave me a platform to turn my concern into action. My neighborhood is cleaner than ever.',
+      avatar: '🌱',
+    },
+    {
+      name: 'Priya Patel',
+      role: 'Eco-Leader, Delhi',
+      quote: 'I started alone, now I lead a community of 50+ members. This platform made it all possible.',
+      avatar: '🌿',
+    },
+    {
+      name: 'Rohan Kulkarni',
+      role: 'Student, Pune',
+      quote: 'The challenges and badges keep me motivated. I never knew saving the planet could be this fun!',
+      avatar: '🍃',
+    },
+  ];
+
+  const features = [
+    { icon: <BookOpen />, title: 'Analyse & Observe SaaS', desc: 'A complete tool for community climate resource tracking', color: '#f5f0e8' },
+    { icon: <Award />, title: 'Activate Community in Action', desc: 'Nature has the power to unite communities in cause or action', color: '#c75b39' },
+  ];
+
+  return (
+    <div className="landing-root">
+      {/* ─── HEADER / NAVBAR ─── */}
+      <nav className="landing-nav">
+        <div className="landing-nav-inner">
+          <Link to="/" className="landing-logo">
+            <div className="landing-logo-icon">
+              <Leaf className="landing-logo-leaf" />
+            </div>
+            <span className="landing-logo-text">EarthTogether</span>
+          </Link>
+
+          <div className="landing-nav-links">
+            <button className="landing-nav-icon-btn" aria-label="Search">
+              <Search size={18} />
+            </button>
+            <button className="landing-nav-icon-btn" aria-label="Settings">
+              <Settings size={18} />
+            </button>
+            <Link to="/login" className="landing-nav-link">Elem Members</Link>
+            <Link to="/register" className="landing-nav-cta">
+              Contribute <ChevronRight size={16} />
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="landing-mobile-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              className="landing-mobile-menu"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Link to="/login" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>Elem Members</Link>
+              <Link to="/register" className="landing-mobile-link landing-mobile-cta" onClick={() => setMobileMenuOpen(false)}>
+                Contribute <ChevronRight size={16} />
               </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* ─── HERO SECTION ─── */}
+      <section className="landing-hero">
+        <motion.div className="landing-hero-bg" style={{ opacity: heroOpacity, scale: heroScale }}>
+          <img
+            src="/images/forest-hero.png"
+            alt="Dense forest with sunlight streaming through trees"
+            className="landing-hero-img"
+          />
+          <div className="landing-hero-overlay" />
+        </motion.div>
+
+        {/* Three.js floating particles overlay */}
+        <div className="landing-hero-canvas">
+          <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+            <Suspense fallback={null}>
+              <HeroScene />
+            </Suspense>
+          </Canvas>
+        </div>
+
+        <div className="landing-hero-content">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="landing-hero-text"
+          >
+            <motion.h1 variants={fadeInUp} custom={0} className="landing-hero-title">
+              Together, We Can<br />Heal the Earth.
+            </motion.h1>
+            <motion.p variants={fadeInUp} custom={1} className="landing-hero-subtitle">
+              A community-driven movement turning climate<br />concern into real action.
+            </motion.p>
+            <motion.div variants={fadeInUp} custom={2} className="landing-hero-btns">
+              <Link to="/register" className="landing-btn-primary" id="join-movement-btn">
+                Join the Movement
+              </Link>
+              <Link to="#how-it-works" className="landing-btn-secondary" id="see-how-btn">
+                See How It Works
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Decorative leaf elements */}
+        <motion.div
+          className="landing-hero-leaf landing-hero-leaf-1"
+          animate={{ y: [0, -15, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          🍃
+        </motion.div>
+        <motion.div
+          className="landing-hero-leaf landing-hero-leaf-2"
+          animate={{ y: [0, -20, 0], rotate: [0, -15, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        >
+          🌿
+        </motion.div>
+
+        <WaveDivider fill="#faf9f6" />
+      </section>
+
+      {/* ─── FEATURE CARDS ─── */}
+      <section className="landing-feature-cards-section">
+        <div className="landing-container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+            className="landing-feature-cards-grid"
+          >
+            {features.map((feat, i) => (
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                custom={i}
+                className="landing-feature-card"
+                style={{ backgroundColor: feat.color }}
+              >
+                <div className="landing-feature-card-header">
+                  <div>
+                    <h3 className="landing-feature-card-title">{feat.title}</h3>
+                    <p className="landing-feature-card-desc">{feat.desc}</p>
+                  </div>
+                  <div className="landing-feature-card-icon">{feat.icon}</div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── OUR MISSION ─── */}
+      <section className="landing-mission-section">
+        <div className="landing-container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+            className="landing-section-header"
+          >
+            <motion.h2 variants={fadeInUp} className="landing-section-title">OUR MISSION</motion.h2>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+            className="landing-mission-grid"
+          >
+            {missionItems.map((item, i) => (
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                custom={i}
+                whileHover={{ y: -8, boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
+                className="landing-mission-card"
+              >
+                <div className="landing-mission-icon-wrap" style={{ backgroundColor: item.color + '18' }}>
+                  {item.icon}
+                </div>
+                <p className="landing-mission-label">{item.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+        <WaveDivider fill="#f0ebe3" />
+      </section>
+
+      {/* ─── IMPACT STATUS ─── */}
+      <section className="landing-impact-section">
+        <div className="landing-container">
+          <div className="landing-impact-layout">
+            <div className="landing-impact-left">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={staggerContainer}
+              >
+                <motion.h2 variants={fadeInUp} className="landing-impact-title">IMPACT STATUS</motion.h2>
+                <motion.div variants={fadeInUp} className="landing-impact-stats-row">
+                  {impactStats.map((stat, i) => (
+                    <motion.div
+                      key={i}
+                      variants={fadeInUp}
+                      custom={i}
+                      whileHover={{ scale: 1.05 }}
+                      className="landing-impact-stat"
+                    >
+                      <div className="landing-impact-stat-icon">{stat.icon}</div>
+                      <div className="landing-impact-stat-value">
+                        <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+                      </div>
+                      <p className="landing-impact-stat-label">{stat.label}</p>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.div>
+            </div>
+            <div className="landing-impact-right">
+              <div className="landing-impact-globe-canvas">
+                <Canvas camera={{ position: [0, 0, 6], fov: 50 }}>
+                  <Suspense fallback={null}>
+                    <EarthScene />
+                  </Suspense>
+                </Canvas>
+              </div>
+              <div className="landing-impact-highlight">
+                <span className="landing-impact-big-number">
+                  <AnimatedCounter end={300} suffix="%" />
+                </span>
+                <p className="landing-impact-highlight-text">Growth in community engagement this year</p>
+              </div>
             </div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      {/* Hero Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={heroVariants}
-        className="relative overflow-hidden pt-16"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-green-600 via-emerald-500 to-blue-600 z-0"></div>
-        <div className="absolute inset-0 bg-black opacity-30 z-10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 z-20">
-          <div className="text-center">
-            <motion.h1
-              variants={heroVariants}
-              className="text-4xl md:text-6xl font-bold text-white mb-6"
-            >
-              🌍 EarthTogether
-            </motion.h1>
-            <motion.p
-              variants={heroVariants}
-              transition={{ delay: 0.2, ...heroVariants.visible.transition }}
-              className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto"
-            >
-              Join the global movement to save our planet. Track eco-habits, share your journey, 
-              and inspire millions to act daily for the environment.
+      {/* ─── HOW IT WORKS ─── */}
+      <section className="landing-hiw-section" id="how-it-works">
+        <div className="landing-container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+          >
+            <motion.h2 variants={fadeInUp} className="landing-hiw-title">HOW IT WORKS</motion.h2>
+            <motion.div variants={fadeInUp} className="landing-hiw-grid">
+              {howItWorks.map((item, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeInUp}
+                  custom={i}
+                  whileHover={{ y: -5 }}
+                  className="landing-hiw-card"
+                >
+                  <div className="landing-hiw-number">{item.number}</div>
+                  <div className="landing-hiw-card-icon">{item.icon}</div>
+                  <p className="landing-hiw-label">{item.label}</p>
+                  <p className="landing-hiw-sublabel">{item.sublabel}</p>
+                  {i < howItWorks.length - 1 && (
+                    <div className="landing-hiw-connector">
+                      <svg width="60" height="20" viewBox="0 0 60 20">
+                        <path d="M0,10 Q15,0 30,10 Q45,20 60,10" stroke="#8B7355" strokeWidth="2" fill="none" />
+                      </svg>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+        <WaveDivider fill="#3d4f3d" />
+      </section>
+
+      {/* ─── COMMUNITY STORIES ─── */}
+      <section className="landing-stories-section">
+        <div className="landing-container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+          >
+            <motion.h2 variants={fadeInUp} className="landing-stories-title">COMMUNITY STORIES</motion.h2>
+            <motion.div variants={fadeInUp} className="landing-stories-grid">
+              {communityStories.map((story, i) => (
+                <motion.div
+                  key={i}
+                  variants={fadeInUp}
+                  custom={i}
+                  whileHover={{ y: -8, boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}
+                  className="landing-story-card"
+                >
+                  <div className="landing-story-avatar">{story.avatar}</div>
+                  <p className="landing-story-quote">"{story.quote}"</p>
+                  <div className="landing-story-author">
+                    <p className="landing-story-name">{story.name}</p>
+                    <p className="landing-story-role">{story.role}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Decorative leaf */}
+        <motion.div
+          className="landing-stories-leaf"
+          animate={{ rotate: [0, 5, -5, 0], y: [0, -10, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <Leaf size={80} color="#5a7c65" />
+        </motion.div>
+        <WaveDivider fill="#faf9f6" />
+      </section>
+
+      {/* ─── CTA SECTION ─── */}
+      <section className="landing-cta-section">
+        <div className="landing-cta-canvas">
+          <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+            <Suspense fallback={null}>
+              <ambientLight intensity={0.3} />
+              <FloatingLeaves count={30} />
+              <GlowingOrbs count={20} />
+            </Suspense>
+          </Canvas>
+        </div>
+        <div className="landing-container">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={staggerContainer}
+            className="landing-cta-content"
+          >
+            <motion.h2 variants={fadeInUp} className="landing-cta-title">
+              Ready to Make a Difference?
+            </motion.h2>
+            <motion.p variants={fadeInUp} custom={1} className="landing-cta-subtitle">
+              Join thousands of eco-warriors already making the world a better place, one habit at a time.
             </motion.p>
-            <motion.div
-              variants={heroVariants}
-              transition={{ delay: 0.4, ...heroVariants.visible.transition }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-            >
-              <Link
-                to="/register"
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-lg shadow-green-500/30"
-              >
-                Sign Up Free
-              </Link>
-              <Link
-                to="/login"
-                className="bg-white/10 border-2 border-white text-white hover:bg-white hover:text-green-600 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 backdrop-blur"
-              >
-                Log In
+            <motion.div variants={fadeInUp} custom={2}>
+              <Link to="/register" className="landing-cta-btn" id="start-journey-btn">
+                Start Your Eco-Journey Today <ArrowRight size={20} />
               </Link>
             </motion.div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* How it works */}
-      <div className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-12"
-          >
-            <p className="text-sm uppercase tracking-[0.2em] text-green-600 font-semibold">How it works</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Start fast. Stay motivated.</h2>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Sign up",
-                desc: "Create your account and set your first eco-goal.",
-                icon: "🌱"
-              },
-              {
-                title: "Track & learn",
-                desc: "Build streaks, complete quizzes, and join challenges.",
-                icon: "📊"
-              },
-              {
-                title: "Earn & share",
-                desc: "Collect eco-points, badges, and celebrate your impact.",
-                icon: "🏅"
-              }
-            ].map((item, idx) => (
-              <div key={idx} className="bg-white shadow-sm border border-gray-100 rounded-xl p-6 hover:shadow-md transition">
-                <div className="text-3xl mb-4">{item.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Features Section */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose EarthTogether?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We make sustainable living fun, social, and rewarding through gamification 
-              and community support.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featureItems.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.1 * index + 0.8, ease: "easeOut" }}
-                whileHover={{ scale: 1.05, boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.1)" }}
-                className="text-center p-6 bg-gray-50 rounded-lg shadow-md"
-              >
-                <div className={`${feature.bgColor} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  {feature.icon}
+      {/* ─── FOOTER ─── */}
+      <footer className="landing-footer">
+        <div className="landing-container">
+          <div className="landing-footer-grid">
+            <div className="landing-footer-brand">
+              <div className="landing-logo" style={{ marginBottom: '1rem' }}>
+                <div className="landing-logo-icon">
+                  <Leaf className="landing-logo-leaf" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </motion.div>
-            ))}
+                <span className="landing-logo-text" style={{ color: '#fff' }}>EarthTogether</span>
+              </div>
+              <p className="landing-footer-desc">
+                A community-driven movement turning climate concern into real action. Together, we heal the earth.
+              </p>
+            </div>
+
+            <div className="landing-footer-col">
+              <h4 className="landing-footer-heading">Platform</h4>
+              <Link to="/register" className="landing-footer-link">Join the Movement</Link>
+              <Link to="/login" className="landing-footer-link">Sign In</Link>
+              <a href="#how-it-works" className="landing-footer-link">How It Works</a>
+            </div>
+
+            <div className="landing-footer-col">
+              <h4 className="landing-footer-heading">Community</h4>
+              <Link to="/register" className="landing-footer-link">Challenges</Link>
+              <Link to="/register" className="landing-footer-link">Leaderboard</Link>
+              <Link to="/register" className="landing-footer-link">Eco-News</Link>
+            </div>
+
+            <div className="landing-footer-col">
+              <h4 className="landing-footer-heading">Resources</h4>
+              <a href="#" className="landing-footer-link">About Us</a>
+              <a href="#" className="landing-footer-link">Privacy Policy</a>
+              <a href="#" className="landing-footer-link">Terms of Service</a>
+            </div>
+          </div>
+
+          <div className="landing-footer-bottom">
+            <p className="landing-footer-copy">&copy; {new Date().getFullYear()} EarthTogether. All rights reserved. 🌍</p>
+            <div className="landing-footer-socials">
+              <a href="#" className="landing-footer-social" aria-label="External link"><ExternalLink size={18} /></a>
+              <a href="#" className="landing-footer-social" aria-label="Globe"><Globe size={18} /></a>
+              <a href="#" className="landing-footer-social" aria-label="Heart"><Heart size={18} /></a>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* CTA Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={heroVariants}
-        transition={{ delay: 1.0, ...heroVariants.visible.transition }}
-        className="py-20 bg-gradient-to-r from-green-500 to-blue-600"
-      >
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Make a Difference?
-          </h2>
-          <p className="text-xl text-white mb-8">
-            Join thousands of eco-warriors already making the world a better place, one habit at a time.
-          </p>
-          <motion.div
-            variants={ctaButtonVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            <Link
-              to="/register"
-              className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition-colors duration-200 inline-block"
-            >
-              Start Your Eco-Journey Today
-            </Link>
-          </motion.div>
-        </div>
-      </motion.div>
+      </footer>
     </div>
   );
 };
