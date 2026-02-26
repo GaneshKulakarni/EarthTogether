@@ -67,24 +67,32 @@ const Home = () => {
       try {
         const data = await getPosts();
         if (data && data.length > 0) {
-          const formattedPosts = data.map((post) => ({
-            id: post._id,
-            _id: post._id,
-            user: {
-              name: post.user?.username || "User",
-              avatar: "🌱",
-              title: "EarthTogether Member",
-              _id: post.user?._id,
-            },
-            content: post.content,
-            image: post.imageUrl || null,
-            likes: post.likes?.length || 0,
-            comments: post.comments?.length || 0,
-            shares: post.shares?.length || 0,
-            timeAgo: new Date(post.createdAt).toLocaleDateString(),
-            liked: false,
-            category: post.category || "General",
-          }));
+          const formattedPosts = data.map((post) => {
+            // Handle broken local image URLs - only keep valid external URLs
+            let imageUrl = post.imageUrl || null;
+            if (imageUrl && (imageUrl.startsWith('/images/') || imageUrl.startsWith('/uploads/') || imageUrl.startsWith('images/'))) {
+              imageUrl = null; // Skip broken local paths
+            }
+
+            return {
+              id: post._id,
+              _id: post._id,
+              user: {
+                name: post.user?.username || "EcoMember",
+                avatar: "🌱",
+                title: "EarthTogether Member",
+                _id: post.user?._id || post.user,
+              },
+              content: post.content,
+              image: imageUrl,
+              likes: post.likes?.length || 0,
+              comments: post.comments?.length || 0,
+              shares: post.shares?.length || 0,
+              timeAgo: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "recently",
+              liked: false,
+              category: post.category || "General",
+            };
+          });
           setPosts([...formattedPosts, ...mockPosts]);
         }
       } catch (error) {
@@ -94,6 +102,7 @@ const Home = () => {
       }
     };
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -151,10 +160,10 @@ const Home = () => {
         posts.map((post) =>
           post.id === postId || post._id === postId
             ? {
-                ...post,
-                liked: !post.liked,
-                likes: post.liked ? post.likes - 1 : post.likes + 1,
-              }
+              ...post,
+              liked: !post.liked,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+            }
             : post
         )
       );
@@ -203,7 +212,7 @@ const Home = () => {
 
   const handleCreatePost = async () => {
     if (!newPost.content.trim()) return;
-    
+
     try {
       const postData = {
         content: newPost.content,
@@ -341,7 +350,7 @@ const Home = () => {
             <div className="p-4 pb-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl cursor-pointer hover:opacity-80 transition"
                     onClick={() => {
                       setSelectedUserId(post.user._id || post.user.id);
@@ -351,7 +360,7 @@ const Home = () => {
                     {post.user.avatar}
                   </div>
                   <div>
-                    <h3 
+                    <h3
                       className="font-semibold text-gray-900 cursor-pointer hover:text-green-600 transition"
                       onClick={() => {
                         setSelectedUserId(post.user._id || post.user.id);
@@ -374,12 +383,12 @@ const Home = () => {
                 </span>
               </div>
               <p className="text-gray-800 mb-4">{post.content}</p>
-              
+
               {/* Post Image */}
               {post.image && (
-                <img 
-                  src={post.image} 
-                  alt="Post content" 
+                <img
+                  src={post.image}
+                  alt="Post content"
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />
               )}
@@ -399,27 +408,26 @@ const Home = () => {
             {/* Post Actions */}
             <div className="px-4 py-3 border-t border-gray-100">
               <div className="flex items-center justify-around">
-                <button 
+                <button
                   onClick={() => handleLike(post.id || post._id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    post.liked 
-                      ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${post.liked
+                      ? 'text-red-600 bg-red-50 hover:bg-red-100'
                       : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <Heart className={`w-5 h-5 ${post.liked ? 'fill-current' : ''}`} />
                   <span>Like</span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={() => toggleComments(post.id || post._id)}
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   <MessageCircle className="w-5 h-5" />
                   <span>Comment</span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={() => handleShare(post.id || post._id)}
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 >
@@ -453,7 +461,7 @@ const Home = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Sample comments */}
                 <div className="space-y-2">
                   <div className="flex items-start space-x-3">
@@ -476,10 +484,10 @@ const Home = () => {
       </div>
 
       {/* User Profile Modal */}
-      <UserProfileModal 
-        userId={selectedUserId} 
-        isOpen={showUserProfile} 
-        onClose={() => setShowUserProfile(false)} 
+      <UserProfileModal
+        userId={selectedUserId}
+        isOpen={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
       />
     </div>
   );

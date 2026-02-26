@@ -16,7 +16,24 @@ router.get('/', auth, async (req, res) => {
       .populate('comments.user', ['username'])
       .sort({ createdAt: -1 })
       .limit(50);
-    
+
+    // Clean up posts - handle null users and broken image URLs
+    posts = posts.map(post => {
+      const postObj = post.toObject ? post.toObject() : post;
+
+      // If user reference is broken (null), provide a fallback
+      if (!postObj.user) {
+        postObj.user = { username: 'EcoMember', ecoPoints: 0, avatar: '' };
+      }
+
+      // Fix broken local image URLs
+      if (postObj.imageUrl && (postObj.imageUrl.startsWith('/images/') || postObj.imageUrl.startsWith('images/'))) {
+        postObj.imageUrl = ''; // Clear broken local paths
+      }
+
+      return postObj;
+    });
+
     // If no posts in database, generate sample posts
     if (posts.length === 0) {
       const samplePosts = [
@@ -29,21 +46,11 @@ router.get('/', auth, async (req, res) => {
         { _id: '7', user: { username: 'ZeroWasteZoe', ecoPoints: 1300 }, content: 'One month of zero waste living complete! ♻️ Generated only 1 jar of trash. It\'s challenging but so rewarding. AMA about zero waste tips!', category: 'Waste', likes: [{}, {}, {}, {}, {}, {}], comments: [{ user: { username: 'CuriousCarl' }, content: 'How do you handle food packaging?' }], shares: [{}, {}], createdAt: new Date(Date.now() - 25200000) },
         { _id: '8', user: { username: 'GreenGardener', ecoPoints: 650 }, content: 'Harvested my first batch of homegrown vegetables! 🥕🥬 Nothing beats the taste of organic, pesticide-free food from your own garden.', category: 'Gardening', likes: [{}, {}, {}], comments: [], shares: [], createdAt: new Date(Date.now() - 28800000) },
         { _id: '9', user: { username: 'CleanEnergyChris', ecoPoints: 1150 }, content: 'Switched to a 100% renewable energy provider today! ⚡ Small change, huge impact. Every household switching makes a difference!', category: 'Energy', likes: [{}, {}, {}, {}], comments: [{ user: { username: 'PowerSaver' }, content: 'Which provider did you choose?' }], shares: [], createdAt: new Date(Date.now() - 32400000) },
-        { _id: '10', user: { username: 'EcoEducator', ecoPoints: 890 }, content: 'Taught 50 kids about climate change today! 🌍📚 Their enthusiasm gives me hope for the future. Education is our most powerful tool.', category: 'Education', likes: [{}, {}, {}, {}, {}], comments: [], shares: [{}, {}, {}], createdAt: new Date(Date.now() - 36000000) },
-        { _id: '11', user: { username: 'SustainableSam', ecoPoints: 780 }, content: 'DIY natural cleaning products workshop was a success! 🧽✨ 20 people learned to make eco-friendly cleaners. No more toxic chemicals!', category: 'DIY', likes: [{}, {}], comments: [{ user: { username: 'CleanLiving' }, content: 'Can you share the recipes?' }], shares: [], createdAt: new Date(Date.now() - 39600000) },
-        { _id: '12', user: { username: 'TreeHugger', ecoPoints: 1050 }, content: 'Planted 25 trees in the local park today! 🌳 Community tree planting events are so rewarding. Each tree will absorb 22kg CO2 annually!', category: 'Conservation', likes: [{}, {}, {}, {}, {}, {}], comments: [], shares: [{}, {}], createdAt: new Date(Date.now() - 43200000) },
-        { _id: '13', user: { username: 'MinimalMaya', ecoPoints: 920 }, content: 'Embracing minimalism has reduced my carbon footprint by 40%! 📦➡️♻️ Buying less, living more. Quality over quantity always wins.', category: 'Lifestyle', likes: [{}, {}, {}], comments: [{ user: { username: 'SimpleLife' }, content: 'Minimalism changed my life too!' }], shares: [], createdAt: new Date(Date.now() - 46800000) },
-        { _id: '14', user: { username: 'RepairCafe', ecoPoints: 680 }, content: 'Fixed 15 electronic devices at our monthly repair café! 🔧💻 Keeping electronics out of landfills, one repair at a time.', category: 'Repair', likes: [{}, {}], comments: [], shares: [], createdAt: new Date(Date.now() - 50400000) },
-        { _id: '15', user: { username: 'EcoCommuter', ecoPoints: 850 }, content: 'Carpooling to work has been amazing! 🚗👥 Reduced fuel costs by 75% and made new friends. Sustainable AND social!', category: 'Transport', likes: [{}, {}, {}], comments: [{ user: { username: 'ShareRide' }, content: 'How did you find carpool partners?' }], shares: [], createdAt: new Date(Date.now() - 54000000) },
-        { _id: '16', user: { username: 'BeachCleanup', ecoPoints: 1200 }, content: 'Organized beach cleanup collected 200kg of plastic waste! 🏖️🗑️ 50 volunteers showed up. Together we can heal our oceans!', category: 'Cleanup', likes: [{}, {}, {}, {}, {}, {}, {}], comments: [], shares: [{}, {}, {}], createdAt: new Date(Date.now() - 57600000) },
-        { _id: '17', user: { username: 'UrbanFarmer', ecoPoints: 750 }, content: 'Vertical garden in my apartment is thriving! 🏢🌿 Growing herbs and vegetables in 2 square meters. Urban farming is the future!', category: 'Gardening', likes: [{}, {}, {}], comments: [{ user: { username: 'CityGreen' }, content: 'What vegetables grow best vertically?' }], shares: [], createdAt: new Date(Date.now() - 61200000) },
-        { _id: '18', user: { username: 'GreenTech', ecoPoints: 990 }, content: 'Smart home automation reduced energy consumption by 30%! 🏠💡 LED lights, smart thermostats, and energy monitoring make a difference.', category: 'Technology', likes: [{}, {}, {}, {}], comments: [], shares: [{}], createdAt: new Date(Date.now() - 64800000) },
-        { _id: '19', user: { username: 'EcoFashion', ecoPoints: 820 }, content: 'Thrift shopping haul! 👗♻️ Found amazing clothes for 90% less cost and environmental impact. Sustainable fashion is stylish fashion!', category: 'Fashion', likes: [{}, {}, {}], comments: [{ user: { username: 'StyleSaver' }, content: 'Love thrift finds! Where do you shop?' }], shares: [], createdAt: new Date(Date.now() - 68400000) },
-        { _id: '20', user: { username: 'RenewableRavi', ecoPoints: 1180 }, content: 'Wind turbine project in our town approved! 💨⚡ Will generate clean energy for 5000 homes. Community action creates real change!', category: 'Energy', likes: [{}, {}, {}, {}, {}, {}], comments: [], shares: [{}, {}, {}], createdAt: new Date(Date.now() - 72000000) }
+        { _id: '10', user: { username: 'EcoEducator', ecoPoints: 890 }, content: 'Taught 50 kids about climate change today! 🌍📚 Their enthusiasm gives me hope for the future. Education is our most powerful tool.', category: 'Education', likes: [{}, {}, {}, {}, {}], comments: [], shares: [{}, {}, {}], createdAt: new Date(Date.now() - 36000000) }
       ];
       posts = samplePosts;
     }
-    
+
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -72,7 +79,7 @@ router.post('/', auth, async (req, res) => {
 
     const post = await newPost.save();
     await post.populate('user', ['username', 'ecoPoints', 'avatar']);
-    
+
     console.log('Post created successfully:', post._id);
     res.json(post);
   } catch (err) {
@@ -145,7 +152,7 @@ router.put('/like/:id', auth, async (req, res) => {
 
     // Check if post has already been liked
     const likeIndex = post.likes.findIndex(like => like.user.toString() === req.user.id);
-    
+
     if (likeIndex > -1) {
       // Unlike - remove the like
       post.likes.splice(likeIndex, 1);
@@ -157,12 +164,12 @@ router.put('/like/:id', auth, async (req, res) => {
     const savedPost = await post.save();
     console.log(`Post ${post._id} ${likeIndex > -1 ? 'unliked' : 'liked'} by user ${req.user.id}`);
     console.log('Saved post likes:', savedPost.likes.length);
-    
+
     // Fetch fresh post from database to ensure data integrity
     const freshPost = await Post.findById(req.params.id)
       .populate('user', ['username', 'ecoPoints', 'avatar'])
       .populate('comments.user', ['username']);
-    
+
     res.json(freshPost);
   } catch (err) {
     console.error('Error liking post:', err.message);
@@ -221,7 +228,7 @@ router.post('/like/:id', auth, async (req, res) => {
 
     // Check if post has already been liked
     const likeIndex = post.likes.findIndex(like => like.user.toString() === req.user.id);
-    
+
     if (likeIndex > -1) {
       // Unlike - remove the like
       post.likes.splice(likeIndex, 1);

@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Users, Search, Settings, ChevronRight, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, Wind, Droplets, Sun, Award, TrendingUp, BookOpen, ExternalLink, Menu, X } from 'lucide-react';
+import { Leaf, Users, Search, Settings, ChevronRight, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, Wind, Sun, Award, TrendingUp, BookOpen, ExternalLink, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -199,7 +199,7 @@ function WaveDivider({ fill = '#ffffff', flip = false, className = '' }) {
 
 /* ─────────────── Main Landing Component ─────────────── */
 const Landing = () => {
-  const { user } = useAuth();
+  useAuth();
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 1.1]);
@@ -649,18 +649,18 @@ const Landing = () => {
 
             <div className="landing-footer-col">
               <h4 className="landing-footer-heading">Resources</h4>
-              <a href="#" className="landing-footer-link">About Us</a>
-              <a href="#" className="landing-footer-link">Privacy Policy</a>
-              <a href="#" className="landing-footer-link">Terms of Service</a>
+              <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>About Us</button>
+              <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>Privacy Policy</button>
+              <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>Terms of Service</button>
             </div>
           </div>
 
           <div className="landing-footer-bottom">
             <p className="landing-footer-copy">&copy; {new Date().getFullYear()} EarthTogether. All rights reserved. 🌍</p>
             <div className="landing-footer-socials">
-              <a href="#" className="landing-footer-social" aria-label="External link"><ExternalLink size={18} /></a>
-              <a href="#" className="landing-footer-social" aria-label="Globe"><Globe size={18} /></a>
-              <a href="#" className="landing-footer-social" aria-label="Heart"><Heart size={18} /></a>
+              <button type="button" className="landing-footer-social" aria-label="External link"><ExternalLink size={18} /></button>
+              <button type="button" className="landing-footer-social" aria-label="Globe"><Globe size={18} /></button>
+              <button type="button" className="landing-footer-social" aria-label="Heart"><Heart size={18} /></button>
             </div>
           </div>
         </div>
