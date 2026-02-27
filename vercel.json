@@ -1,12 +1,16 @@
 {
-    "buildCommand": "cd client && CI=false npm run build",
+    "buildCommand": "if [ -d \"client\" ]; then cd client && CI=false npm run build; else CI=false npm run build; fi",
     "outputDirectory": "client/build",
-    "installCommand": "cd client && npm install --legacy-peer-deps",
-    "framework": null,
+    "installCommand": "if [ -d \"client\" ]; then cd client && npm install --legacy-peer-deps; else npm install --legacy-peer-deps; fi",
+    "framework": "create-react-app",
     "rewrites": [
         {
             "source": "/api/(.*)",
             "destination": "/api/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
