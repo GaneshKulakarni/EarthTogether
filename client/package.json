@@ -59,5 +59,8 @@
     "cross-env": "^10.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
+  },
+  "overrides": {
+    "react-is": "^18.2.0"
   }
 }
