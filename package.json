@@ -8,8 +8,8 @@
     "server": "nodemon server/server.js",
     "client": "cd client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "cd client && npm run build",
-    "install-client": "cd client && npm install",
+    "build": "npm run build --prefix client",
+    "install-client": "npm install --prefix client",
     "heroku-postbuild": "npm run install-client && npm run build"
   },
   "keywords": [
