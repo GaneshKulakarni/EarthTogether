@@ -138,10 +138,15 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://127.0.0.1:${PORT}/api/health`);
-  console.log(`🔉 Listening on 0.0.0.0:${PORT} (IPv4)`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Health check: http://127.0.0.1:${PORT}/api/health`);
+    console.log(`🔉 Listening on 0.0.0.0:${PORT} (IPv4)`);
+  });
+}
+
+module.exports = app;
+
