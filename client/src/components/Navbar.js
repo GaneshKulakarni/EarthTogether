@@ -74,43 +74,41 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* ── Centered Search ── */}
+          {/* ── Search (positioned before nav links) ── */}
           {isAuthenticated && (
-            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-              <div style={{ position: 'relative' }}>
-                <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: mutedColor }} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  onFocus={() => searchResults.length > 0 && setShowResults(true)}
-                  placeholder="Search the greenhouse…"
-                  style={{
-                    paddingLeft: 36, paddingRight: 16, paddingTop: 10, paddingBottom: 10,
-                    background: inputBg, border: `1px solid ${inputBorder}`, borderRadius: 10,
-                    color: isDark ? '#e6edf3' : '#111827', fontSize: 13, outline: 'none', width: 320,
-                    fontFamily: 'inherit', transition: 'all 0.2s ease',
-                  }}
-                />
-                {showResults && searchResults.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', marginTop: 8, left: '50%', transform: 'translateX(-50%)', width: 320, background: isDark ? '#1a2030' : '#fff', borderRadius: 10, boxShadow: '0 8px 30px rgba(0,0,0,0.25)', border: `1px solid ${inputBorder}`, maxHeight: 300, overflowY: 'auto', zIndex: 100 }}>
-                    {searchResults.map((u) => (
-                      <div key={u._id} onClick={() => handleUserSelect(u._id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = isDark ? '#1f2840' : '#f9fafb'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          {u.avatar ? <img src={u.avatar} alt={u.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={16} color="#fff" />}
-                        </div>
-                        <div>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: isDark ? '#e6edf3' : '#111' }}>{u.username}</p>
-                          {u.bio && <p style={{ margin: 0, fontSize: 11, color: mutedColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>{u.bio}</p>}
-                        </div>
+            <div style={{ position: 'relative', marginLeft: 24 }}>
+              <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: mutedColor }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                placeholder="Search the greenhouse…"
+                style={{
+                  paddingLeft: 36, paddingRight: 16, paddingTop: 10, paddingBottom: 10,
+                  background: inputBg, border: `1px solid ${inputBorder}`, borderRadius: 10,
+                  color: isDark ? '#e6edf3' : '#111827', fontSize: 13, outline: 'none', width: 280,
+                  fontFamily: 'inherit', transition: 'all 0.2s ease',
+                }}
+              />
+              {showResults && searchResults.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', marginTop: 8, left: 0, width: 280, background: isDark ? '#1a2030' : '#fff', borderRadius: 10, boxShadow: '0 8px 30px rgba(0,0,0,0.25)', border: `1px solid ${inputBorder}`, maxHeight: 300, overflowY: 'auto', zIndex: 100 }}>
+                  {searchResults.map((u) => (
+                    <div key={u._id} onClick={() => handleUserSelect(u._id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = isDark ? '#1f2840' : '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {u.avatar ? <img src={u.avatar} alt={u.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={16} color="#fff" />}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: isDark ? '#e6edf3' : '#111' }}>{u.username}</p>
+                        {u.bio && <p style={{ margin: 0, fontSize: 11, color: mutedColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>{u.bio}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
