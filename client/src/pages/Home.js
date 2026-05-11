@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
 import { useNotifications } from "../context/NotificationContext";
@@ -13,36 +13,11 @@ import {
   Smile,
   Tag,
   Trophy,
-  LogOut,
-  LayoutGrid,
-  Trash2,
-  BookOpen,
-  BarChart2,
   Plus,
-  Users,
-  Award,
-  ChevronDown,
-  ChevronRight,
-  Newspaper,
-  Laugh,
-  FlaskConical,
 } from "lucide-react";
 import UserProfileModal from "../components/UserProfileModal";
+import AppSidebar from "../components/AppSidebar";
 import "./Home.css";
-
-/* ─── Sidebar links config ─── */
-const SIDEBAR_LINKS = [
-  { name: "Waste Management", path: "/waste-management", icon: <Trash2   size={18} /> },
-  { name: "Leaderboard",      path: "/leaderboard",     icon: <BarChart2 size={18} /> },
-  { name: "Challenges",       path: "/challenges",      icon: <Award     size={18} /> },
-];
-
-/* ─── Green Media sub-links ─── */
-const GREEN_MEDIA_LINKS = [
-  { name: "News",     path: "/news",      icon: <Newspaper    size={16} /> },
-  { name: "Research", path: "/researches", icon: <FlaskConical size={16} /> },
-  { name: "Memes",    path: "/memes",     icon: <Laugh        size={16} /> },
-];
 
 /* ─── Mock data for right panel ─── */
 const MOCK_IMPACT = { co2: 12.4, plastic: 2.5, water: 42, progress: 72 };
@@ -188,11 +163,9 @@ const PostCard = ({
 
 /* ─── Main Home Component ─── */
 const Home = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { sharePost: sharePostAction } = usePost();
   useNotifications();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -202,12 +175,7 @@ const Home = () => {
   const [postExpanded, setPostExpanded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [greenMediaOpen, setGreenMediaOpen] = useState(
-    location.pathname === "/welcome" ||
-    location.pathname === "/news" ||
-    location.pathname === "/researches" ||
-    location.pathname === "/memes"
-  );
+
 
   /* ── Featured posts ── */
   const featuredPosts = [
@@ -331,65 +299,8 @@ const Home = () => {
 
   return (
     <div className="home-shell">
-      {/* ════ LEFT SIDEBAR ════ */}
-      <aside className="home-sidebar">
-        <nav className="sidebar-nav" style={{ marginTop: 8 }}>
-          {/* ── Green Media Dropdown ── */}
-          <button
-            className={`sidebar-link sidebar-dropdown-trigger ${greenMediaOpen ? "active" : ""}`}
-            onClick={() => setGreenMediaOpen((o) => !o)}
-          >
-            <LayoutGrid size={18} />
-            <span style={{ flex: 1 }}>Green Media</span>
-            {greenMediaOpen
-              ? <ChevronDown size={15} style={{ marginLeft: "auto" }} />
-              : <ChevronRight size={15} style={{ marginLeft: "auto" }} />}
-          </button>
-
-          {/* Sub-links */}
-          {greenMediaOpen && (
-            <div className="sidebar-sub-links">
-              {GREEN_MEDIA_LINKS.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`sidebar-link sidebar-sub-link ${location.pathname === link.path ? "active" : ""}`}
-                >
-                  {link.icon}
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {/* Rest of nav links */}
-          {SIDEBAR_LINKS.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`sidebar-link ${location.pathname === link.path ? "active" : ""}`}
-            >
-              {link.icon}
-              {link.name}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="sidebar-bottom">
-          <button className="sidebar-link" style={{ background: "none", border: "none", width: "100%", textAlign: "left" }}>
-            <Users size={18} />
-            Support
-          </button>
-          <button
-            className="sidebar-link"
-            style={{ background: "none", border: "none", width: "100%", textAlign: "left", color: "#f87171" }}
-            onClick={() => { logout(); navigate("/"); }}
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
-      </aside>
+      {/* ════ LEFT SIDEBAR (shared component) ════ */}
+      <AppSidebar />
 
       {/* ════ MAIN FEED ════ */}
       <main className="home-feed">

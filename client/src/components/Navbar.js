@@ -5,8 +5,8 @@ import { Menu, X, Search, User, Bell, LogOut } from 'lucide-react';
 import UserProfileModal from './UserProfileModal';
 import axios from 'axios';
 
-/* Pages that use the dark navbar style */
-const DARK_ROUTES = ['/welcome'];
+/* Auth pages that should have a light navbar */
+const LIGHT_ROUTES = ['/login', '/register', '/'];
 
 const NAV_LINKS = [
   { label: 'Home',       path: '/welcome' },
@@ -28,7 +28,8 @@ const Navbar = () => {
   const navigate  = useNavigate();
   const location  = useLocation();
 
-  const isDark = DARK_ROUTES.includes(location.pathname);
+  // Dark navbar on all authenticated pages; light only on public routes
+  const isDark = !LIGHT_ROUTES.includes(location.pathname);
 
   const handleLogout = () => { logout(); navigate('/'); };
 
