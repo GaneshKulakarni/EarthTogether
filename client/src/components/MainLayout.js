@@ -1,24 +1,40 @@
 import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+// Pages that manage their own full-bleed layout (no outer sidebar/padding)
+const FULL_BLEED_ROUTES = ['/welcome'];
+
+const SIDEBAR_LINKS = [
+  { name: 'News',             path: '/news' },
+  { name: 'Research',         path: '/researches' },
+  { name: 'Quiz & Flashcards',path: '/quizzes' },
+  { name: 'Waste Management', path: '/waste-management' },
+  { name: 'Memes',            path: '/memes' },
+  { name: 'Leaderboard',      path: '/leaderboard' },
+];
 
 const MainLayout = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
 
-  const sidebarLinks = [
-    { name: 'News', path: '/news' },
-    { name: 'Research', path: '/researches' },
-    { name: 'Quiz & Flashcards', path: '/quizzes' },
-    { name: 'Waste Management', path: '/waste-management' },
-    { name: 'Memes', path: '/memes' },
-    { name: 'Leaderboard', path: '/leaderboard' },
-  ];
+  const isFullBleed = FULL_BLEED_ROUTES.includes(location.pathname);
 
-  // Only show admin panel for admin users
-  if (user?.role === 'admin') {
-    sidebarLinks.push({ name: 'Admin Panel', path: '/admin' });
+  const links = [...SIDEBAR_LINKS];
+  if (user?.role === 'admin') links.push({ name: 'Admin Panel', path: '/admin' });
+
+  if (isFullBleed) {
+    // Home page manages its OWN sidebar + panel — just render content under navbar
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0d1117' }}>
+        <Navbar />
+        <div style={{ marginTop: 64, flex: 1 }}>
+          <Outlet />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -32,7 +48,7 @@ const MainLayout = () => {
                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Navigation</h2>
               </div>
               <ul className="space-y-2">
-                {sidebarLinks.map((link) => (
+                {links.map((link) => (
                   <li key={link.name}>
                     <Link
                       to={link.path}
@@ -44,7 +60,7 @@ const MainLayout = () => {
                     >
                       <span className={`w-2 h-2 rounded-full mr-3 transition-all ${
                         location.pathname === link.path ? 'bg-white' : 'bg-gray-400 group-hover:bg-green-500'
-                      }`}></span>
+                      }`} />
                       {link.name}
                     </Link>
                   </li>

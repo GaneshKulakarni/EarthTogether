@@ -1,494 +1,592 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
 import { useNotifications } from "../context/NotificationContext";
+import { getPosts, likePost, commentOnPost, createPost } from "../services/api";
 import {
-  getPosts,
-  likePost,
-  commentOnPost,
-  sharePost,
-  createPost,
-} from "../services/api";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Send } from "lucide-react";
-import { motion } from "framer-motion";
+  Heart,
+  MessageCircle,
+  Share2,
+  Send,
+  Image,
+  Smile,
+  Tag,
+  Trophy,
+  LogOut,
+  LayoutGrid,
+  Trash2,
+  BookOpen,
+  BarChart2,
+  Plus,
+  Users,
+  Award,
+  ChevronDown,
+  ChevronRight,
+  Newspaper,
+  Laugh,
+  FlaskConical,
+} from "lucide-react";
 import UserProfileModal from "../components/UserProfileModal";
+import "./Home.css";
 
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { staggerChildren: 0.15, duration: 0.5 },
+/* ─── Sidebar links config ─── */
+const SIDEBAR_LINKS = [
+  { name: "Waste Management", path: "/waste-management", icon: <Trash2   size={18} /> },
+  { name: "Leaderboard",      path: "/leaderboard",     icon: <BarChart2 size={18} /> },
+  { name: "Challenges",       path: "/challenges",      icon: <Award     size={18} /> },
+];
+
+/* ─── Green Media sub-links ─── */
+const GREEN_MEDIA_LINKS = [
+  { name: "News",     path: "/news",      icon: <Newspaper    size={16} /> },
+  { name: "Research", path: "/researches", icon: <FlaskConical size={16} /> },
+  { name: "Memes",    path: "/memes",     icon: <Laugh        size={16} /> },
+];
+
+/* ─── Mock data for right panel ─── */
+const MOCK_IMPACT = { co2: 12.4, plastic: 2.5, water: 42, progress: 72 };
+
+const MOCK_CHALLENGES = [
+  {
+    id: "c1", name: "7-Day Zero Waste", tag: "Active", tagClass: "active",
+    meta: "12.8k participating", progress: 65,
   },
+  {
+    id: "c2", name: "Community Tree Drive", tag: "Ends in 2D", tagClass: "ending",
+    meta: "4,502 trees planted", progress: 45, gold: true,
+  },
+];
+
+const MOCK_GUARDIANS = [
+  { id: "g1", name: "Marcus Thorne", points: "2,840", rank: 1, emoji: "🌿" },
+  { id: "g2", name: "Sarah Sun",     points: "2,510", rank: 2, emoji: "☀️" },
+  { id: "g3", name: "David Gale",    points: "2,190", rank: 3, emoji: "🌊" },
+];
+
+/* ─── Helpers ─── */
+const rankClass = (r) => r === 1 ? "gold" : r === 2 ? "silver" : "bronze";
+
+const getBadgeClass = (category) => {
+  if (!category) return "general";
+  const l = category.toLowerCase();
+  if (l.includes("research")) return "research";
+  if (l.includes("challenge")) return "challenge";
+  return "general";
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-  hover: { scale: 1.02 },
-  tap: { scale: 0.98 },
+/* ─── PostCard Component ─── */
+const PostCard = ({ 
+  post, 
+  showComments, 
+  setShowComments, 
+  commentText, 
+  setCommentText, 
+  handleLike, 
+  handleShare, 
+  handleComment, 
+  openProfile, 
+  user 
+}) => {
+  const pid = post.id || post._id;
+  const badgeClass = getBadgeClass(post.category);
+  const isLiked = post.liked;
+
+  return (
+    <article className="post-card">
+      {/* Header */}
+      <header className="post-header">
+        <div className="post-user">
+          <div 
+            className="post-avatar" 
+            onClick={() => openProfile(post.user._id)}
+          >
+            {post.user.avatar}
+          </div>
+          <div className="post-user-info">
+            <h4 onClick={() => openProfile(post.user._id)}>
+              {post.user.name}
+            </h4>
+            <p>{post.user.title} · {post.timeAgo}</p>
+          </div>
+        </div>
+        <span className={`post-badge ${badgeClass}`}>
+          {post.category}
+        </span>
+      </header>
+
+      {/* Content */}
+      <div className="post-content">
+        {post.content}
+      </div>
+
+      {/* Stats */}
+      {post.stats && (
+        <div className="post-stats">
+          {post.stats.map((stat) => (
+            <div key={stat.label} className="post-stat-item">
+              <span className="post-stat-label">{stat.label}</span>
+              <span className="post-stat-value">{stat.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Image */}
+      {post.image && (
+        <div className="post-image-container">
+          <img src={post.image} alt="Post content" className="post-image" />
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="post-footer">
+        <div className="post-reactions">
+          <button 
+            className={`reaction-btn ${isLiked ? 'liked' : ''}`} 
+            onClick={() => handleLike(pid)}
+          >
+            <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
+            {post.likes > 999 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}
+          </button>
+          <button 
+            className="reaction-btn" 
+            onClick={() => setShowComments({ ...showComments, [pid]: !showComments[pid] })}
+          >
+            <MessageCircle size={16} />
+            {post.comments}
+          </button>
+        </div>
+        <button className="share-btn" onClick={() => handleShare(pid)}>
+          <Share2 size={16} />
+        </button>
+      </footer>
+
+      {/* Comments */}
+      {showComments[pid] && (
+        <div className="comment-section">
+          <div className="comment-row">
+            <div className="comment-avatar">
+              {user?.username?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <input
+              className="comment-input"
+              placeholder="Write a comment..."
+              value={commentText[pid] || ''}
+              onChange={(e) => setCommentText({ ...commentText, [pid]: e.target.value })}
+              onKeyDown={(e) => e.key === 'Enter' && handleComment(pid)}
+            />
+            <button className="comment-send" onClick={() => handleComment(pid)}>
+              <Send size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+    </article>
+  );
 };
 
+/* ─── Main Home Component ─── */
 const Home = () => {
-  const { user } = useAuth();
-  const { addPost, toggleLike, addComment, sharePost: sharePostAction } = usePost();
-  const { fetchNotifications } = useNotifications();
+  const { user, logout } = useAuth();
+  const { sharePost: sharePostAction } = usePost();
+  useNotifications();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPost, setNewPost] = useState({ content: "", category: "General" });
-  const [highlights, setHighlights] = useState([]);
+  const [postText, setPostText] = useState("");
+  const [postExpanded, setPostExpanded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [greenMediaOpen, setGreenMediaOpen] = useState(
+    location.pathname === "/welcome" ||
+    location.pathname === "/news" ||
+    location.pathname === "/researches" ||
+    location.pathname === "/memes"
+  );
 
-  // Mock posts data
-  const mockPosts = [
+  /* ── Featured posts ── */
+  const featuredPosts = [
     {
-      id: 1,
-      user: { name: "Sarah Green", avatar: "🌱", title: "Environmental Activist", _id: "user1" },
-      content:
-        "Just completed my 30-day plastic-free challenge! 🌍 Reduced my waste by 80% and discovered so many sustainable alternatives.",
-      image:
-        "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=500&h=300&fit=crop",
-      likes: 24,
-      comments: 8,
-      shares: 3,
-      timeAgo: "2h",
-      liked: false,
-      category: "Waste Reduction",
+      id: "r1", _id: "r1",
+      user: { name: "Global Reforestation Report", avatar: "🌱", title: "Climate Research Labs", _id: "u1" },
+      content: 'New data suggests that "Miyawaki" forests are growing 10× faster and being 30× denser than conventional plantations. Check out the latest biodiversity metrics from our Singapore project site.',
+      image: null,
+      likes: 1200, comments: 84, shares: 31, timeAgo: "3 hours ago",
+      liked: false, category: "Research Highlight",
+      stats: [
+        { label: "Growth Rate", value: "+142%" },
+        { label: "CO2 Seq.",   value: "24t/yr" },
+        { label: "Active Sites", value: "892" },
+      ],
+    },
+    {
+      id: "m1", _id: "m1",
+      user: { name: "Elena Green", avatar: "🏖️", title: "Pacific Clean-up Crew", _id: "u2" },
+      content: "Our weekend beach cleanup was a massive success! We collected over 450lbs of microplastics and fishing nets. Huge shoutout to the 40 volunteers who showed up. The ocean thanks you! 🌊💙 #CleanTheOcean #VerdantCollective",
+      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=400&fit=crop",
+      likes: 342, comments: 27, shares: 15, timeAgo: "20 mins ago",
+      liked: false, category: "Community",
+      stats: null,
     },
   ];
 
+  const [apiPosts, setApiPosts] = useState([]);
+
+  /* ── Fetch posts ── */
   useEffect(() => {
-    const fetchPosts = async () => {
-      setPosts(mockPosts);
+    setPosts(featuredPosts);
+
+    (async () => {
       try {
         const data = await getPosts();
-        if (data && data.length > 0) {
-          const formattedPosts = data.map((post) => {
-            // Handle broken local image URLs - only keep valid external URLs
-            let imageUrl = post.imageUrl || null;
-            if (imageUrl && (imageUrl.startsWith('/images/') || imageUrl.startsWith('/uploads/') || imageUrl.startsWith('images/'))) {
-              imageUrl = null; // Skip broken local paths
-            }
-
-            return {
-              id: post._id,
-              _id: post._id,
-              user: {
-                name: post.user?.username || "EcoMember",
-                avatar: "🌱",
-                title: "EarthTogether Member",
-                _id: post.user?._id || post.user,
-              },
-              content: post.content,
-              image: imageUrl,
-              likes: post.likes?.length || 0,
-              comments: post.comments?.length || 0,
-              shares: post.shares?.length || 0,
-              timeAgo: post.createdAt ? new Date(post.createdAt).toLocaleDateString() : "recently",
-              liked: false,
-              category: post.category || "General",
-            };
-          });
-          setPosts([...formattedPosts, ...mockPosts]);
+        if (data?.length > 0) {
+          const formatted = data
+            .filter((p) => p.content && p.content.trim().length > 10)
+            .map((p) => {
+              let img = p.imageUrl || null;
+              if (img && (img.startsWith("/images/") || img.startsWith("/uploads/"))) img = null;
+              return {
+                id: p._id, _id: p._id,
+                user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
+                content: p.content, image: img,
+                likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
+                timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
+                liked: false, category: p.category || "General", stats: null,
+              };
+            });
+          setApiPosts(formatted);
         }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      } catch (_) {}
+      finally { setLoading(false); }
+    })();
   }, []);
 
-  useEffect(() => {
-    const topPost = posts[0];
-    const fallback = [
-      {
-        id: "challenge",
-        title: "Join the Plastic-Free Challenge",
-        type: "Challenge",
-        cta: "View challenges",
-        href: "/challenges",
-        accent: "from-green-500 to-emerald-500",
-        desc: "Cut single-use plastics for 7 days and earn a badge."
-      },
-      {
-        id: "news",
-        title: "Latest eco-news",
-        type: "News",
-        cta: "Read news",
-        href: "/news",
-        accent: "from-blue-500 to-cyan-500",
-        desc: "Stay updated with sustainability breakthroughs."
-      },
-      {
-        id: "research",
-        title: "Research spotlight",
-        type: "Research",
-        cta: "Explore research",
-        href: "/researches",
-        accent: "from-purple-500 to-pink-500",
-        desc: "Dive into curated studies on climate and energy."
-      }
-    ];
-
-    const built = [];
-    if (topPost) {
-      built.push({
-        id: `post-${topPost.id || topPost._id}`,
-        title: topPost.content?.slice(0, 60) || "Community highlight",
-        type: "Community Post",
-        cta: "View post",
-        href: "/feed",
-        accent: "from-emerald-500 to-green-500",
-        desc: `${topPost.user?.name || "EcoUser"} • ${topPost.category || "General"}`
-      });
-    }
-
-    setHighlights([...built, ...fallback].slice(0, 3));
-  }, [posts]);
-
-  const handleLike = async (postId) => {
-    try {
-      await likePost(postId);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-            }
-            : post
-        )
-      );
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
+  /* ── Handlers ── */
+  const updatePost = (id, updater) => {
+    setPosts((prev) => prev.map((p) => (p.id === id || p._id === id) ? updater(p) : p));
+    setApiPosts((prev) => prev.map((p) => (p.id === id || p._id === id) ? updater(p) : p));
   };
 
-  const handleComment = async (postId) => {
-    const content = commentText[postId];
-    if (!content?.trim()) return;
-
-    try {
-      await commentOnPost(postId, content);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? { ...post, comments: post.comments + 1 }
-            : post
-        )
-      );
-      setCommentText({ ...commentText, [postId]: "" });
-    } catch (error) {
-      console.error("Error commenting:", error);
-    }
+  const handleLike = async (id) => {
+    try { await likePost(id); } catch (_) {}
+    updatePost(id, (p) => ({ ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }));
   };
 
-  const handleShare = async (postId) => {
-    try {
-      await sharePostAction(postId);
-      setPosts(
-        posts.map((post) =>
-          post.id === postId || post._id === postId
-            ? { ...post, shares: post.shares + 1 }
-            : post
-        )
-      );
-    } catch (error) {
-      console.error("Error sharing post:", error);
-    }
+  const handleComment = async (id) => {
+    const txt = commentText[id];
+    if (!txt?.trim()) return;
+    try { await commentOnPost(id, txt); } catch (_) {}
+    updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }));
+    setCommentText({ ...commentText, [id]: "" });
   };
 
-  const toggleComments = (postId) => {
-    setShowComments({ ...showComments, [postId]: !showComments[postId] });
+  const handleShare = async (id) => {
+    try { await sharePostAction(id); } catch (_) {}
+    updatePost(id, (p) => ({ ...p, shares: p.shares + 1 }));
   };
 
   const handleCreatePost = async () => {
-    if (!newPost.content.trim()) return;
-
+    if (!postText.trim()) return;
     try {
-      const postData = {
-        content: newPost.content,
-        category: newPost.category,
+      const saved = await createPost({ content: postText, category: "General" });
+      const np = {
+        id: saved._id, _id: saved._id,
+        user: { name: user?.username || "User", avatar: "🌱", title: "EarthTogether Member", _id: user?._id },
+        content: postText, image: null, likes: 0, comments: 0, shares: 0,
+        timeAgo: "just now", liked: false, category: "General", stats: null,
       };
-
-      const savedPost = await createPost(postData);
-
-      const newPostObj = {
-        id: savedPost._id,
-        _id: savedPost._id,
-        user: {
-          name: user?.username || "User",
-          avatar: "🌱",
-          title: "EarthTogether Member",
-          _id: user?._id,
-        },
-        content: newPost.content,
-        image: null,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timeAgo: "now",
-        liked: false,
-        category: newPost.category,
-      };
-
-      setPosts([newPostObj, ...posts]);
-      setNewPost({ content: "", category: "General" });
-      setShowCreatePost(false);
-    } catch (error) {
-      alert('Failed to create post. Please try again.');
-    }
+      setPosts([np, ...posts]);
+    } catch (_) { alert("Failed to post. Please try again."); }
+    setPostText("");
+    setPostExpanded(false);
   };
 
+  const openProfile = (uid) => { setSelectedUserId(uid); setShowUserProfile(true); };
+
+  /* ── Loading State ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="home-shell" style={{ alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            border: "3px solid #34d399", 
+            borderTopColor: "transparent", 
+            borderRadius: "50%", 
+            animation: "spin 0.8s linear infinite", 
+            margin: "0 auto 12px" 
+          }} />
+          <p style={{ color: "#8b949e", fontSize: 14 }}>Loading your eco-feed...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg mb-6">
-          <span className="text-3xl">🏠</span>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-4">
-          EarthTogether Feed
-        </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Your daily dose of eco-inspiration, community posts, and sustainability
-          updates
-        </p>
-      </div>
+    <div className="home-shell">
+      {/* ════ LEFT SIDEBAR ════ */}
+      <aside className="home-sidebar">
+        <nav className="sidebar-nav" style={{ marginTop: 8 }}>
+          {/* ── Green Media Dropdown ── */}
+          <button
+            className={`sidebar-link sidebar-dropdown-trigger ${greenMediaOpen ? "active" : ""}`}
+            onClick={() => setGreenMediaOpen((o) => !o)}
+          >
+            <LayoutGrid size={18} />
+            <span style={{ flex: 1 }}>Green Media</span>
+            {greenMediaOpen
+              ? <ChevronDown size={15} style={{ marginLeft: "auto" }} />
+              : <ChevronRight size={15} style={{ marginLeft: "auto" }} />}
+          </button>
 
-      {/* Create Post */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-        {!showCreatePost ? (
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.username?.[0]?.toUpperCase() || "U"}
-            </div>
-            <button
-              onClick={() => setShowCreatePost(true)}
-              className="flex-1 bg-gray-100 hover:bg-gray-200 rounded-full px-4 py-2 text-left text-gray-500 transition-colors"
-            >
-              Share your eco-journey...
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {user?.username?.[0]?.toUpperCase() || "U"}
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  {user?.username || "User"}
-                </h3>
-                <select
-                  value={newPost.category}
-                  onChange={(e) =>
-                    setNewPost({ ...newPost, category: e.target.value })
-                  }
-                  className="text-sm text-gray-600 bg-transparent border-none focus:outline-none"
+          {/* Sub-links */}
+          {greenMediaOpen && (
+            <div className="sidebar-sub-links">
+              {GREEN_MEDIA_LINKS.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`sidebar-link sidebar-sub-link ${location.pathname === link.path ? "active" : ""}`}
                 >
-                  <option value="General">General</option>
-                  <option value="Achievement">Achievement</option>
-                  <option value="Tip">Tip</option>
-                  <option value="Question">Question</option>
-                  <option value="Challenge">Challenge</option>
-                </select>
-              </div>
+                  {link.icon}
+                  {link.name}
+                </Link>
+              ))}
             </div>
-            <textarea
-              value={newPost.content}
-              onChange={(e) =>
-                setNewPost({ ...newPost, content: e.target.value })
-              }
-              placeholder="What's your eco-story today?"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-green-500"
-              rows={4}
-            />
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => {
-                  setShowCreatePost(false);
-                  setNewPost({ content: "", category: "General" });
-                }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreatePost}
-                disabled={!newPost.content.trim()}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Post
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Posts Feed */}
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <div key={post.id || post._id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Post Header */}
-            <div className="p-4 pb-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl cursor-pointer hover:opacity-80 transition"
-                    onClick={() => {
-                      setSelectedUserId(post.user._id || post.user.id);
-                      setShowUserProfile(true);
-                    }}
-                  >
-                    {post.user.avatar}
-                  </div>
-                  <div>
-                    <h3
-                      className="font-semibold text-gray-900 cursor-pointer hover:text-green-600 transition"
-                      onClick={() => {
-                        setSelectedUserId(post.user._id || post.user.id);
-                        setShowUserProfile(true);
-                      }}
-                    >
-                      {post.user.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">{post.user.title} • {post.timeAgo}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Rest of nav links */}
+          {SIDEBAR_LINKS.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`sidebar-link ${location.pathname === link.path ? "active" : ""}`}
+            >
+              {link.icon}
+              {link.name}
+            </Link>
+          ))}
+        </nav>
 
-            {/* Post Content */}
-            <div className="p-4">
-              <div className="mb-2">
-                <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  {post.category}
-                </span>
-              </div>
-              <p className="text-gray-800 mb-4">{post.content}</p>
+        <div className="sidebar-bottom">
+          <button className="sidebar-link" style={{ background: "none", border: "none", width: "100%", textAlign: "left" }}>
+            <Users size={18} />
+            Support
+          </button>
+          <button
+            className="sidebar-link"
+            style={{ background: "none", border: "none", width: "100%", textAlign: "left", color: "#f87171" }}
+            onClick={() => { logout(); navigate("/"); }}
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+      </aside>
 
-              {/* Post Image */}
-              {post.image && (
-                <img
-                  src={post.image}
-                  alt="Post content"
-                  className="w-full h-64 object-cover rounded-lg mb-4"
-                />
+      {/* ════ MAIN FEED ════ */}
+      <main className="home-feed">
+        {/* Create Post */}
+        <div className="create-post-card">
+          <div className="create-post-top">
+            <div className="user-avatar">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.username} />
+              ) : (
+                user?.username?.[0]?.toUpperCase() || "U"
               )}
             </div>
-
-            {/* Post Stats */}
-            <div className="px-4 py-2 border-t border-gray-100">
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>{post.likes} likes</span>
-                <div className="flex space-x-4">
-                  <span>{post.comments} comments</span>
-                  <span>{post.shares} shares</span>
-                </div>
+            {!postExpanded ? (
+              <div className="create-post-input" onClick={() => setPostExpanded(true)}>
+                Share your eco-journey...
               </div>
-            </div>
-
-            {/* Post Actions */}
-            <div className="px-4 py-3 border-t border-gray-100">
-              <div className="flex items-center justify-around">
-                <button
-                  onClick={() => handleLike(post.id || post._id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${post.liked
-                      ? 'text-red-600 bg-red-50 hover:bg-red-100'
-                      : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                >
-                  <Heart className={`w-5 h-5 ${post.liked ? 'fill-current' : ''}`} />
-                  <span>Like</span>
-                </button>
-
-                <button
-                  onClick={() => toggleComments(post.id || post._id)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Comment</span>
-                </button>
-
-                <button
-                  onClick={() => handleShare(post.id || post._id)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                  <span>Share</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Comments Section */}
-            {showComments[post.id || post._id] && (
-              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    {user?.username?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                  <div className="flex-1 flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={commentText[post.id || post._id] || ''}
-                      onChange={(e) => setCommentText({ ...commentText, [post.id || post._id]: e.target.value })}
-                      className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-green-500"
-                      onKeyPress={(e) => e.key === 'Enter' && handleComment(post.id || post._id)}
-                    />
-                    <button
-                      onClick={() => handleComment(post.id || post._id)}
-                      className="p-2 text-green-600 hover:bg-green-100 rounded-full transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Sample comments */}
-                <div className="space-y-2">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
-                      J
-                    </div>
-                    <div className="flex-1">
-                      <div className="bg-white rounded-lg px-3 py-2">
-                        <p className="text-sm font-semibold text-gray-900">John Eco</p>
-                        <p className="text-sm text-gray-700">Great work! This is so inspiring! 🌱</p>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1 ml-3">2h ago</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            ) : (
+              <textarea
+                autoFocus
+                className="create-post-expand"
+                rows={4}
+                placeholder="What's your eco-story today?"
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+              />
             )}
           </div>
-        ))}
-      </div>
+
+          <div className="create-post-actions">
+            <div className="post-action-btns">
+              <button className="post-action-btn"><Image size={16} /> Photo</button>
+              <button className="post-action-btn"><Smile size={16} /> Mood</button>
+              <button className="post-action-btn"><Tag size={16} /> Tag</button>
+            </div>
+            {postExpanded ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); }}>
+                  Cancel
+                </button>
+                <button className="btn-post" onClick={handleCreatePost} disabled={!postText.trim()}>
+                  Post
+                </button>
+              </div>
+            ) : (
+              <button className="btn-post" onClick={() => setPostExpanded(true)}>Post</button>
+            )}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {[...posts, ...apiPosts].length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state-icon">🌱</div>
+            <p className="empty-state-text">No posts yet. Be the first to share your eco-journey!</p>
+          </div>
+        )}
+
+        {/* Featured Posts Section */}
+        {posts.length > 0 && (
+          <section className="feed-section">
+            <div className="feed-section-header">
+              <span className="feed-section-label">Featured Posts</span>
+              <div className="feed-section-line"></div>
+            </div>
+            {posts.map((post) => (
+              <PostCard 
+                key={post.id || post._id} 
+                post={post} 
+                showComments={showComments} 
+                setShowComments={setShowComments} 
+                commentText={commentText} 
+                setCommentText={setCommentText} 
+                handleLike={handleLike} 
+                handleShare={handleShare} 
+                handleComment={handleComment} 
+                openProfile={openProfile} 
+                user={user}
+              />
+            ))}
+          </section>
+        )}
+
+        {/* Community Posts Section */}
+        {apiPosts.length > 0 && (
+          <section className="feed-section">
+            <div className="feed-section-header">
+              <span className="feed-section-label">Community Posts</span>
+              <div className="feed-section-line"></div>
+            </div>
+            {apiPosts.map((post) => (
+              <PostCard 
+                key={post.id || post._id} 
+                post={post} 
+                showComments={showComments} 
+                setShowComments={setShowComments} 
+                commentText={commentText} 
+                setCommentText={setCommentText} 
+                handleLike={handleLike} 
+                handleShare={handleShare} 
+                handleComment={handleComment} 
+                openProfile={openProfile} 
+                user={user}
+              />
+            ))}
+          </section>
+        )}
+      </main>
+
+      {/* ════ RIGHT PANEL ════ */}
+      <aside className="home-panel">
+        {/* Daily Impact */}
+        <div className="impact-widget">
+          <div className="widget-label">Your Daily Impact</div>
+          <div className="impact-big-number">
+            <span className="impact-num">{MOCK_IMPACT.co2}</span>
+            <span className="impact-unit">kg CO₂ Saved</span>
+          </div>
+          <div className="impact-bar">
+            <div className="impact-bar-fill" style={{ width: `${MOCK_IMPACT.progress}%` }} />
+          </div>
+          <div className="impact-grid">
+            <div className="impact-stat">
+              <span className="impact-stat-label">Plastic Reduced</span>
+              <span className="impact-stat-value">{MOCK_IMPACT.plastic}kg</span>
+            </div>
+            <div className="impact-stat">
+              <span className="impact-stat-label">Water Saved</span>
+              <span className="impact-stat-value">{MOCK_IMPACT.water}L</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Challenges */}
+        <div>
+          <div className="panel-section-header">
+            <span className="panel-section-title">Challenges</span>
+            <Link to="/challenges" className="panel-view-all">View All</Link>
+          </div>
+          {MOCK_CHALLENGES.map((c) => (
+            <div key={c.id} className="challenge-card">
+              <div className="challenge-card-header">
+                <span className="challenge-name">{c.name}</span>
+                <span className={`challenge-tag ${c.tagClass}`}>{c.tag}</span>
+              </div>
+              <div className="challenge-meta">
+                <div className="challenge-avatars">
+                  {[..."ABC"].map((l) => (
+                    <div key={l} className="challenge-avatar-tiny">{l}</div>
+                  ))}
+                </div>
+                {c.meta}
+              </div>
+              <div className="challenge-progress">
+                <div
+                  className={`challenge-progress-fill ${c.gold ? "gold" : ""}`}
+                  style={{ width: `${c.progress}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Top Guardians */}
+        <div>
+          <div className="panel-section-header">
+            <span className="panel-section-title">Top Guardians</span>
+          </div>
+          {MOCK_GUARDIANS.map((g) => (
+            <div key={g.id} className="guardian-row">
+              <div className={`guardian-rank ${rankClass(g.rank)}`}>{g.rank}</div>
+              <div className="guardian-avatar">{g.emoji}</div>
+              <div className="guardian-info">
+                <p className="guardian-name">{g.name}</p>
+                <p className="guardian-points">{g.points} ECO-POINTS</p>
+              </div>
+              {g.rank === 1 && <Trophy size={18} className="guardian-icon" />}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="panel-footer">
+          <span>Privacy</span>
+          <span>Terms</span>
+          <span>Cookie Policy</span>
+          <span>Help Center</span>
+        </div>
+      </aside>
+
+      {/* FAB */}
+      <button className="fab" onClick={() => { setPostExpanded(true); document.querySelector(".home-feed")?.scrollTo({ top: 0, behavior: "smooth" }); }}>
+        <Plus size={22} />
+      </button>
 
       {/* User Profile Modal */}
-      <UserProfileModal
-        userId={selectedUserId}
-        isOpen={showUserProfile}
-        onClose={() => setShowUserProfile(false)}
-      />
+      <UserProfileModal userId={selectedUserId} isOpen={showUserProfile} onClose={() => setShowUserProfile(false)} />
     </div>
   );
 };
