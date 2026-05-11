@@ -4,653 +4,407 @@ import { Target, Users, Trophy, Plus, Star, TrendingUp, CheckCircle, Clock, Zap,
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import PostCard from '../components/PostCard';
+import '../dark-theme.css';
 
 const Challenges = () => {
   const { user } = useAuth();
-  const [challenges, setChallenges] = useState([]);
+  const [challenges, setChallenges]         = useState([]);
   const [challengePosts, setChallengePosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]               = useState(true);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab]           = useState('active');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newChallenge, setNewChallenge] = useState({
-    title: '',
-    description: '',
-    category: 'General',
-    difficulty: 'Medium',
-    duration: 7,
-    ecoPoints: 100,
-    carbonSaved: 5,
-    requirements: [''],
-    rewards: ['']
+  const [newChallenge, setNewChallenge]     = useState({
+    title: '', description: '', category: 'General', difficulty: 'Medium',
+    duration: 7, ecoPoints: 100, carbonSaved: 5, requirements: [''], rewards: [''],
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const config = {
-          headers: {
-            'x-auth-token': localStorage.getItem('token'),
-          },
-        };
-        
-        // Fetch challenges
+        const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
         const challengesRes = await axios.get('/api/challenges', config);
-        const challengesWithJoinStatus = challengesRes.data.map(challenge => ({
-          ...challenge,
-          isJoined: challenge.participants.some(p => 
-            (typeof p.user === 'object' ? p.user._id : p.user) === user._id
-          )
+        const withJoin = challengesRes.data.map(c => ({
+          ...c,
+          isJoined: c.participants.some(p => (typeof p.user === 'object' ? p.user._id : p.user) === user._id),
         }));
-        setChallenges(challengesWithJoinStatus);
-        
-        // Fetch challenge posts
+        setChallenges(withJoin);
         const postsRes = await axios.get('/api/posts', config);
-        const challengeTypePosts = postsRes.data.filter(post => 
-          post.category === 'Challenge' || post.type === 'challenge'
-        );
-        setChallengePosts(challengeTypePosts);
-        
+        setChallengePosts(postsRes.data.filter(p => p.category === 'Challenge' || p.type === 'challenge'));
         setLoading(false);
       } catch (err) {
-        console.error(err);
         toast.error('Failed to fetch data.');
         setLoading(false);
       }
     };
-
     fetchData();
   }, [user._id]);
 
-  const joinChallenge = async (challengeId) => {
+  const joinChallenge = async (id) => {
     try {
-      const config = {
-        headers: {
-          'x-auth-token': localStorage.getItem('token'),
-        },
-      };
-      await axios.post(`/api/challenges/${challengeId}/join`, {}, config);
-      
-      // Update challenges state
-      setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { 
-          ...c, 
-          isJoined: true, 
-          participants: [...c.participants, { user: user._id, joinedAt: new Date(), progress: 0 }]
-        } : c
+      const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
+      await axios.post(`/api/challenges/${id}/join`, {}, config);
+      setChallenges(prev => prev.map(c =>
+        c._id === id ? { ...c, isJoined: true, participants: [...c.participants, { user: user._id, joinedAt: new Date(), progress: 0 }] } : c
       ));
-      
-      toast.success('Successfully joined the challenge!');
-    } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.msg || 'Failed to join challenge');
-    }
+      toast.success('Joined challenge!');
+    } catch (err) { toast.error(err.response?.data?.msg || 'Failed to join'); }
   };
 
-  const leaveChallenge = async (challengeId) => {
+  const leaveChallenge = async (id) => {
     try {
-      const config = {
-        headers: {
-          'x-auth-token': localStorage.getItem('token'),
-        },
-      };
-      await axios.post(`/api/challenges/${challengeId}/leave`, {}, config);
-      
-      // Update challenges state
-      setChallenges(prev => prev.map(c => 
-        c._id === challengeId ? { 
-          ...c, 
-          isJoined: false, 
-          participants: c.participants.filter(p => 
-            (typeof p.user === 'object' ? p.user._id : p.user) !== user._id
-          )
-        } : c
+      const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
+      await axios.post(`/api/challenges/${id}/leave`, {}, config);
+      setChallenges(prev => prev.map(c =>
+        c._id === id ? { ...c, isJoined: false, participants: c.participants.filter(p => (typeof p.user === 'object' ? p.user._id : p.user) !== user._id) } : c
       ));
-      
       toast.success('Left the challenge');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to leave challenge');
-    }
+    } catch (_) { toast.error('Failed to leave'); }
   };
 
   const createChallenge = async (e) => {
     e.preventDefault();
     try {
-      const config = {
-        headers: {
-          'x-auth-token': localStorage.getItem('token'),
-        },
-      };
-      
-      const challengeData = {
-        ...newChallenge,
-        requirements: newChallenge.requirements.filter(r => r.trim()),
-        rewards: newChallenge.rewards.filter(r => r.trim())
-      };
-      
-      const response = await axios.post('/api/challenges', challengeData, config);
-      setChallenges(prev => [...prev, { ...response.data, isJoined: false }]);
+      const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
+      const data = { ...newChallenge, requirements: newChallenge.requirements.filter(r => r.trim()), rewards: newChallenge.rewards.filter(r => r.trim()) };
+      const res = await axios.post('/api/challenges', data, config);
+      setChallenges(prev => [...prev, { ...res.data, isJoined: false }]);
       setShowCreateModal(false);
-      setNewChallenge({
-        title: '',
-        description: '',
-        category: 'General',
-        difficulty: 'Medium',
-        duration: 7,
-        ecoPoints: 100,
-        carbonSaved: 5,
-        requirements: [''],
-        rewards: ['']
-      });
-      toast.success('Challenge created successfully!');
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to create challenge');
-    }
+      setNewChallenge({ title: '', description: '', category: 'General', difficulty: 'Medium', duration: 7, ecoPoints: 100, carbonSaved: 5, requirements: [''], rewards: [''] });
+      toast.success('Challenge created!');
+    } catch (_) { toast.error('Failed to create challenge'); }
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const getDifficultyStyle = (d) => ({
+    Easy:   { background: 'rgba(52,211,153,0.15)', color: '#34d399' },
+    Medium: { background: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+    Hard:   { background: 'rgba(248,113,113,0.15)', color: '#f87171' },
+  }[d] || { background: 'rgba(139,148,158,0.15)', color: '#8b949e' });
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'Waste Reduction': return <Leaf className="w-4 h-4" />;
-      case 'Transportation': return <Zap className="w-4 h-4" />;
-      case 'Energy': return <Target className="w-4 h-4" />;
-      default: return <Star className="w-4 h-4" />;
+  const getCategoryIcon = (cat) => {
+    switch (cat) {
+      case 'Waste Reduction': return <Leaf   size={14} />;
+      case 'Transportation':  return <Zap    size={14} />;
+      case 'Energy':          return <Target size={14} />;
+      default:                return <Star   size={14} />;
     }
   };
 
   const getDaysRemaining = (endDate) => {
-    const days = Math.ceil((new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : 0;
+    const d = Math.ceil((new Date(endDate) - new Date()) / 86400000);
+    return d > 0 ? d : 0;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading challenges...</p>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid rgba(52,211,153,0.2)', borderTopColor: '#34d399', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   const activeChallenges = challenges.filter(c => c.status === 'active');
   const joinedChallenges = challenges.filter(c => c.isJoined);
+  const displayed        = activeTab === 'active' ? activeChallenges : joinedChallenges;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-            <Target className="w-8 h-8 text-green-600" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Eco-Challenges</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Join exciting challenges, compete with eco-warriors, and earn rewards while saving the planet
-          </p>
-        </div>
+    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
 
-        {/* Stats Cards */}
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-              <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Target className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">{activeChallenges.length}</h3>
-              <p className="text-gray-600">Active Challenges</p>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-              <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">{joinedChallenges.length}</h3>
-              <p className="text-gray-600">Joined</p>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
-              <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Trophy className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                {joinedChallenges.reduce((sum, c) => sum + (c.ecoPoints || 0), 0)}
-              </h3>
-              <p className="text-gray-600">Points Available</p>
-            </div>
-          </div>
-        </div>
+      {/* ── Header ── */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 18,
+          background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 30, margin: '0 auto 16px',
+        }}>🎯</div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e6edf3', margin: 0 }}>Eco-Challenges</h1>
+        <p style={{ color: '#8b949e', marginTop: 6, fontSize: 14 }}>
+          Join exciting challenges, compete with eco-warriors, and earn rewards while saving the planet
+        </p>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex space-x-1 bg-white rounded-lg p-1 shadow-md">
-            <button
-              onClick={() => setActiveTab('active')}
-              className={`py-2 px-4 rounded-md font-medium transition-colors ${
-                activeTab === 'active'
-                  ? 'bg-green-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              All Challenges ({activeChallenges.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('joined')}
-              className={`py-2 px-4 rounded-md font-medium transition-colors ${
-                activeTab === 'joined'
-                  ? 'bg-green-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              My Challenges ({joinedChallenges.length})
-            </button>
+      {/* ── Stats Cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
+        {[
+          { emoji: '🎯', label: 'Active Challenges', value: activeChallenges.length, color: '#34d399' },
+          { emoji: '👥', label: 'Joined',             value: joinedChallenges.length, color: '#38bdf8' },
+          { emoji: '⭐', label: 'Points Available',   value: joinedChallenges.reduce((s, c) => s + (c.ecoPoints || 0), 0), color: '#f59e0b' },
+        ].map((s) => (
+          <div key={s.label} className="dark-stat-card">
+            <div className="dark-stat-icon" style={{ background: `${s.color}18` }}>
+              <span style={{ fontSize: 20 }}>{s.emoji}</span>
+            </div>
+            <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
+            <div className="dark-stat-label">{s.label}</div>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Challenge</span>
+        ))}
+      </div>
+
+      {/* ── Tabs + Create ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div className="dark-tabs">
+          <button className={`dark-tab${activeTab === 'active' ? ' active' : ''}`} onClick={() => setActiveTab('active')}>
+            All ({activeChallenges.length})
+          </button>
+          <button className={`dark-tab${activeTab === 'joined' ? ' active' : ''}`} onClick={() => setActiveTab('joined')}>
+            My Challenges ({joinedChallenges.length})
           </button>
         </div>
+        <button className="dark-btn-primary" onClick={() => setShowCreateModal(true)}>
+          <Plus size={14} /> Create Challenge
+        </button>
+      </div>
 
-        {/* Challenges Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {(activeTab === 'active' ? activeChallenges : joinedChallenges).map((challenge) => (
-            <div key={challenge._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-              {/* Challenge Header */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      {getCategoryIcon(challenge.category)}
-                      <span className="text-sm font-medium text-gray-500">{challenge.category}</span>
+      {/* ── Challenge Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        {displayed.map((ch) => {
+          const diffStyle = getDifficultyStyle(ch.difficulty);
+          return (
+            <div key={ch._id} className="dark-card" style={{ overflow: 'hidden' }}>
+              {/* Card top */}
+              <div style={{ padding: '20px 20px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: '#8b949e', fontSize: 12 }}>
+                      {getCategoryIcon(ch.category)}
+                      <span>{ch.category}</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{challenge.title}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{challenge.description}</p>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#e6edf3', margin: '0 0 6px' }}>{ch.title}</h3>
+                    <p style={{ fontSize: 12, color: '#8b949e', lineHeight: 1.5, margin: 0 }}>{ch.description}</p>
                   </div>
-                  <div className="flex flex-col items-end space-y-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(challenge.difficulty)}`}>
-                      {challenge.difficulty}
-                    </span>
-                    {challenge.isJoined && (
-                      <div className="flex items-center space-x-1 text-green-600">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-xs font-medium">Joined</span>
-                      </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 12 }}>
+                    <span style={{ padding: '2px 10px', borderRadius: 50, fontSize: 11, fontWeight: 700, ...diffStyle }}>{ch.difficulty}</span>
+                    {ch.isJoined && (
+                      <span style={{ fontSize: 11, color: '#34d399', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <CheckCircle size={12} /> Joined
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Progress Bar for joined challenges */}
-                {challenge.isJoined && (
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>Progress</span>
-                      <span>{challenge.progress || 0}%</span>
+                {/* Progress bar */}
+                {ch.isJoined && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#8b949e', marginBottom: 4 }}>
+                      <span>Progress</span><span>{ch.progress || 0}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${challenge.progress || 0}%` }}
-                      ></div>
+                    <div className="dark-progress-track">
+                      <div className="dark-progress-fill" style={{ width: `${ch.progress || 0}%` }} />
                     </div>
                   </div>
                 )}
 
-                {/* Challenge Stats */}
-                <div className="grid grid-cols-4 gap-4 text-center">
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">{challenge.duration}</div>
-                    <div className="text-xs text-gray-500">Days</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-gray-900">{challenge.participants?.length?.toLocaleString()}</div>
-                    <div className="text-xs text-gray-500">Participants</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-green-600">{challenge.ecoPoints}</div>
-                    <div className="text-xs text-gray-500">Points</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-purple-600">{challenge.carbonSaved} kg</div>
-                    <div className="text-xs text-gray-500">CO₂ Saved</div>
-                  </div>
+                {/* Stats row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, textAlign: 'center', marginTop: 12 }}>
+                  {[
+                    { val: ch.duration,              sub: 'Days' },
+                    { val: ch.participants?.length,   sub: 'Members' },
+                    { val: ch.ecoPoints,              sub: 'Pts', color: '#34d399' },
+                    { val: `${ch.carbonSaved}kg`,     sub: 'CO₂',  color: '#38bdf8' },
+                  ].map((item, i) => (
+                    <div key={i} style={{ padding: '6px 0', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: item.color || '#e6edf3' }}>{item.val}</div>
+                      <div style={{ fontSize: 10, color: '#8b949e' }}>{item.sub}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Challenge Footer */}
-              <div className="p-6 bg-gray-50">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span>{getDaysRemaining(challenge.endDate)} days remaining</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Trophy className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm text-gray-600">{challenge.rewards?.length || 0} rewards</span>
-                  </div>
+              {/* Card footer */}
+              <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Clock size={12} /> {getDaysRemaining(ch.endDate)} days left
+                  </span>
+                  <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Trophy size={12} style={{ color: '#f59e0b' }} /> {ch.rewards?.length || 0} rewards
+                  </span>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3">
-                  {challenge.isJoined ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {ch.isJoined ? (
                     <>
-                      <button
-                        onClick={() => setSelectedChallenge(challenge)}
-                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <TrendingUp className="w-4 h-4" />
-                        <span>Update Progress</span>
+                      <button className="dark-btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setSelectedChallenge(ch)}>
+                        <TrendingUp size={13} /> Update Progress
                       </button>
-                      <button
-                        onClick={() => leaveChallenge(challenge._id)}
-                        className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
-                      >
-                        Leave
-                      </button>
+                      <button className="dark-btn-danger" onClick={() => leaveChallenge(ch._id)}>Leave</button>
                     </>
                   ) : (
-                    <button
-                      onClick={() => joinChallenge(challenge._id)}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Join Challenge</span>
+                    <button className="dark-btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => joinChallenge(ch._id)}>
+                      <Plus size={13} /> Join Challenge
                     </button>
                   )}
-                  
-                  <button
-                    onClick={() => setSelectedChallenge(challenge)}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Details
-                  </button>
+                  <button className="dark-btn-secondary" onClick={() => setSelectedChallenge(ch)}>Details</button>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {activeTab === 'joined' && joinedChallenges.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-md">
-            <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Challenges Joined Yet</h3>
-            <p className="text-gray-500 mb-6">Join your first eco-challenge and start earning rewards!</p>
-            <button
-              onClick={() => setActiveTab('active')}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              Browse Challenges
-            </button>
-          </div>
-        )}
-
-        {/* Challenge Posts Section */}
-        {challengePosts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Challenge Posts</h2>
-            <div className="max-w-2xl mx-auto space-y-6">
-              {challengePosts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  onLike={async (postId) => {
-                    try {
-                      const token = localStorage.getItem('token');
-                      const response = await axios.put(`/api/posts/like/${postId}`, {}, {
-                        headers: { 'x-auth-token': token }
-                      });
-                      
-                      setChallengePosts(prevPosts => 
-                        prevPosts.map(post => 
-                          post._id === postId 
-                            ? response.data
-                            : post
-                        )
-                      );
-                    } catch (error) {
-                      console.error('Error liking post:', error);
-                    }
-                  }}
-                  onComment={async (postId, comment) => {
-                    if (!comment.trim()) return;
-                    try {
-                      const token = localStorage.getItem('token');
-                      await axios.post(`/api/posts/comment/${postId}`, { content: comment }, {
-                        headers: { 'x-auth-token': token }
-                      });
-                      const postsRes = await axios.get('/api/posts', {
-                        headers: { 'x-auth-token': localStorage.getItem('token') }
-                      });
-                      const challengeTypePosts = postsRes.data.filter(post => 
-                        post.category === 'Challenge' || post.type === 'challenge'
-                      );
-                      setChallengePosts(challengeTypePosts);
-                    } catch (error) {
-                      console.error('Error adding comment:', error);
-                      toast.error('Failed to add comment');
-                    }
-                  }}
-                  onJoinChallenge={joinChallenge}
-                  userChallenges={joinedChallenges.map(c => c._id)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Challenge Details Modal */}
-        {selectedChallenge && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedChallenge.title}</h2>
-                  <button
-                    onClick={() => setSelectedChallenge(null)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <p className="text-gray-600 mb-6">{selectedChallenge.description}</p>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
-                    <ul className="space-y-1">
-                      {selectedChallenge.requirements?.map((req, index) => (
-                        <li key={index} className="flex items-center space-x-2 text-sm text-gray-600">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span>{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Rewards</h4>
-                    <ul className="space-y-1">
-                      {selectedChallenge.rewards?.map((reward, index) => (
-                        <li key={index} className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Trophy className="w-4 h-4 text-yellow-500" />
-                          <span>{reward}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                {selectedChallenge.isJoined && (
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-2">Your Progress</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                      <div 
-                        className="bg-green-500 h-3 rounded-full transition-all duration-500"
-                        style={{ width: `${selectedChallenge.progress || 0}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-600">{selectedChallenge.progress || 0}% completed</p>
-                  </div>
-                )}
-                
-                <div className="flex space-x-3">
-                  {selectedChallenge.isJoined ? (
-                    <button
-                      onClick={() => setSelectedChallenge(null)}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <TrendingUp className="w-5 h-5" />
-                      <span>Update Progress</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        joinChallenge(selectedChallenge._id);
-                        setSelectedChallenge(null);
-                      }}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <Plus className="w-5 h-5" />
-                      <span>Join Challenge</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Create Challenge Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">Create New Challenge</h2>
-                  <button
-                    onClick={() => setShowCreateModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-              
-              <form onSubmit={createChallenge} className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={newChallenge.title}
-                      onChange={(e) => setNewChallenge({...newChallenge, title: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                    <select
-                      value={newChallenge.category}
-                      onChange={(e) => setNewChallenge({...newChallenge, category: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="Waste Reduction">Waste Reduction</option>
-                      <option value="Energy">Energy</option>
-                      <option value="Transportation">Transportation</option>
-                      <option value="Water">Water</option>
-                      <option value="Food">Food</option>
-                      <option value="General">General</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea
-                    value={newChallenge.description}
-                    onChange={(e) => setNewChallenge({...newChallenge, description: e.target.value})}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                    <select
-                      value={newChallenge.difficulty}
-                      onChange={(e) => setNewChallenge({...newChallenge, difficulty: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="Easy">Easy</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
-                    <input
-                      type="number"
-                      value={newChallenge.duration}
-                      onChange={(e) => setNewChallenge({...newChallenge, duration: parseInt(e.target.value)})}
-                      min="1"
-                      max="365"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Eco Points</label>
-                    <input
-                      type="number"
-                      value={newChallenge.ecoPoints}
-                      onChange={(e) => setNewChallenge({...newChallenge, ecoPoints: parseInt(e.target.value)})}
-                      min="10"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-                  >
-                    Create Challenge
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      {/* Empty state */}
+      {activeTab === 'joined' && joinedChallenges.length === 0 && (
+        <div className="dark-card dark-empty" style={{ padding: '48px 24px' }}>
+          <Target size={44} />
+          <h3>No Challenges Joined Yet</h3>
+          <p>Join your first eco-challenge and start earning rewards!</p>
+          <button className="dark-btn-primary" style={{ marginTop: 16 }} onClick={() => setActiveTab('active')}>
+            Browse Challenges
+          </button>
+        </div>
+      )}
+
+      {/* Challenge Posts */}
+      {challengePosts.length > 0 && (
+        <div style={{ marginTop: 40 }}>
+          <div className="dark-section-header" style={{ marginBottom: 20 }}>
+            <div className="dark-section-icon"><Trophy size={18} /></div>
+            <span className="dark-section-title">Challenge Posts</span>
+          </div>
+          <div style={{ maxWidth: 580, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {challengePosts.map(post => (
+              <PostCard
+                key={post._id} post={post}
+                onLike={async (postId) => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const res = await axios.put(`/api/posts/like/${postId}`, {}, { headers: { 'x-auth-token': token } });
+                    setChallengePosts(prev => prev.map(p => p._id === postId ? res.data : p));
+                  } catch (_) {}
+                }}
+                onComment={async (postId, comment) => {
+                  if (!comment.trim()) return;
+                  try {
+                    const token = localStorage.getItem('token');
+                    await axios.post(`/api/posts/comment/${postId}`, { content: comment }, { headers: { 'x-auth-token': token } });
+                    const res = await axios.get('/api/posts', { headers: { 'x-auth-token': token } });
+                    setChallengePosts(res.data.filter(p => p.category === 'Challenge' || p.type === 'challenge'));
+                  } catch (_) { toast.error('Failed to add comment'); }
+                }}
+                onJoinChallenge={joinChallenge}
+                userChallenges={joinedChallenges.map(c => c._id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Details Modal ── */}
+      {selectedChallenge && (
+        <div className="dark-modal-overlay" onClick={() => setSelectedChallenge(null)}>
+          <div className="dark-modal" onClick={e => e.stopPropagation()}>
+            <div className="dark-modal-header">
+              <h2>{selectedChallenge.title}</h2>
+              <button onClick={() => setSelectedChallenge(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ padding: '20px 24px' }}>
+              <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 20 }}>{selectedChallenge.description}</p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                <div>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: '#34d399', marginBottom: 8 }}>Requirements</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {selectedChallenge.requirements?.map((r, i) => (
+                      <li key={i} style={{ display: 'flex', gap: 8, fontSize: 12, color: '#8b949e' }}>
+                        <CheckCircle size={13} style={{ color: '#34d399', flexShrink: 0, marginTop: 1 }} /> {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b', marginBottom: 8 }}>Rewards</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {selectedChallenge.rewards?.map((r, i) => (
+                      <li key={i} style={{ display: 'flex', gap: 8, fontSize: 12, color: '#8b949e' }}>
+                        <Trophy size={13} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 1 }} /> {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {selectedChallenge.isJoined && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#8b949e', marginBottom: 6 }}>
+                    <span>Your Progress</span><span>{selectedChallenge.progress || 0}%</span>
+                  </div>
+                  <div className="dark-progress-track" style={{ height: 8 }}>
+                    <div className="dark-progress-fill" style={{ width: `${selectedChallenge.progress || 0}%` }} />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                {selectedChallenge.isJoined ? (
+                  <button className="dark-btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setSelectedChallenge(null)}>
+                    <TrendingUp size={14} /> Update Progress
+                  </button>
+                ) : (
+                  <button className="dark-btn-primary" style={{ flex: 1, justifyContent: 'center' }}
+                    onClick={() => { joinChallenge(selectedChallenge._id); setSelectedChallenge(null); }}>
+                    <Plus size={14} /> Join Challenge
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create Modal ── */}
+      {showCreateModal && (
+        <div className="dark-modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="dark-modal" onClick={e => e.stopPropagation()}>
+            <div className="dark-modal-header">
+              <h2>Create New Challenge</h2>
+              <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={createChallenge} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="dark-label">Title</label>
+                  <input className="dark-input" value={newChallenge.title} onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="dark-label">Category</label>
+                  <select className="dark-input" value={newChallenge.category} onChange={e => setNewChallenge({ ...newChallenge, category: e.target.value })}>
+                    {['Waste Reduction','Energy','Transportation','Water','Food','General'].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="dark-label">Description</label>
+                <textarea className="dark-input" rows={3} value={newChallenge.description} onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })} required style={{ resize: 'vertical' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <div>
+                  <label className="dark-label">Difficulty</label>
+                  <select className="dark-input" value={newChallenge.difficulty} onChange={e => setNewChallenge({ ...newChallenge, difficulty: e.target.value })}>
+                    {['Easy','Medium','Hard'].map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="dark-label">Duration (days)</label>
+                  <input className="dark-input" type="number" min="1" max="365" value={newChallenge.duration} onChange={e => setNewChallenge({ ...newChallenge, duration: parseInt(e.target.value) })} required />
+                </div>
+                <div>
+                  <label className="dark-label">Eco Points</label>
+                  <input className="dark-input" type="number" min="10" value={newChallenge.ecoPoints} onChange={e => setNewChallenge({ ...newChallenge, ecoPoints: parseInt(e.target.value) })} required />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, paddingTop: 8 }}>
+                <button type="button" className="dark-btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setShowCreateModal(false)}>Cancel</button>
+                <button type="submit"  className="dark-btn-primary"   style={{ flex: 1, justifyContent: 'center' }}>Create Challenge</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

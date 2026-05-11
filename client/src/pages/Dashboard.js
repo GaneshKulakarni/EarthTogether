@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Trophy, Target, TrendingUp, Calendar, CheckCircle } from 'lucide-react';
+import { Leaf, Trophy, Target, TrendingUp, Calendar, Flame } from 'lucide-react';
 import axios from 'axios';
-import StatsCard from '../components/StatsCard';
 import HabitCard from '../components/HabitCard';
 import EmptyState from '../components/EmptyState';
 import ShareProgressModal from '../components/ShareProgressModal';
+import '../dark-theme.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,20 +18,12 @@ const Dashboard = () => {
 
   const fetchHabits = useCallback(async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    
+    if (!token) { setLoading(false); return; }
     try {
       const response = await axios.get('/api/habits');
       setHabits(response.data);
     } catch (error) {
-      console.error('Error fetching habits:', error);
-      if (error.response?.status === 401) {
-        // Token is invalid, clear it
-        localStorage.removeItem('token');
-      }
+      if (error.response?.status === 401) localStorage.removeItem('token');
     } finally {
       setLoading(false);
     }
@@ -40,203 +32,222 @@ const Dashboard = () => {
   const fetchChallenges = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    
     try {
       const response = await axios.get('/api/challenges/joined', {
-        headers: { 'x-auth-token': token }
+        headers: { 'x-auth-token': token },
       });
-      setChallenges(response.data.slice(0, 3)); // Show only first 3
-    } catch (error) {
-      console.error('Error fetching challenges:', error);
-    }
+      setChallenges(response.data.slice(0, 3));
+    } catch (_) {}
   }, []);
 
-  useEffect(() => {
-    fetchHabits();
-    fetchChallenges();
-  }, [fetchHabits, fetchChallenges]);
+  useEffect(() => { fetchHabits(); fetchChallenges(); }, [fetchHabits, fetchChallenges]);
 
   const markHabitComplete = async (habitId) => {
     try {
       const response = await axios.post(`/api/habits/${habitId}/complete`);
-      
-      // Update user stats if returned from backend
       if (response.data.userStats) {
         updateUser({
           ecoPoints: response.data.userStats.ecoPoints,
-          currentStreak: response.data.userStats.currentStreak
+          currentStreak: response.data.userStats.currentStreak,
         });
       }
-      
-      fetchHabits(); // Refresh habits
-    } catch (error) {
-      console.error('Error marking habit complete:', error);
-    }
+      fetchHabits();
+    } catch (_) {}
   };
 
   const dailyQuotes = [
-    "Every small eco-action counts towards a greener tomorrow! 🌱",
+    'Every small eco-action counts towards a greener tomorrow! 🌱',
     "Your daily choices shape the world's future. Choose wisely! 🌍",
-    "Small steps, big impact. Keep going! ✨",
+    'Small steps, big impact. Keep going! ✨',
     "Today's eco-habit is tomorrow's clean planet! 🌿",
-    "You're making a difference, one habit at a time! 💚"
+    "You're making a difference, one habit at a time! 💚",
   ];
-
   const randomQuote = dailyQuotes[Math.floor(Math.random() * dailyQuotes.length)];
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          border: '3px solid rgba(52,211,153,0.2)',
+          borderTopColor: '#34d399',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
+  const stats = [
+    { icon: '🏆', label: 'Eco Points',     value: user?.ecoPoints || 0,          color: '#f59e0b' },
+    { icon: '🔥', label: 'Day Streak',      value: user?.currentStreak || 0,       color: '#f97316' },
+    { icon: '🌿', label: 'CO₂ Saved (kg)',  value: user?.totalCarbonSaved || 0,    color: '#34d399' },
+    { icon: '🎯', label: 'Active Habits',   value: habits.length,                  color: '#38bdf8' },
+  ];
+
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Welcome Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg mb-6">
-            <span className="text-3xl">🌱</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-green-800 to-emerald-800 bg-clip-text text-transparent mb-4">
-            Welcome back, {user?.username}!
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+
+      {/* ── Welcome Header ── */}
+      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e6edf3', margin: 0 }}>
+            Welcome back, <span style={{ color: '#34d399' }}>{user?.username}</span> 👋
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            {randomQuote}
-          </p>
+          <p style={{ color: '#8b949e', marginTop: 6, fontSize: 14 }}>{randomQuote}</p>
         </div>
+        <button
+          className="dark-btn-primary"
+          onClick={() => setShowShareModal(true)}
+        >
+          📤 Share Progress
+        </button>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            <StatsCard icon={<Trophy className="w-6 h-6 text-green-600" />} title="Eco Points" value={user?.ecoPoints || 0} color="green" />
-            <StatsCard icon={<TrendingUp className="w-6 h-6 text-blue-600" />} title="Day Streak" value={user?.currentStreak || 0} color="blue" />
-            <StatsCard icon={<Leaf className="w-6 h-6 text-emerald-600" />} title="CO₂ Saved (kg)" value={user?.totalCarbonSaved || 0} color="emerald" />
-            <StatsCard icon={<Target className="w-6 h-6 text-yellow-600" />} title="Active Habits" value={habits.length} color="yellow" />
+      {/* ── Stats Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
+        {stats.map((s) => (
+          <div key={s.label} className="dark-stat-card">
+            <div className="dark-stat-icon" style={{ background: `${s.color}18` }}>
+              <span style={{ fontSize: 20 }}>{s.icon}</span>
+            </div>
+            <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
+            <div className="dark-stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <p style={{ fontSize: 11, color: '#58646e', marginBottom: 24 }}>
+        * CO₂ values are estimates for motivational purposes.
+      </p>
+
+      {/* ── Active Challenges ── */}
+      {challenges.length > 0 && (
+        <div className="dark-card" style={{ padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div className="dark-section-header" style={{ marginBottom: 0 }}>
+              <div className="dark-section-icon">
+                <Target size={18} />
+              </div>
+              <span className="dark-section-title">Active Challenges</span>
+            </div>
+            <button
+              onClick={() => navigate('/challenges')}
+              style={{ fontSize: 12, color: '#34d399', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+            >
+              View All →
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {challenges.map((ch) => (
+              <div key={ch._id} style={{
+                background: 'rgba(52,211,153,0.06)',
+                border: '1px solid rgba(52,211,153,0.2)',
+                borderRadius: 12, padding: 16,
+              }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3', marginBottom: 10 }}>{ch.title}</h3>
+                <div className="dark-progress-track">
+                  <div className="dark-progress-fill" style={{ width: `${ch.progress || 0}%` }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: '#8b949e' }}>
+                  <span>{ch.progress || 0}% complete</span>
+                  <span style={{ color: '#34d399', fontWeight: 700 }}>{ch.ecoPoints} pts</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Small note about the CO2 estimate when backend value is not available */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-          <p className="text-sm text-gray-500">Showing estimated CO₂ saved when backend value is not provided. Estimates are heuristic and for motivational purposes only.</p>
+      {/* ── Today's Habits ── */}
+      <div className="dark-card" style={{ padding: 24, marginBottom: 24 }}>
+        <div className="dark-section-header">
+          <div className="dark-section-icon">
+            <Calendar size={18} />
+          </div>
+          <span className="dark-section-title">Today's Eco-Habits</span>
         </div>
 
-        {/* Active Challenges */}
-        {challenges.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
-                  <Target className="w-6 h-6 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900">Active Challenges</h2>
-              </div>
-              <button 
-                onClick={() => navigate('/challenges')}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View All
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {challenges.map((challenge) => (
-                <div key={challenge._id} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
-                  <h3 className="font-semibold text-gray-900 mb-2">{challenge.title}</h3>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${challenge.progress || 0}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{challenge.progress || 0}% complete</span>
-                    <span className="text-blue-600 font-medium">{challenge.ecoPoints} pts</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {habits.length === 0 ? (
+          <div className="dark-empty">
+            <Leaf size={44} />
+            <h3>No habits set up yet</h3>
+            <p>Create your first eco-habit to start making a difference!</p>
+            <button className="dark-btn-primary" style={{ marginTop: 16 }} onClick={() => navigate('/habits')}>
+              + Add Habit
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {habits.map((habit) => (
+              <HabitCard key={habit._id} habit={habit} onComplete={markHabitComplete} />
+            ))}
           </div>
         )}
+      </div>
 
+      {/* ── Quick Actions + Achievements ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
-        {/* Today's Habits */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-12">
-          <div className="flex items-center mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
-              <Calendar className="w-6 h-6 text-white" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900">Today's Eco-Habits</h2>
+        {/* Quick Actions */}
+        <div className="dark-card" style={{ padding: 24 }}>
+          <div className="dark-section-header">
+            <div className="dark-section-icon"><TrendingUp size={18} /></div>
+            <span className="dark-section-title">Quick Actions</span>
           </div>
-          
-          {habits.length === 0 ? (
-            <EmptyState icon={<Leaf className="w-16 h-16" />} title="No habits set up yet" subtitle="Create your first eco-habit to start making a difference!" />
-          ) : (
-            <div className="space-y-4">
-              {habits.map((habit) => (
-                <HabitCard key={habit._id} habit={habit} onComplete={markHabitComplete} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button className="dark-btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => navigate('/habits')}>
+              🌱 Add New Habit
+            </button>
+            <button className="dark-btn-secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => navigate('/challenges')}>
+              🎯 Join Challenge
+            </button>
+            <button className="dark-btn-secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => navigate('/leaderboard')}>
+              🏆 View Leaderboard
+            </button>
+          </div>
+        </div>
+
+        {/* Recent Achievements */}
+        <div className="dark-card" style={{ padding: 24 }}>
+          <div className="dark-section-header">
+            <div className="dark-section-icon"><Trophy size={18} /></div>
+            <span className="dark-section-title">Recent Achievements</span>
+          </div>
+
+          {user?.badges && user.badges.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {user.badges.slice(0, 3).map((badge, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 14px',
+                  background: 'rgba(245,158,11,0.08)',
+                  border: '1px solid rgba(245,158,11,0.2)',
+                  borderRadius: 10,
+                }}>
+                  <div style={{ fontSize: 20 }}>{badge.icon || '🏆'}</div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#e6edf3', margin: 0 }}>{badge.name}</p>
+                    {badge.description && (
+                      <p style={{ fontSize: 11, color: '#8b949e', margin: 0 }}>{badge.description}</p>
+                    )}
+                  </div>
+                </div>
               ))}
+            </div>
+          ) : (
+            <div className="dark-empty" style={{ padding: '24px 0' }}>
+              <Trophy size={36} />
+              <h3>No badges yet</h3>
+              <p>Complete habits to earn badges!</p>
             </div>
           )}
         </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <button onClick={() => navigate('/habits')} className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors">
-                Add New Habit
-              </button>
-              <button 
-                onClick={() => setShowShareModal(true)}
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                Share Progress
-              </button>
-              <button 
-                onClick={() => navigate('/challenges')}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white py-4 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                Join Challenge
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Recent Achievements</h3>
-            {user?.badges && user.badges.length > 0 ? (
-              <div className="space-y-3">
-                {user.badges.slice(0, 3).map((badge, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Trophy className="w-4 h-4 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{badge.name}</p>
-                      <p className="text-sm text-gray-600">{badge.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No badges yet</p>
-                <p className="text-gray-400 text-sm">Complete habits to earn badges!</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Share Progress Modal */}
-        <ShareProgressModal 
-          isOpen={showShareModal} 
-          onClose={() => setShowShareModal(false)} 
-          user={user} 
-        />
       </div>
+
+      {/* Share Progress Modal */}
+      <ShareProgressModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} user={user} />
     </div>
   );
 };

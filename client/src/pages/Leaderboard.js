@@ -1,139 +1,162 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trophy, Target, Leaf, Medal } from 'lucide-react';
+import { Trophy } from 'lucide-react';
+import '../dark-theme.css';
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('ecoPoints');
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const config = {
-          headers: {
-            'x-auth-token': localStorage.getItem('token'),
-          },
-        };
+        const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
         const res = await axios.get(`/api/users/leaderboard?sortBy=${activeTab}`, config);
         setLeaderboard(res.data);
         setLoading(false);
-      } catch (err) {
-        console.error(err);
-        // Mock data for development
+      } catch (_) {
         setLeaderboard([
-          { _id: '1', username: 'EcoWarrior', ecoPoints: 1250, currentStreak: 45, totalCarbonSaved: 125 },
-          { _id: '2', username: 'GreenThumb', ecoPoints: 980, currentStreak: 32, totalCarbonSaved: 98 },
-          { _id: '3', username: 'PlantLover', ecoPoints: 875, currentStreak: 28, totalCarbonSaved: 87 }
+          { _id: '1', username: 'EcoWarrior',  ecoPoints: 1250, currentStreak: 45, totalCarbonSaved: 125 },
+          { _id: '2', username: 'GreenThumb',  ecoPoints: 980,  currentStreak: 32, totalCarbonSaved: 98  },
+          { _id: '3', username: 'PlantLover',  ecoPoints: 875,  currentStreak: 28, totalCarbonSaved: 87  },
         ]);
         setLoading(false);
       }
     };
-
     fetchLeaderboard();
   }, [activeTab]);
 
-  const getRankIcon = (index) => {
-    if (index === 0) return <Trophy className="w-6 h-6 text-yellow-500" />;
-    if (index === 1) return <Medal className="w-6 h-6 text-gray-400" />;
-    if (index === 2) return <Medal className="w-6 h-6 text-amber-600" />;
-    return <span className="w-6 h-6 flex items-center justify-center text-gray-500 font-bold">#{index + 1}</span>;
+  const getRankDisplay = (index) => {
+    if (index === 0) return { emoji: '🥇', color: '#f59e0b' };
+    if (index === 1) return { emoji: '🥈', color: '#94a3b8' };
+    if (index === 2) return { emoji: '🥉', color: '#b45309' };
+    return { emoji: `#${index + 1}`, color: '#8b949e' };
   };
 
   const getMetricValue = (user) => {
     switch (activeTab) {
       case 'streaks': return `${user.currentStreak || 0} days`;
-      case 'impact': return `${user.totalCarbonSaved || 0} kg CO₂`;
-      default: return `${user.ecoPoints || 0} points`;
+      case 'impact':  return `${user.totalCarbonSaved || 0} kg`;
+      default:        return `${user.ecoPoints || 0} pts`;
     }
   };
 
+  const tabs = [
+    { id: 'ecoPoints', label: '🏆 Eco Points' },
+    { id: 'streaks',   label: '🔥 Streaks'    },
+    { id: 'impact',    label: '🌿 Impact'      },
+  ];
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          border: '3px solid rgba(52,211,153,0.2)',
+          borderTopColor: '#34d399',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🏆 Eco-Leaderboard</h1>
-        <p className="text-gray-600">See who's making the biggest environmental impact!</p>
+    <div style={{ maxWidth: 700, margin: '0 auto' }}>
+
+      {/* ── Header ── */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 18,
+          background: 'rgba(245,158,11,0.15)',
+          border: '1px solid rgba(245,158,11,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 30, margin: '0 auto 16px',
+        }}>🏆</div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e6edf3', margin: 0 }}>Eco-Leaderboard</h1>
+        <p style={{ color: '#8b949e', marginTop: 6, fontSize: 14 }}>
+          See who's making the biggest environmental impact!
+        </p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex justify-center mb-8">
-        <div className="bg-white rounded-lg shadow-md p-2 flex space-x-2">
-          <button
-            onClick={() => setActiveTab('ecoPoints')}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'ecoPoints' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <Trophy className="w-4 h-4 inline mr-2" />
-            Eco Points
-          </button>
-          <button
-            onClick={() => setActiveTab('streaks')}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'streaks' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <Target className="w-4 h-4 inline mr-2" />
-            Streaks
-          </button>
-          <button
-            onClick={() => setActiveTab('impact')}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'impact' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <Leaf className="w-4 h-4 inline mr-2" />
-            Impact
-          </button>
+      {/* ── Tab Navigation ── */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+        <div className="dark-tabs">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              className={`dark-tab${activeTab === t.id ? ' active' : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Leaderboard */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* ── Leaderboard List ── */}
+      <div className="dark-card" style={{ overflow: 'hidden' }}>
         {leaderboard.length > 0 ? (
-          <div className="divide-y divide-gray-200">
-            {leaderboard.map((user, index) => (
-              <div key={user._id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {getRankIcon(index)}
-                    </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold">
-                        {user.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{user.username}</h3>
-                      <p className="text-gray-500">Rank #{index + 1}</p>
-                    </div>
+          leaderboard.map((u, index) => {
+            const { emoji, color } = getRankDisplay(index);
+            const isTop3 = index < 3;
+            return (
+              <div
+                key={u._id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  borderBottom: index < leaderboard.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                  background: isTop3 ? `rgba(${index === 0 ? '245,158,11' : index === 1 ? '148,163,184' : '180,83,9'},0.05)` : 'transparent',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.05)'; }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = isTop3
+                    ? `rgba(${index === 0 ? '245,158,11' : index === 1 ? '148,163,184' : '180,83,9'},0.05)`
+                    : 'transparent';
+                }}
+              >
+                {/* Left: rank + avatar + name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 36, textAlign: 'center', fontSize: isTop3 ? 22 : 14, fontWeight: 700, color }}>
+                    {emoji}
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">{getMetricValue(user)}</div>
-                    <div className="text-sm text-gray-500">
-                      {activeTab === 'ecoPoints' && 'Total Points'}
-                      {activeTab === 'streaks' && 'Current Streak'}
-                      {activeTab === 'impact' && 'Carbon Saved'}
-                    </div>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${color}33, ${color}11)`,
+                    border: `2px solid ${color}44`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, fontWeight: 800, color,
+                  }}>
+                    {u.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#e6edf3' }}>{u.username}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>Rank #{index + 1}</p>
+                  </div>
+                </div>
+
+                {/* Right: metric */}
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, color }}>{getMetricValue(u)}</div>
+                  <div style={{ fontSize: 11, color: '#8b949e' }}>
+                    {activeTab === 'ecoPoints' && 'Total Points'}
+                    {activeTab === 'streaks'   && 'Current Streak'}
+                    {activeTab === 'impact'    && 'Carbon Saved'}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })
         ) : (
-          <div className="text-center py-12">
-            <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No users found on the leaderboard yet.</p>
+          <div className="dark-empty">
+            <Trophy size={44} />
+            <h3>No users yet</h3>
+            <p>Be the first on the leaderboard!</p>
           </div>
         )}
       </div>

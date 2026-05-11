@@ -1,563 +1,382 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus, MapPin, GraduationCap, Building2, Users } from 'lucide-react';
+import { Edit, Trophy, Target, Leaf, Calendar, Newspaper, Plus, MapPin, GraduationCap, Building2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import HabitCard from '../components/HabitCard';
 import PostCard from '../components/PostCard';
+import '../dark-theme.css';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loadUser, isAuthenticated } = useAuth();
-  const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [userHabits, setUserHabits] = useState([]);
-  const [userPosts, setUserPosts] = useState([]);
-  const [userChallenges, setUserChallenges] = useState([]);
-  const [formData, setFormData] = useState({
-    username: '',
-    bio: '',
-    avatar: '',
-    location: '',
-    education: '',
-    institution: ''
-  });
+  const [editing, setEditing]           = useState(false);
+  const [activeTab, setActiveTab]       = useState('profile');
+  const [userHabits, setUserHabits]     = useState([]);
+  const [userPosts, setUserPosts]       = useState([]);
+  const [, setUserChallenges] = useState([]);
+  const [formData, setFormData]         = useState({ username: '', bio: '', avatar: '', location: '', education: '', institution: '' });
   const [selectedFile, setSelectedFile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]           = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    
     const fetchUserData = async () => {
       try {
-        if (!user && isAuthenticated) {
-          await loadUser();
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        if (isMounted) {
-          toast.error('Failed to load profile data');
-        }
+        if (!user && isAuthenticated) await loadUser();
+      } catch (_) {
+        if (isMounted) toast.error('Failed to load profile data');
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
-
     fetchUserData();
-    
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [user, isAuthenticated, loadUser]);
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        username: user.username || '',
-        bio: user.bio || '',
-        avatar: user.avatar || '',
-        location: user.location || '',
-        education: user.education || '',
-        institution: user.institution || ''
-      });
-    }
+    if (user) setFormData({ username: user.username || '', bio: user.bio || '', avatar: user.avatar || '', location: user.location || '', education: user.education || '', institution: user.institution || '' });
   }, [user]);
 
   useEffect(() => {
-    if (!isAuthenticated && !loading) {
-      navigate('/login');
-    }
+    if (!isAuthenticated && !loading) navigate('/login');
   }, [isAuthenticated, loading, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserChallenges();
-    }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user) fetchUserChallenges(); }, [user?._id]);
 
   const fetchUserChallenges = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/challenges', {
-        headers: { 'x-auth-token': token }
-      });
-      const joinedChallenges = response.data.filter(challenge => 
-        challenge.participants.some(p => p.user === user?._id)
-      );
-      setUserChallenges(joinedChallenges.map(c => c._id));
-    } catch (error) {
-      console.error('Error fetching user challenges:', error);
-    }
+      const res = await axios.get('/api/challenges', { headers: { 'x-auth-token': token } });
+      const joined = res.data.filter(c => c.participants.some(p => p.user === user?._id));
+      setUserChallenges(joined.map(c => c._id));
+    } catch (_) {}
   };
 
   const fetchUserHabits = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('/api/habits', {
-        headers: { 
-          'x-auth-token': token,
-          'Content-Type': 'application/json'
-        }
-      });
+      const res = await axios.get('/api/habits', { headers: { 'x-auth-token': token, 'Content-Type': 'application/json' } });
       setUserHabits(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error('Error fetching user habits:', error);
-      toast.error('Failed to load habits.');
-    }
+    } catch (_) { toast.error('Failed to load habits.'); }
   };
 
   const fetchUserPostsData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('/api/posts', {
-        headers: { 'x-auth-token': token }
-      });
-      
+      const res = await axios.get('/api/posts', { headers: { 'x-auth-token': token } });
       if (Array.isArray(res.data) && user) {
         const myPosts = res.data.filter(post => {
           const postUserId = post.user?._id || post.user?.id;
-          const currentUserId = user._id || user.id;
-          return postUserId === currentUserId;
+          return postUserId === (user._id || user.id);
         });
         setUserPosts(myPosts);
-      } else {
-        setUserPosts([]);
-      }
-    } catch (error) {
-      console.error('Error fetching user posts:', error);
-      setUserPosts([]);
-    }
+      } else { setUserPosts([]); }
+    } catch (_) { setUserPosts([]); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       const token = localStorage.getItem('token');
       const updateData = new FormData();
-      if (formData.username) updateData.append('username', formData.username);
-      if (formData.bio !== undefined) updateData.append('bio', formData.bio);
+      if (formData.username)              updateData.append('username', formData.username);
+      if (formData.bio !== undefined)     updateData.append('bio', formData.bio);
       if (formData.location !== undefined) updateData.append('location', formData.location);
       if (formData.education !== undefined) updateData.append('education', formData.education);
       if (formData.institution !== undefined) updateData.append('institution', formData.institution);
-      if (selectedFile) updateData.append('avatar', selectedFile);
-      
-      await axios.put('/api/users/profile', updateData, {
-        headers: {
-          'x-auth-token': token,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      toast.success('Profile updated successfully!');
+      if (selectedFile)                   updateData.append('avatar', selectedFile);
+      await axios.put('/api/users/profile', updateData, { headers: { 'x-auth-token': token, 'Content-Type': 'multipart/form-data' } });
+      toast.success('Profile updated!');
       setEditing(false);
       setSelectedFile(null);
       loadUser();
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
-    }
+    } catch (_) { toast.error('Failed to update profile'); }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
   if (loading && !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
-        <span className="ml-4 text-gray-600">Loading profile...</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid rgba(52,211,153,0.2)', borderTopColor: '#34d399', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
-
-  if (!loading && !user && isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          Error loading profile data. Please try refreshing the page.
-        </div>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-        >
-          Refresh Page
-        </button>
-      </div>
-    );
-  }
-
-  const handleCreateHabit = () => {
-    navigate('/habits');
-  };
-
-  const handleCreatePost = () => {
-    navigate('/welcome');
-  };
 
   const resolvedAvatar = user?.avatar
     ? (user.avatar.startsWith('http') ? user.avatar : user.avatar.startsWith('/') ? user.avatar : `/${user.avatar}`)
     : null;
 
+  const statItems = [
+    { icon: '🏆', label: 'Eco Points',     value: user?.ecoPoints || 0,         color: '#f59e0b' },
+    { icon: '🔥', label: 'Current Streak',  value: user?.currentStreak || 0,      color: '#f97316' },
+    { icon: '🌿', label: 'CO₂ Saved',       value: `${user?.totalCarbonSaved || 0} kg`, color: '#34d399' },
+    { icon: '🏅', label: 'Badges Earned',   value: user?.badges?.length || 0,    color: '#38bdf8' },
+  ];
+
+  const tabs = [
+    { id: 'profile', label: '👤 Profile' },
+    { id: 'habits',  label: '🌱 My Habits' },
+    { id: 'feed',    label: '📝 My Posts' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Tab Navigation and Action Buttons */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-2 flex space-x-2 w-full md:w-auto justify-center">
+    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+
+      {/* ── Tab Bar + Actions ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div className="dark-tabs">
+          {tabs.map((t) => (
             <button
-              onClick={() => setActiveTab('profile')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'profile' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              Profile
-            </button>
-            <button
+              key={t.id}
+              className={`dark-tab${activeTab === t.id ? ' active' : ''}`}
               onClick={() => {
-                setActiveTab('habits');
-                fetchUserHabits();
+                setActiveTab(t.id);
+                if (t.id === 'habits') fetchUserHabits();
+                if (t.id === 'feed')   fetchUserPostsData();
               }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'habits' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
             >
-              My Habits
+              {t.label}
             </button>
-            <button
-              onClick={() => {
-                setActiveTab('feed');
-                fetchUserPostsData();
-              }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm sm:px-6 sm:text-base ${activeTab === 'feed' ? 'bg-green-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              My Posts
-            </button>
-          </div>
-          
-          <div className="flex space-x-2 w-full md:w-auto">
-            <button
-              onClick={handleCreateHabit}
-              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg w-full justify-center md:w-auto"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Habit</span>
-            </button>
-            <button
-              onClick={handleCreatePost}
-              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg w-full justify-center md:w-auto"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Post</span>
-            </button>
-          </div>
+          ))}
         </div>
-
-        {/* Profile Content */}
-        {activeTab === 'profile' && (
-          <>
-            {/* Profile Header */}
-            <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-                <button
-                  onClick={() => setEditing(!editing)}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>{editing ? 'Cancel' : 'Edit Profile'}</span>
-                </button>
-              </div>
-
-              {editing ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bio
-                    </label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      rows="3"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Tell us about yourself and your eco-journey..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="City, Country"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Education
-                    </label>
-                    <input
-                      type="text"
-                      name="education"
-                      value={formData.education}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Degree, Field of Study"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Institution
-                    </label>
-                    <input
-                      type="text"
-                      name="institution"
-                      value={formData.institution}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="University or Organization"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Profile Picture
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-green-50 file:text-green-700
-                        hover:file:bg-green-100"
-                    />
-                    {selectedFile && (
-                      <p className="mt-2 text-sm text-gray-500">Selected file: {selectedFile.name}</p>
-                    )}
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex items-start space-x-6">
-                  <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {resolvedAvatar ? (
-                      <img src={resolvedAvatar} alt="User Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-12 h-12 text-green-600" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">{user.username}</h2>
-                    <p className="text-gray-600 mb-4">
-                      {user.bio || "No bio yet. Tell us about your eco-journey!"}
-                    </p>
-                    <div className="space-y-2 text-sm text-gray-600 mb-4">
-                      {user.location && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-green-600" />
-                          <span>{user.location}</span>
-                        </div>
-                      )}
-                      {user.education && (
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-green-600" />
-                          <span>{user.education}</span>
-                        </div>
-                      )}
-                      {user.institution && (
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-green-600" />
-                          <span>{user.institution}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span className="font-semibold">{user.followers?.length || 0}</span>
-                        <span className="text-gray-500">Followers</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span className="font-semibold">{user.following?.length || 0}</span>
-                        <span className="text-gray-500">Following</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <span className="text-gray-500">Joined {new Date(user.joinedAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{user.ecoPoints || 0}</h3>
-                <p className="text-gray-600">Eco Points</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{user.currentStreak || 0}</h3>
-                <p className="text-gray-600">Current Streak</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Leaf className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{user.totalCarbonSaved || 0} kg</h3>
-                <p className="text-gray-600">CO₂ Saved</p>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                <div className="bg-yellow-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="w-6 h-6 text-yellow-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{user.badges?.length || 0}</h3>
-                <p className="text-gray-600">Badges Earned</p>
-              </div>
-            </div>
-
-            {/* Achievements Section */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Achievements</h2>
-              
-              {user.badges && user.badges.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {user.badges.map((badge, index) => (
-                    <div key={index} className="border border-green-200 rounded-lg p-4 bg-gradient-to-br from-green-50 to-blue-50 hover:shadow-md transition-shadow">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-xl">
-                          {badge.icon || "🏆"}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{typeof badge === 'string' ? badge : badge.name}</h3>
-                          {badge.description && <p className="text-sm text-gray-600">{badge.description}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No achievements yet</h3>
-                  <p className="text-gray-500">Complete eco-habits and maintain streaks to earn achievements!</p>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* My Habits Section */}
-        {activeTab === 'habits' && (
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">My Habits</h2>
-            {userHabits.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userHabits.map(habit => (
-                  <HabitCard 
-                    key={habit._id} 
-                    habit={habit} 
-                    onComplete={() => fetchUserHabits()}
-                    onHabitUpdated={() => fetchUserHabits()}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No habits yet</h3>
-                <p className="text-gray-500">Start tracking your eco-habits to see them here!</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* My Posts Section */}
-        {activeTab === 'feed' && (
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">My Posts</h2>
-            {userPosts.length > 0 ? (
-              <div className="max-w-2xl mx-auto space-y-6">
-                {userPosts.map(post => (
-                  <PostCard 
-                    key={post._id} 
-                    post={post} 
-                    showDelete={true}
-                    onDelete={async (postId) => {
-                      if (!window.confirm('Are you sure you want to delete this post?')) return;
-                      try {
-                        const token = localStorage.getItem('token');
-                        await axios.delete(`/api/posts/${postId}`, {
-                          headers: { 'x-auth-token': token }
-                        });
-                        setUserPosts(prevPosts => prevPosts.filter(post => post._id !== postId));
-                        toast.success('Post deleted successfully');
-                      } catch (error) {
-                        console.error('Error deleting post:', error);
-                        toast.error('Failed to delete post');
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <Newspaper className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-                <p className="text-gray-500">Share your eco-journey with the community!</p>
-              </div>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="dark-btn-primary"    onClick={() => navigate('/habits')}>  <Plus size={14} /> New Habit</button>
+          <button className="dark-btn-secondary"  onClick={() => navigate('/welcome')}> <Plus size={14} /> New Post</button>
+        </div>
       </div>
+
+      {/* ── Profile Tab ── */}
+      {activeTab === 'profile' && (
+        <>
+          {/* Profile Header Card */}
+          <div className="dark-card" style={{ padding: 28, marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h1 style={{ fontSize: 20, fontWeight: 800, color: '#e6edf3', margin: 0 }}>My Profile</h1>
+              <button
+                className="dark-btn-secondary"
+                onClick={() => setEditing(!editing)}
+              >
+                <Edit size={14} /> {editing ? 'Cancel' : 'Edit Profile'}
+              </button>
+            </div>
+
+            {editing ? (
+              /* ── Edit Form ── */
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {[
+                  { name: 'username', label: 'Username', type: 'text', placeholder: 'Your username' },
+                  { name: 'location', label: 'Location', type: 'text', placeholder: 'City, Country' },
+                  { name: 'education', label: 'Education', type: 'text', placeholder: 'Degree, Field of Study' },
+                  { name: 'institution', label: 'Institution', type: 'text', placeholder: 'University or Organization' },
+                ].map((field) => (
+                  <div key={field.name}>
+                    <label className="dark-label">{field.label}</label>
+                    <input type={field.type} name={field.name} value={formData[field.name]} onChange={handleChange} placeholder={field.placeholder} className="dark-input" />
+                  </div>
+                ))}
+                <div>
+                  <label className="dark-label">Bio</label>
+                  <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} className="dark-input" placeholder="Tell us about your eco-journey…" style={{ resize: 'vertical' }} />
+                </div>
+                <div>
+                  <label className="dark-label">Profile Picture</label>
+                  <input
+                    type="file" accept="image/*" onChange={handleFileChange}
+                    style={{ fontSize: 13, color: '#8b949e', width: '100%' }}
+                  />
+                  {selectedFile && <p style={{ fontSize: 11, color: '#34d399', marginTop: 4 }}>Selected: {selectedFile.name}</p>}
+                </div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button type="button" className="dark-btn-secondary" onClick={() => setEditing(false)}>Cancel</button>
+                  <button type="submit"  className="dark-btn-primary">Save Changes</button>
+                </div>
+              </form>
+            ) : (
+              /* ── View Mode ── */
+              <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                {/* Avatar */}
+                <div style={{
+                  width: 88, height: 88, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #34d399, #059669)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden', flexShrink: 0,
+                  border: '3px solid rgba(52,211,153,0.4)',
+                  boxShadow: '0 0 20px rgba(52,211,153,0.2)',
+                  fontSize: 32, fontWeight: 800, color: '#fff',
+                }}>
+                  {resolvedAvatar
+                    ? <img src={resolvedAvatar} alt={user?.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : (user?.username?.[0]?.toUpperCase() || 'U')
+                  }
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ fontSize: 22, fontWeight: 800, color: '#e6edf3', margin: '0 0 4px' }}>{user?.username}</h2>
+                  <p style={{ color: '#8b949e', fontSize: 13, marginBottom: 14 }}>
+                    {user?.bio || 'No bio yet. Tell us about your eco-journey!'}
+                  </p>
+
+                  {/* Meta */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                    {user?.location && (
+                      <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={12} style={{ color: '#34d399' }} /> {user.location}
+                      </span>
+                    )}
+                    {user?.education && (
+                      <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <GraduationCap size={12} style={{ color: '#34d399' }} /> {user.education}
+                      </span>
+                    )}
+                    {user?.institution && (
+                      <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Building2 size={12} style={{ color: '#34d399' }} /> {user.institution}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Calendar size={12} style={{ color: '#34d399' }} /> Joined {user?.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : '—'}
+                    </span>
+                  </div>
+
+                  {/* Followers */}
+                  <div style={{ display: 'flex', gap: 20 }}>
+                    {[
+                      { label: 'Followers', val: user?.followers?.length || 0 },
+                      { label: 'Following', val: user?.following?.length  || 0 },
+                    ].map((item) => (
+                      <div key={item.label} style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: '#34d399' }}>{item.val}</div>
+                        <div style={{ fontSize: 11, color: '#8b949e' }}>{item.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Stats Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14, marginBottom: 20 }}>
+            {statItems.map((s) => (
+              <div key={s.label} className="dark-stat-card">
+                <div className="dark-stat-icon" style={{ background: `${s.color}18` }}>
+                  <span style={{ fontSize: 20 }}>{s.icon}</span>
+                </div>
+                <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
+                <div className="dark-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Achievements */}
+          <div className="dark-card" style={{ padding: 24 }}>
+            <div className="dark-section-header">
+              <div className="dark-section-icon"><Trophy size={18} /></div>
+              <span className="dark-section-title">Achievements</span>
+            </div>
+
+            {user?.badges && user.badges.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                {user.badges.map((badge, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 16px',
+                    background: 'rgba(245,158,11,0.07)',
+                    border: '1px solid rgba(245,158,11,0.2)',
+                    borderRadius: 12,
+                  }}>
+                    <div style={{ fontSize: 24 }}>{badge.icon || '🏆'}</div>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3', margin: 0 }}>
+                        {typeof badge === 'string' ? badge : badge.name}
+                      </p>
+                      {badge.description && <p style={{ fontSize: 11, color: '#8b949e', margin: 0 }}>{badge.description}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="dark-empty" style={{ padding: '24px 0' }}>
+                <Trophy size={40} />
+                <h3>No achievements yet</h3>
+                <p>Complete eco-habits and maintain streaks to earn achievements!</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── My Habits Tab ── */}
+      {activeTab === 'habits' && (
+        <div className="dark-card" style={{ padding: 24 }}>
+          <div className="dark-section-header">
+            <div className="dark-section-icon"><Leaf size={18} /></div>
+            <span className="dark-section-title">My Habits</span>
+          </div>
+          {userHabits.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+              {userHabits.map(h => (
+                <HabitCard key={h._id} habit={h} onComplete={() => fetchUserHabits()} onHabitUpdated={() => fetchUserHabits()} />
+              ))}
+            </div>
+          ) : (
+            <div className="dark-empty">
+              <Target size={44} />
+              <h3>No habits yet</h3>
+              <p>Start tracking your eco-habits to see them here!</p>
+              <button className="dark-btn-primary" style={{ marginTop: 16 }} onClick={() => navigate('/habits')}>
+                + Create Habit
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── My Posts Tab ── */}
+      {activeTab === 'feed' && (
+        <div>
+          <div className="dark-section-header" style={{ marginBottom: 20 }}>
+            <div className="dark-section-icon"><Newspaper size={18} /></div>
+            <span className="dark-section-title">My Posts</span>
+          </div>
+          {userPosts.length > 0 ? (
+            <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {userPosts.map(post => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  showDelete={true}
+                  onDelete={async (postId) => {
+                    if (!window.confirm('Delete this post?')) return;
+                    try {
+                      const token = localStorage.getItem('token');
+                      await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
+                      setUserPosts(p => p.filter(x => x._id !== postId));
+                      toast.success('Post deleted');
+                    } catch (_) { toast.error('Failed to delete post'); }
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="dark-card dark-empty" style={{ padding: '48px 24px' }}>
+              <Newspaper size={44} />
+              <h3>No posts yet</h3>
+              <p>Share your eco-journey with the community!</p>
+              <button className="dark-btn-primary" style={{ marginTop: 16 }} onClick={() => navigate('/welcome')}>
+                + Create Post
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
