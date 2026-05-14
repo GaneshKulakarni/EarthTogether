@@ -47,6 +47,7 @@
   flex-direction: column;
   padding: 20px 0;
   overflow-y: auto;
+  height: 100%;
 }
 
 .sidebar-logo {

@@ -12,27 +12,36 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     let posts = await Post.find({ status: 'active' })
-      .populate('user', ['username', 'ecoPoints', 'avatar'])
-      .populate('comments.user', ['username'])
       .sort({ createdAt: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
-    // Clean up posts - handle null users and broken image URLs
-    posts = posts.map(post => {
-      const postObj = post.toObject ? post.toObject() : post;
-
-      // If user reference is broken (null), provide a fallback
-      if (!postObj.user) {
-        postObj.user = { username: 'EcoMember', ecoPoints: 0, avatar: '' };
+    // Manually resolve user and comment references to avoid populate errors from deleted refs
+    for (const post of posts) {
+      try {
+        if (post.user) {
+          const u = await User.findById(post.user).select('username ecoPoints avatar').lean();
+          post.user = u || { username: 'EcoMember', ecoPoints: 0, avatar: '' };
+        }
+      } catch (_) {
+        post.user = { username: 'EcoMember', ecoPoints: 0, avatar: '' };
       }
-
-      // Fix broken local image URLs
-      if (postObj.imageUrl && (postObj.imageUrl.startsWith('/images/') || postObj.imageUrl.startsWith('images/'))) {
-        postObj.imageUrl = ''; // Clear broken local paths
+      if (post.comments) {
+        for (const comment of post.comments) {
+          try {
+            if (comment.user) {
+              const cu = await User.findById(comment.user).select('username').lean();
+              comment.user = cu || { username: 'EcoMember' };
+            }
+          } catch (_) {
+            comment.user = { username: 'EcoMember' };
+          }
+        }
       }
-
-      return postObj;
-    });
+      if (post.imageUrl && (post.imageUrl.startsWith('/images/') || post.imageUrl.startsWith('images/'))) {
+        post.imageUrl = '';
+      }
+    }
 
     // If no posts in database, generate sample posts
     if (posts.length === 0) {
