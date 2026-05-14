@@ -103,6 +103,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api', require('./routes/imageGeneration'));
 app.use('/api', require('./routes/newsImageGenerator'));
+app.use('/api/upload', require('./routes/upload'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -349,20 +349,21 @@ const Profile = () => {
           {userPosts.length > 0 ? (
             <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {userPosts.map(post => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  showDelete={true}
-                  onDelete={async (postId) => {
-                    if (!window.confirm('Delete this post?')) return;
-                    try {
-                      const token = localStorage.getItem('token');
-                      await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
-                      setUserPosts(p => p.filter(x => x._id !== postId));
-                      toast.success('Post deleted');
-                    } catch (_) { toast.error('Failed to delete post'); }
-                  }}
-                />
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    showDelete={true}
+                    onDelete={async (postId) => {
+                      if (!window.confirm('Delete this post?')) return;
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
+                        setUserPosts(p => p.filter(x => x._id !== postId));
+                        toast.success('Post deleted');
+                      } catch (_) { toast.error('Failed to delete post'); }
+                    }}
+                    onEdit={() => fetchUserPostsData()}
+                  />
               ))}
             </div>
           ) : (

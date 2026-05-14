@@ -6,7 +6,7 @@ const API_URL = process.env.REACT_APP_API_URL || '';
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 30000, // 30 seconds timeout for API calls
+  timeout: 120000, // 2 minutes timeout for API calls (images can be large)
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -137,6 +137,16 @@ export const deletePost = async (postId) => {
     console.error('Error deleting post:', error);
     throw error;
   }
+};
+
+export const uploadImage = async (file) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const response = await axios.post('/api/upload', formData, {
+    headers: { 'x-auth-token': localStorage.getItem('token') },
+    timeout: 60000,
+  });
+  return response.data.url;
 };
 
 export default api;

@@ -110,6 +110,35 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   PUT api/posts/:id
+// @desc    Update a post
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
+  try {
+    let post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ msg: 'Post not found' });
+    }
+
+    if (post.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+
+    const { content, category, imageUrl } = req.body;
+    if (content !== undefined) post.content = content;
+    if (category !== undefined) post.category = category;
+    if (imageUrl !== undefined) post.imageUrl = imageUrl;
+
+    await post.save();
+    await post.populate('user', ['username', 'ecoPoints', 'avatar']);
+    res.json(post);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // @route   DELETE api/posts/:id
 // @desc    Delete a post
 // @access  Private

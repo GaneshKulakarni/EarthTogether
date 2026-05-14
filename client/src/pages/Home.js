@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
 import { useNotifications } from "../context/NotificationContext";
-import { getPosts, likePost, commentOnPost, createPost } from "../services/api";
+import axios from "axios";
+import { getPosts, likePost, commentOnPost, createPost, deletePost as deletePostApi, uploadImage } from "../services/api";
 import {
   Heart,
   MessageCircle,
@@ -11,6 +12,9 @@ import {
   Send,
   Image,
   Smile,
+  Edit2,
+  Trash2,
+  MoreHorizontal,
   Trophy,
   Plus,
 } from "lucide-react";
@@ -61,11 +65,21 @@ const PostCard = ({
   handleShare, 
   handleComment, 
   openProfile, 
-  user 
+  user,
+  onDelete,
+  onEdit,
+  editingPostId,
+  editContent,
+  setEditContent,
+  setEditingPostId,
+  onSaveEdit,
 }) => {
   const pid = post.id || post._id;
   const badgeClass = getBadgeClass(post.category);
   const isLiked = post.liked;
+  const isOwner = user && post.user && (post.user._id === user._id || post.user.id === user.id);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const isEditing = editingPostId === pid;
 
   return (
     <article className="post-card">
@@ -85,15 +99,61 @@ const PostCard = ({
             <p>{post.user.title} · {post.timeAgo}</p>
           </div>
         </div>
-        <span className={`post-badge ${badgeClass}`}>
-          {post.category}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span className={`post-badge ${badgeClass}`}>
+            {post.category}
+          </span>
+          {isOwner && (
+            <div className="relative" style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 8px", borderRadius: 6, color: "#8b949e", fontSize: 16 }}
+                onMouseEnter={e => e.target.style.background = "rgba(255,255,255,0.06)"}
+                onMouseLeave={e => e.target.style.background = "none"}
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {showDropdown && (
+                <div style={{ position: "absolute", right: 0, top: "100%", marginTop: 4, width: 160, background: "#1a2030", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, zIndex: 20, overflow: "hidden" }}>
+                  <button onClick={() => { setShowDropdown(false); onEdit(pid, post.content); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 14px", border: "none", background: "none", cursor: "pointer", color: "#e6edf3", fontSize: 13, textAlign: "left" }}
+                    onMouseEnter={e => e.target.style.background = "rgba(52,211,153,0.1)"}
+                    onMouseLeave={e => e.target.style.background = "none"}
+                  ><Edit2 size={14} /> Edit Post</button>
+                  <button onClick={() => { setShowDropdown(false); onDelete(pid); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 14px", border: "none", background: "none", cursor: "pointer", color: "#f87171", fontSize: 13, textAlign: "left" }}
+                    onMouseEnter={e => e.target.style.background = "rgba(248,113,113,0.1)"}
+                    onMouseLeave={e => e.target.style.background = "none"}
+                  ><Trash2 size={14} /> Delete Post</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Content */}
-      <div className="post-content">
-        {post.content}
-      </div>
+      {isEditing ? (
+        <div style={{ marginBottom: 12 }}>
+          <textarea
+            autoFocus
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={4}
+            style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid rgba(52,211,153,0.3)", background: "#0f1923", color: "#e6edf3", fontSize: 14, fontFamily: "inherit", resize: "vertical", outline: "none" }}
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button onClick={() => { setEditingPostId(null); setEditContent(""); }}
+                style={{ padding: "6px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#8b949e", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>Cancel</button>
+            <button onClick={() => { onSaveEdit(pid); }}
+              style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: "#34d399", color: "#0a2818", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>Save</button>
+          </div>
+        </div>
+      ) : (
+        <div className="post-content">
+          {post.content}
+        </div>
+      )}
 
       {/* Stats */}
       {post.stats && (
@@ -175,8 +235,12 @@ const Home = () => {
   const [postExpanded, setPostExpanded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [postImage, setPostImage] = useState(null);
+  const [postImage, setPostImage] = useState(null);        // preview URL (not sent to API)
+  const [postImageFile, setPostImageFile] = useState(null); // actual File object for upload
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editContent, setEditContent] = useState("");
   const fileInputRef = useRef(null);
 
   const ecoEmojis = ["🌱","🌍","🌎","🌏","🌿","☀️","🌊","♻️","💚","🌳","🌸","🐝","🦋","🌻","🍃","💧","🔥","🌟","💪","🙌","🌺","🍀","🌲","🐢","🐬","☁️","🌈","✨","💡","📢"];
@@ -213,6 +277,7 @@ const Home = () => {
   /* ── Fetch posts ── */
   useEffect(() => {
     setPosts(featuredPosts);
+    setLoading(false);
 
     (async () => {
       try {
@@ -235,7 +300,6 @@ const Home = () => {
           setApiPosts(formatted);
         }
       } catch (_) {}
-      finally { setLoading(false); }
     })();
   }, []);
 
@@ -245,62 +309,145 @@ const Home = () => {
     setApiPosts((prev) => prev.map((p) => (p.id === id || p._id === id) ? updater(p) : p));
   };
 
+  const isMockPost = (id) => typeof id === 'string' && !id.match(/^[0-9a-fA-F]{24}$/);
+
   const handleLike = async (id) => {
-    try { await likePost(id); } catch (_) {}
+    if (!isMockPost(id)) {
+      try { await likePost(id); } catch (_) {}
+    }
     updatePost(id, (p) => ({ ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }));
   };
 
   const handleComment = async (id) => {
     const txt = commentText[id];
     if (!txt?.trim()) return;
-    try { await commentOnPost(id, txt); } catch (_) {}
+    if (!isMockPost(id)) {
+      try { await commentOnPost(id, txt); } catch (_) {}
+    }
     updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }));
     setCommentText({ ...commentText, [id]: "" });
   };
 
   const handleShare = async (id) => {
-    try { await sharePostAction(id); } catch (_) {}
+    if (!isMockPost(id)) {
+      try { await sharePostAction(id); } catch (_) {}
+    }
     updatePost(id, (p) => ({ ...p, shares: p.shares + 1 }));
+  };
+
+  const handleDeletePost = async (id) => {
+    if (isMockPost(id)) {
+      setPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
+      setApiPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
+      toast.success("Post deleted");
+      return;
+    }
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      await deletePostApi(id);
+      setPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
+      setApiPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
+      toast.success("Post deleted");
+    } catch (_) { toast.error("Failed to delete post"); }
+  };
+
+  const handleEditPost = async (id) => {
+    if (!editContent.trim() || isMockPost(id)) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(`/api/posts/${id}`, { content: editContent }, { headers: { "x-auth-token": token } });
+      const updated = res.data;
+      const updater = (p) => ({
+        ...p,
+        content: updated.content || editContent,
+        image: updated.imageUrl || p.image,
+      });
+      setPosts((prev) => prev.map((p) => ((p.id || p._id) === id ? updater(p) : p)));
+      setApiPosts((prev) => prev.map((p) => ((p.id || p._id) === id ? updater(p) : p)));
+      setEditingPostId(null);
+      setEditContent("");
+      toast.success("Post updated");
+    } catch (_) { toast.error("Failed to update post"); }
   };
 
   const handleImageSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPostImage(ev.target.result);
-      reader.readAsDataURL(file);
+      setPostImageFile(file);
+      setPostImage(URL.createObjectURL(file));
     }
   };
 
   const handleRemoveImage = () => {
+    if (postImage) URL.revokeObjectURL(postImage);
     setPostImage(null);
+    setPostImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleCreatePost = async () => {
-    if (!postText.trim()) return;
+  const refreshApiPosts = async () => {
     try {
-      const saved = await createPost({ content: postText, category: "General", imageUrl: postImage || "" });
-      const np = {
-        id: saved._id, _id: saved._id,
-        user: { name: user?.username || "User", avatar: "🌱", title: "EarthTogether Member", _id: user?._id },
-        content: postText, image: postImage, likes: 0, comments: 0, shares: 0,
-        timeAgo: "just now", liked: false, category: "General", stats: null,
-      };
-      setPosts([np, ...posts]);
-      toast.success("Post shared!");
+      const data = await getPosts();
+      if (data?.length > 0) {
+        const formatted = data
+          .filter((p) => p.content && p.content.trim().length > 10)
+          .map((p) => {
+            let img = p.imageUrl || null;
+            if (img && (img.startsWith("/images/") || img.startsWith("/uploads/"))) img = null;
+            return {
+              id: p._id, _id: p._id,
+              user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
+              content: p.content, image: img,
+              likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
+              timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
+              liked: false, category: p.category || "General", stats: null,
+            };
+          });
+        setApiPosts(formatted);
+      }
+    } catch (_) {}
+  };
+
+  const handleCreatePost = async () => {
+    if (!postText.trim() || posting) return;
+    setPosting(true);
+    let saved;
+    try {
+      let imageUrl = "";
+      if (postImageFile) {
+        imageUrl = await uploadImage(postImageFile);
+      }
+      saved = await createPost({ content: postText, category: "General", imageUrl });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to post";
-      if (msg.includes("content") && msg.toLowerCase().includes("length")) {
+      if (err.code === 'ECONNABORTED' || (msg && msg.includes("timeout"))) {
+        toast.error("Upload timed out. The image may be too large (max 10MB).");
+      } else if (msg && msg.includes("content") && msg.toLowerCase().includes("length")) {
         toast.error("Content is too long (max 2000 characters)");
-      } else if (msg.includes("Content is required")) {
+      } else if (msg && msg.includes("Content is required")) {
         toast.error("Please write something to share");
       } else {
-        toast.error("Failed to post. " + msg);
+        toast.error("Failed to post. " + (msg || "Try a smaller image."));
       }
+      setPosting(false);
+      return;
     }
+
+    const np = {
+      id: saved._id, _id: saved._id,
+      user: { name: user?.username || "User", avatar: "🌱", title: "EarthTogether Member", _id: user?._id },
+      content: postText, image: saved.imageUrl || null, likes: 0, comments: 0, shares: 0,
+      timeAgo: "just now", liked: false, category: "General", stats: null,
+    };
+    setPosts([np, ...posts]);
+    toast.success("Post shared!");
+    refreshApiPosts();
+
+    if (postImage) URL.revokeObjectURL(postImage);
+    setPosting(false);
     setPostText("");
     setPostImage(null);
+    setPostImageFile(null);
     setShowEmojiPicker(false);
     setPostExpanded(false);
   };
@@ -388,15 +535,15 @@ const Home = () => {
             </div>
             {postExpanded ? (
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); setPostImage(null); setShowEmojiPicker(false); }}>
+                <button className="post-action-btn" onClick={() => { if (postImage) URL.revokeObjectURL(postImage); setPostExpanded(false); setPostText(""); setPostImage(null); setPostImageFile(null); setShowEmojiPicker(false); }}>
                   Cancel
                 </button>
-                <button className="btn-post" onClick={handleCreatePost} disabled={!postText.trim()}>
-                  Post
+                <button className="btn-post" onClick={handleCreatePost} disabled={!postText.trim() || posting}>
+                  {posting ? "Posting..." : "Post"}
                 </button>
               </div>
             ) : (
-              <button className="btn-post" onClick={() => setPostExpanded(true)}>Post</button>
+              <button className="btn-post" onClick={() => setPostExpanded(true)} disabled={posting}>Post</button>
             )}
           </div>
         </div>
@@ -429,6 +576,13 @@ const Home = () => {
                 handleComment={handleComment} 
                 openProfile={openProfile} 
                 user={user}
+                onDelete={handleDeletePost}
+                onEdit={(id, content) => { setEditingPostId(id); setEditContent(content || ""); }}
+                onSaveEdit={handleEditPost}
+                editingPostId={editingPostId}
+                editContent={editContent}
+                setEditContent={setEditContent}
+                setEditingPostId={setEditingPostId}
               />
             ))}
           </section>
@@ -454,6 +608,13 @@ const Home = () => {
                 handleComment={handleComment} 
                 openProfile={openProfile} 
                 user={user}
+                onDelete={handleDeletePost}
+                onEdit={(id, content) => { setEditingPostId(id); setEditContent(content || ""); }}
+                onSaveEdit={handleEditPost}
+                editingPostId={editingPostId}
+                editContent={editContent}
+                setEditContent={setEditContent}
+                setEditingPostId={setEditingPostId}
               />
             ))}
           </section>

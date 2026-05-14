@@ -20,7 +20,9 @@ const Dashboard = () => {
     const token = localStorage.getItem('token');
     if (!token) { setLoading(false); return; }
     try {
-      const response = await axios.get('/api/habits');
+      const response = await axios.get('/api/habits', {
+        headers: { 'x-auth-token': token },
+      });
       setHabits(response.data);
     } catch (error) {
       if (error.response?.status === 401) localStorage.removeItem('token');

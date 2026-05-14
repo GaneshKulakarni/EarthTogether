@@ -57,11 +57,17 @@ export const NotificationProvider = ({ children }) => {
     });
   };
 
+  const isPollingRef = useRef(false);
+
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Poll for new notifications every 10 seconds
-      const interval = setInterval(fetchNotifications, 10000);
+      const interval = setInterval(async () => {
+        if (isPollingRef.current) return;
+        isPollingRef.current = true;
+        await fetchNotifications();
+        isPollingRef.current = false;
+      }, 30000);
       return () => clearInterval(interval);
     }
   }, [user]);

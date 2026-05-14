@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Trash2, Target, Plus, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Edit2, Trash2, Target, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
-const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false, onJoinChallenge, userChallenges = [] }) => {
+const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = false, onJoinChallenge, userChallenges = [] }) => {
   const { user: currentUser } = useAuth();
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
 
   
   const currentUserId = currentUser?._id || currentUser?.id;
@@ -62,32 +65,67 @@ const PostCard = ({ post, onLike, onComment, onDelete, showDelete = false, onJoi
             </p>
           </div>
         </div>
-        {currentUser?._id === post.user._id && onDelete && showDelete && (
-          <div className="relative">
+        {(currentUser?._id === post.user._id || currentUser?.id === post.user.id) && showDelete && (
+          <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowDropdown(!showDropdown)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              style={{ padding: 6, borderRadius: '50%', border: 'none', background: 'none', cursor: 'pointer', color: '#8b949e' }}
+              onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.06)'}
+              onMouseLeave={e => e.target.style.background = 'none'}
             >
-              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+              <MoreHorizontal className="w-5 h-5" />
             </button>
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
+              <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, width: 160, background: '#1a2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, zIndex: 20, overflow: 'hidden' }}>
                 <button
-                  onClick={() => {
-                    onDelete(post._id);
-                    setShowDropdown(false);
-                  }}
-                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  onClick={() => { setShowDropdown(false); setIsEditing(true); setEditContent(post.content); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#e6edf3', fontSize: 13, textAlign: 'left' }}
+                  onMouseEnter={e => e.target.style.background = 'rgba(52,211,153,0.1)'}
+                  onMouseLeave={e => e.target.style.background = 'none'}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Post
+                  <Edit2 size={14} /> Edit Post
+                </button>
+                <button
+                  onClick={() => { onDelete(post._id); setShowDropdown(false); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#f87171', fontSize: 13, textAlign: 'left' }}
+                  onMouseEnter={e => e.target.style.background = 'rgba(248,113,113,0.1)'}
+                  onMouseLeave={e => e.target.style.background = 'none'}
+                >
+                  <Trash2 size={14} /> Delete Post
                 </button>
               </div>
             )}
           </div>
         )}
       </div>
-      <p className="text-gray-800 mb-4">{post.content}</p>
+      {isEditing ? (
+        <div style={{ marginBottom: 12 }}>
+          <textarea
+            autoFocus
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            rows={4}
+            style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid rgba(52,211,153,0.3)', background: '#0f1923', color: '#e6edf3', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button onClick={() => setIsEditing(false)}
+              style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#8b949e', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Cancel</button>
+            <button onClick={async () => {
+              if (!editContent.trim()) return toast.error('Content cannot be empty');
+              try {
+                const token = localStorage.getItem('token');
+                await axios.put(`/api/posts/${post._id}`, { content: editContent }, { headers: { 'x-auth-token': token } });
+                setIsEditing(false);
+                toast.success('Post updated');
+                if (onEdit) onEdit(post._id, editContent);
+              } catch (_) { toast.error('Failed to update post'); }
+            }}
+              style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#34d399', color: '#0a2818', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>Save</button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-gray-800 mb-4">{post.content}</p>
+      )}
       {post.imageUrl && (
         <img src={post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
       )}

@@ -8,12 +8,31 @@ const router = express.Router();
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user.id })
-      .populate('sender', ['username'])
-      .populate('post', ['content'])
+    let notifications = await Notification.find({ recipient: req.user.id })
       .sort({ createdAt: -1 })
-      .limit(20);
-    
+      .limit(20)
+      .lean();
+
+    // Manually resolve sender and post to avoid populate errors from deleted refs
+    const User = require('../models/User');
+    const Post = require('../models/Post');
+    for (const n of notifications) {
+      try {
+        if (n.sender) {
+          const u = await User.findById(n.sender).select('username').lean();
+          n.sender = u || null;
+        }
+      } catch (_) { n.sender = null; }
+      try {
+        if (n.post) {
+          const p = await Post.findById(n.post).select('content').lean();
+          n.post = p || null;
+        }
+      } catch (_) { n.post = null; }
+    }
+
+    notifications = notifications.filter(n => n.sender != null);
+
     res.json(notifications);
   } catch (err) {
     console.error(err.message);
