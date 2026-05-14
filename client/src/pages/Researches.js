@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, BookOpen, TrendingUp, Users, Calendar, ExternalLink } from 'lucide-react';
 import ResearchUploadModal from '../components/ResearchUploadModal';
+import '../dark-theme.css';
 
 const Researches = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,144 +80,174 @@ const Researches = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const getCategoryBadgeStyle = (category) => {
+    const styles = {
+      energy: { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+      pollution: { bg: 'rgba(248,113,113,0.15)', color: '#f87171' },
+      urban: { bg: 'rgba(56,189,248,0.15)', color: '#38bdf8' },
+      agriculture: { bg: 'rgba(52,211,153,0.15)', color: '#34d399' },
+    };
+    return styles[category] || { bg: 'rgba(139,148,158,0.15)', color: '#8b949e' };
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🔬 Research Hub</h1>
-        <p className="text-gray-600">Discover the latest environmental research and scientific insights</p>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search research articles..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '32px 0' }}>
+      <div className="dark-main" style={{ marginTop: 0, padding: 0 }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 18,
+              background: 'var(--accent-dim)', border: '1px solid var(--border-accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 30, margin: '0 auto 16px',
+            }}>🔬</div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>Research Hub</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Discover the latest environmental research and scientific insights</p>
           </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            {categories.map(category => (
-              <option key={category.key} value={category.key}>{category.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      {/* Research Statistics */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <BookOpen className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900">{researchArticles.length}</h3>
-          <p className="text-gray-600">Research Articles</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <Users className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900">25+</h3>
-          <p className="text-gray-600">Contributing Researchers</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <TrendingUp className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-gray-900">1.2K</h3>
-          <p className="text-gray-600">Community Reads</p>
-        </div>
-      </div>
-
-      {/* Research Articles */}
-      <div className="space-y-6">
-        {filteredArticles.length > 0 ? (
-          filteredArticles.map(article => (
-            <div key={article.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      article.category === 'energy' ? 'bg-yellow-100 text-yellow-800' :
-                      article.category === 'pollution' ? 'bg-red-100 text-red-800' :
-                      article.category === 'urban' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {categories.find(cat => cat.key === article.category)?.label || article.category}
-                    </span>
-                    <span className="text-gray-500 text-sm">{article.readTime}</span>
-                  </div>
-                  
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3 hover:text-green-600 cursor-pointer">
-                    {article.title}
-                  </h3>
-                  
-                  <div className="text-gray-600 mb-4">
-                    {expandedArticles.has(article.id) ? (
-                      <div>
-                        <p className="mb-4">{article.summary}</p>
-                        <div className="prose max-w-none">
-                          <p className="whitespace-pre-line">{article.fullContent}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p>{article.summary}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {article.tags.map(tag => (
-                      <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Users className="w-4 h-4" />
-                      <span>{article.author}</span>
-                      <Calendar className="w-4 h-4 ml-2" />
-                      <span>{new Date(article.date).toLocaleDateString()}</span>
-                    </div>
-                    <button 
-                      onClick={() => toggleArticle(article.id)}
-                      className="flex items-center gap-2 text-green-600 hover:text-green-700 font-medium"
-                    >
-                      {expandedArticles.has(article.id) ? 'Read Less' : 'Read More'}
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+          <div className="dark-card" style={{ padding: 20, marginBottom: 28 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', width: 18, height: 18 }} />
+                <input
+                  type="text"
+                  placeholder="Search research articles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="dark-input"
+                  style={{ paddingLeft: 40 }}
+                />
               </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="dark-input"
+              >
+                {categories.map(category => (
+                  <option key={category.key} value={category.key}>{category.label}</option>
+                ))}
+              </select>
             </div>
-          ))
-        ) : (
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No research found</h3>
-            <p className="text-gray-500">Try adjusting your search terms or category filter.</p>
           </div>
-        )}
-      </div>
 
-      {/* Community Contribution */}
-      <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg p-8 mt-8">
-        <div className="text-center">
-          <h3 className="text-2xl font-bold mb-4">Share Your Research</h3>
-          <p className="mb-6 opacity-90">Have environmental research to share? Contribute to our knowledge base and help the community learn.</p>
-          <button 
-            onClick={() => setShowUploadModal(true)}
-            className="bg-white text-green-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Submit Research
-          </button>
-          <ResearchUploadModal 
-            isOpen={showUploadModal} 
-            onClose={() => setShowUploadModal(false)}
-          />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
+            {[
+              { icon: <BookOpen style={{ width: 20, height: 20 }} />, value: researchArticles.length, label: 'Research Articles', color: '#38bdf8' },
+              { icon: <Users style={{ width: 20, height: 20 }} />, value: '25+', label: 'Contributing Researchers', color: '#34d399' },
+              { icon: <TrendingUp style={{ width: 20, height: 20 }} />, value: '1.2K', label: 'Community Reads', color: '#f59e0b' },
+            ].map((s) => (
+              <div key={s.label} className="dark-stat-card">
+                <div className="dark-stat-icon" style={{ background: `${s.color}18`, color: s.color }}>
+                  {s.icon}
+                </div>
+                <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
+                <div className="dark-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {filteredArticles.length > 0 ? (
+              filteredArticles.map(article => {
+                const badgeStyle = getCategoryBadgeStyle(article.category);
+                return (
+                  <div key={article.id} className="dark-card" style={{ padding: 24 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{
+                          padding: '3px 10px', borderRadius: 50, fontSize: 11, fontWeight: 700,
+                          background: badgeStyle.bg, color: badgeStyle.color,
+                        }}>
+                          {categories.find(cat => cat.key === article.category)?.label || article.category}
+                        </span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{article.readTime}</span>
+                      </div>
+
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0, cursor: 'pointer' }}
+                        onClick={() => toggleArticle(article.id)}>
+                        {article.title}
+                      </h3>
+
+                      <div style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.7, marginBottom: 4 }}>
+                        {expandedArticles.has(article.id) ? (
+                          <div>
+                            <p style={{ margin: '0 0 12px' }}>{article.summary}</p>
+                            <div>
+                              <p style={{ margin: 0, whiteSpace: 'pre-line', lineHeight: 1.8 }}>{article.fullContent}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p style={{ margin: 0 }}>{article.summary}</p>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+                        {article.tags.map(tag => (
+                          <span key={tag} style={{
+                            padding: '2px 8px', background: 'rgba(255,255,255,0.06)', borderRadius: 4,
+                            color: 'var(--text-muted)', fontSize: 11,
+                          }}>
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                          <Users style={{ width: 14, height: 14 }} />
+                          <span>{article.author}</span>
+                          <Calendar style={{ width: 14, height: 14, marginLeft: 8 }} />
+                          <span>{new Date(article.date).toLocaleDateString()}</span>
+                        </div>
+                        <button
+                          onClick={() => toggleArticle(article.id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontWeight: 600, fontSize: 13 }}
+                        >
+                          {expandedArticles.has(article.id) ? 'Read Less' : 'Read More'}
+                          <ExternalLink style={{ width: 14, height: 14 }} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="dark-card dark-empty" style={{ padding: '48px 24px' }}>
+                <BookOpen style={{ width: 56, height: 56, opacity: 0.3, marginBottom: 16 }} />
+                <h3>No research found</h3>
+                <p>Try adjusting your search terms or category filter.</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, #34d399, #059669)',
+            borderRadius: 16, padding: 32, marginTop: 32,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#0a2818', margin: '0 0 8px' }}>Share Your Research</h3>
+              <p style={{ color: 'rgba(10,40,24,0.8)', marginBottom: 20, fontSize: 14, lineHeight: 1.6 }}>
+                Have environmental research to share? Contribute to our knowledge base and help the community learn.
+              </p>
+              <button
+                onClick={() => setShowUploadModal(true)}
+                style={{
+                  background: '#0a2818', color: '#34d399',
+                  border: 'none', padding: '12px 28px', borderRadius: 10,
+                  fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.target.style.background = '#0d3720'; }}
+                onMouseLeave={e => { e.target.style.background = '#0a2818'; }}
+              >
+                Submit Research
+              </button>
+              <ResearchUploadModal
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

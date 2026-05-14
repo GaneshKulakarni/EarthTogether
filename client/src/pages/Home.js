@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
@@ -11,7 +11,6 @@ import {
   Send,
   Image,
   Smile,
-  Tag,
   Trophy,
   Plus,
 } from "lucide-react";
@@ -175,6 +174,8 @@ const Home = () => {
   const [postExpanded, setPostExpanded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [postImage, setPostImage] = useState(null);
+  const fileInputRef = useRef(null);
 
 
   /* ── Featured posts ── */
@@ -258,19 +259,34 @@ const Home = () => {
     updatePost(id, (p) => ({ ...p, shares: p.shares + 1 }));
   };
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setPostImage(ev.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPostImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleCreatePost = async () => {
     if (!postText.trim()) return;
     try {
-      const saved = await createPost({ content: postText, category: "General" });
+      const saved = await createPost({ content: postText, category: "General", imageUrl: postImage || "" });
       const np = {
         id: saved._id, _id: saved._id,
         user: { name: user?.username || "User", avatar: "🌱", title: "EarthTogether Member", _id: user?._id },
-        content: postText, image: null, likes: 0, comments: 0, shares: 0,
+        content: postText, image: postImage, likes: 0, comments: 0, shares: 0,
         timeAgo: "just now", liked: false, category: "General", stats: null,
       };
       setPosts([np, ...posts]);
     } catch (_) { alert("Failed to post. Please try again."); }
     setPostText("");
+    setPostImage(null);
     setPostExpanded(false);
   };
 
@@ -330,15 +346,21 @@ const Home = () => {
             )}
           </div>
 
+          {postImage && (
+            <div style={{ position: "relative", margin: "0 16px 8px" }}>
+              <img src={postImage} alt="Preview" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 8 }} />
+              <button onClick={handleRemoveImage} style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>✕</button>
+            </div>
+          )}
           <div className="create-post-actions">
             <div className="post-action-btns">
-              <button className="post-action-btn"><Image size={16} /> Photo</button>
+              <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageSelect} style={{ display: "none" }} />
+              <button className="post-action-btn" onClick={() => fileInputRef.current?.click()}><Image size={16} /> Photo</button>
               <button className="post-action-btn"><Smile size={16} /> Mood</button>
-              <button className="post-action-btn"><Tag size={16} /> Tag</button>
             </div>
             {postExpanded ? (
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); }}>
+                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); setPostImage(null); }}>
                   Cancel
                 </button>
                 <button className="btn-post" onClick={handleCreatePost} disabled={!postText.trim()}>

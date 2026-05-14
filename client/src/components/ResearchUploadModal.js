@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Upload, Trash2, FileText, Image as ImageIcon, Database } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import '../dark-theme.css';
 
 const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -160,67 +161,92 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
 
   if (!isOpen) return null;
 
+  const StepIndicator = ({ num, label, color }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        background: step >= num ? 'var(--accent)' : 'var(--bg-input)',
+        border: `2px solid ${step >= num ? 'var(--accent)' : 'var(--border)'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 12, fontWeight: 700,
+        color: step >= num ? '#0a2818' : 'var(--text-muted)',
+      }}>{num}</div>
+      <span style={{ fontSize: 13, color: step >= num ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: step >= num ? 600 : 400 }}>
+        {label}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white p-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">📚 Submit Research</h2>
-            <p className="text-green-100 text-sm mt-1">Step {step} of 4</p>
+    <div className="dark-modal-overlay" onClick={onClose}>
+      <div className="dark-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #34d399, #059669)',
+          padding: 24, borderBottom: '1px solid var(--border)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0a2818', margin: 0 }}>Submit Research</h2>
+              <p style={{ color: 'rgba(10,40,24,0.7)', fontSize: 12, marginTop: 4 }}>Step {step} of 4</p>
+            </div>
+            <button onClick={onClose} style={{ background: 'rgba(0,0,0,0.12)', border: 'none', cursor: 'pointer', borderRadius: 8, padding: 6, display: 'flex', color: '#0a2818' }}>
+              <X style={{ width: 18, height: 18 }} />
+            </button>
           </div>
-          <button onClick={onClose} className="hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition">
-            <X className="w-6 h-6" />
-          </button>
+
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <StepIndicator num={1} label="Details" />
+            <StepIndicator num={2} label="Author" />
+            <StepIndicator num={3} label="Files" />
+            <StepIndicator num={4} label="License" />
+          </div>
+
+          <div style={{ height: 3, background: 'rgba(0,0,0,0.1)', borderRadius: 4, marginTop: 14 }}>
+            <div style={{ height: '100%', background: '#0a2818', borderRadius: 4, transition: 'width 0.3s', width: `${(step / 4) * 100}%` }}></div>
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="h-1 bg-gray-200">
-          <div className="h-full bg-green-500 transition-all" style={{ width: `${(step / 4) * 100}%` }}></div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-6">
-          {/* Step 1: Essential Information */}
+        <form onSubmit={handleSubmit} style={{ padding: 24, overflowY: 'auto', maxHeight: '60vh' }}>
           {step === 1 && (
-            <div className="space-y-5">
-              <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                <h3 className="font-semibold text-gray-900 mb-1">📝 Essential Information</h3>
-                <p className="text-sm text-gray-600">Fill in the basic details about your research</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: 'var(--accent-dim)', borderLeft: '3px solid var(--accent)', padding: 12, borderRadius: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontSize: 14 }}>Essential Information</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>Fill in the basic details about your research</p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Research Title *</label>
+                <label className="dark-label">Research Title *</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="e.g., Impact of Renewable Energy on Carbon Emissions"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition bg-white text-gray-900 placeholder-gray-500"
+                  className="dark-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Abstract (2-4 lines) *</label>
+                <label className="dark-label">Abstract (2-4 lines) *</label>
                 <textarea
                   name="abstract"
                   value={formData.abstract}
                   onChange={handleInputChange}
                   placeholder="Brief summary of your research findings..."
                   rows="4"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition resize-none bg-white text-gray-900 placeholder-gray-500"
+                  className="dark-input"
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                  <label className="dark-label">Category *</label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition bg-white text-gray-900"
+                    className="dark-input"
                   >
                     {categories.map(cat => (
                       <option key={cat} value={cat.toLowerCase().replace(/\s+/g, '-')}>
@@ -231,81 +257,85 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Research Date</label>
+                  <label className="dark-label">Research Date</label>
                   <input
                     type="date"
                     name="researchDate"
                     value={formData.researchDate}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition bg-white text-gray-900"
+                    className="dark-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Research Document (PDF/Word) *</label>
-                <div className="border-2 border-dashed border-green-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition">
+                <label className="dark-label">Research Document (PDF/Word) *</label>
+                <div style={{
+                  border: '2px dashed var(--border-accent)', borderRadius: 12,
+                  padding: 24, textAlign: 'center', cursor: 'pointer',
+                  transition: 'all 0.2s', background: 'var(--accent-dim)',
+                }}>
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
                     onChange={handleDocumentUpload}
                     className="hidden"
                     id="document-upload"
+                    style={{ display: 'none' }}
                   />
-                  <label htmlFor="document-upload" className="cursor-pointer">
-                    <FileText className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-700">
+                  <label htmlFor="document-upload" style={{ cursor: 'pointer', display: 'block' }}>
+                    <FileText style={{ width: 36, height: 36, color: 'var(--accent)', margin: '0 auto 8px' }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                       {files.document ? `✓ ${files.document.name}` : 'Click to upload document'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">PDF or Word document</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>PDF or Word document</p>
                   </label>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 2: Author Details */}
           {step === 2 && (
-            <div className="space-y-5">
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                <h3 className="font-semibold text-gray-900 mb-1">👤 Author Details</h3>
-                <p className="text-sm text-gray-600">Tell us about yourself and your credentials</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: 'rgba(56,189,248,0.1)', borderLeft: '3px solid #38bdf8', padding: 12, borderRadius: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontSize: 14 }}>Author Details</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>Tell us about yourself and your credentials</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Researcher Name *</label>
+                  <label className="dark-label">Researcher Name *</label>
                   <input
                     type="text"
                     name="researcherName"
                     value={formData.researcherName}
                     onChange={handleInputChange}
                     placeholder="Your full name"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900 placeholder-gray-500"
+                    className="dark-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Institution *</label>
+                  <label className="dark-label">Institution *</label>
                   <input
                     type="text"
                     name="institution"
                     value={formData.institution}
                     onChange={handleInputChange}
                     placeholder="University/Organization"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900 placeholder-gray-500"
+                    className="dark-input"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Education Qualification *</label>
+                  <label className="dark-label">Education Qualification *</label>
                   <select
                     name="education"
                     value={formData.education}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900"
+                    className="dark-input"
                   >
                     <option value="">Select qualification</option>
                     {educationLevels.map(level => (
@@ -315,80 +345,83 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email (Optional)</label>
+                  <label className="dark-label">Email (Optional)</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900 placeholder-gray-500"
+                    className="dark-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Keywords/Tags</label>
+                <label className="dark-label">Keywords/Tags</label>
                 <input
                   type="text"
                   name="keywords"
                   value={formData.keywords}
                   onChange={handleInputChange}
                   placeholder="e.g., forest cover, soil erosion, climate impact"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900 placeholder-gray-500"
+                  className="dark-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Study Location</label>
+                <label className="dark-label">Study Location</label>
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
                   placeholder="e.g., Amazon Rainforest, Brazil"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition bg-white text-gray-900 placeholder-gray-500"
+                  className="dark-input"
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3: Additional Files */}
           {step === 3 && (
-            <div className="space-y-5">
-              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-                <h3 className="font-semibold text-gray-900 mb-1">📎 Additional Files</h3>
-                <p className="text-sm text-gray-600">Upload supporting materials and data</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: 'rgba(167,139,250,0.1)', borderLeft: '3px solid #a78bfa', padding: 12, borderRadius: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontSize: 14 }}>Additional Files</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>Upload supporting materials and data</p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Images/Graphs (Max 5)</label>
-                <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition">
+                <label className="dark-label">Images/Graphs (Max 5)</label>
+                <div style={{
+                  border: '2px dashed rgba(167,139,250,0.35)', borderRadius: 12,
+                  padding: 24, textAlign: 'center', cursor: 'pointer',
+                  transition: 'all 0.2s', background: 'rgba(167,139,250,0.06)',
+                }}>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     onChange={handleImageUpload}
-                    className="hidden"
                     id="images-upload"
+                    style={{ display: 'none' }}
                   />
-                  <label htmlFor="images-upload" className="cursor-pointer">
-                    <ImageIcon className="w-10 h-10 text-purple-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-700">Click to upload images</p>
-                    <p className="text-xs text-gray-500 mt-1">{files.images.length}/5 uploaded</p>
+                  <label htmlFor="images-upload" style={{ cursor: 'pointer', display: 'block' }}>
+                    <ImageIcon style={{ width: 36, height: 36, color: '#a78bfa', margin: '0 auto 8px' }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Click to upload images</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{files.images.length}/5 uploaded</p>
                   </label>
                 </div>
                 {files.images.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {files.images.map((img, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
-                        <span className="text-sm text-gray-700">📷 {img.name}</span>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(167,139,250,0.08)', padding: 10, borderRadius: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>📷 {img.name}</span>
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)' }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 style={{ width: 14, height: 14 }} />
                         </button>
                       </div>
                     ))}
@@ -397,32 +430,36 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Supporting Files - Data/Excel (Max 5)</label>
-                <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition">
+                <label className="dark-label">Supporting Files - Data/Excel (Max 5)</label>
+                <div style={{
+                  border: '2px dashed rgba(167,139,250,0.35)', borderRadius: 12,
+                  padding: 24, textAlign: 'center', cursor: 'pointer',
+                  transition: 'all 0.2s', background: 'rgba(167,139,250,0.06)',
+                }}>
                   <input
                     type="file"
                     multiple
                     onChange={handleSupportingFilesUpload}
-                    className="hidden"
                     id="supporting-upload"
+                    style={{ display: 'none' }}
                   />
-                  <label htmlFor="supporting-upload" className="cursor-pointer">
-                    <Database className="w-10 h-10 text-purple-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-700">Click to upload files</p>
-                    <p className="text-xs text-gray-500 mt-1">{files.supportingFiles.length}/5 uploaded</p>
+                  <label htmlFor="supporting-upload" style={{ cursor: 'pointer', display: 'block' }}>
+                    <Database style={{ width: 36, height: 36, color: '#a78bfa', margin: '0 auto 8px' }} />
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Click to upload files</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{files.supportingFiles.length}/5 uploaded</p>
                   </label>
                 </div>
                 {files.supportingFiles.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {files.supportingFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-purple-50 p-3 rounded-lg">
-                        <span className="text-sm text-gray-700">📊 {file.name}</span>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(167,139,250,0.08)', padding: 10, borderRadius: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>📊 {file.name}</span>
                         <button
                           type="button"
                           onClick={() => removeSupportingFile(idx)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)' }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 style={{ width: 14, height: 14 }} />
                         </button>
                       </div>
                     ))}
@@ -432,71 +469,72 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* Step 4: License & Professional Details */}
           {step === 4 && (
-            <div className="space-y-5">
-              <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
-                <h3 className="font-semibold text-gray-900 mb-1">⚙️ License & Professional Details</h3>
-                <p className="text-sm text-gray-600">Set permissions and research identifiers</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: 'rgba(251,146,60,0.1)', borderLeft: '3px solid #fb923c', padding: 12, borderRadius: 8 }}>
+                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px', fontSize: 14 }}>License & Professional Details</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>Set permissions and research identifiers</p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">License Type</label>
+                <label className="dark-label">License Type</label>
                 <select
                   name="license"
                   value={formData.license}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition bg-white text-gray-900"
+                  className="dark-input"
                 >
-                  <option value="open-access">🌐 Open Access</option>
+                  <option value="open-access">Open Access</option>
                   <option value="copyright">© Copyright</option>
-                  <option value="creative-commons">🎨 Creative Commons</option>
+                  <option value="creative-commons">Creative Commons</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">DOI or Unique Research ID (Optional)</label>
+                <label className="dark-label">DOI or Unique Research ID (Optional)</label>
                 <input
                   type="text"
                   name="doi"
                   value={formData.doi}
                   onChange={handleInputChange}
                   placeholder="e.g., 10.1234/example.doi or leave blank for auto-generation"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition bg-white text-gray-900 placeholder-gray-500"
+                  className="dark-input"
                 />
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <label className="flex items-center cursor-pointer">
+              <div style={{ background: 'var(--bg-input)', padding: 16, borderRadius: 10, border: '1px solid var(--border)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 10 }}>
                   <input
                     type="checkbox"
                     name="peerReview"
                     checked={formData.peerReview}
                     onChange={handleInputChange}
-                    className="w-5 h-5 text-orange-500 rounded focus:ring-2 focus:ring-orange-200"
+                    style={{ width: 16, height: 16, accentColor: 'var(--accent)' }}
                   />
-                  <span className="ml-3 text-sm font-medium text-gray-700">
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                     Enable Peer Review Option
                   </span>
                 </label>
-                <p className="text-xs text-gray-600 mt-2 ml-8">Allow reviewers to comment and provide feedback on your research</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, marginLeft: 26 }}>
+                  Allow reviewers to comment and provide feedback on your research
+                </p>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">📋 Summary:</span> Your research will be published with the selected license type. A unique identifier will be generated for citation purposes.
+              <div style={{ background: 'rgba(56,189,248,0.08)', padding: 14, borderRadius: 10, border: '1px solid rgba(56,189,248,0.15)' }}>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
+                  <span style={{ fontWeight: 700 }}>Summary:</span> Your research will be published with the selected license type. A unique identifier will be generated for citation purposes.
                 </p>
               </div>
             </div>
           )}
         </form>
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 bg-gray-50 p-6 flex gap-3">
+        <div style={{ padding: 20, borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
           <button
             type="button"
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold py-3 px-4 rounded-lg transition-colors"
+            className="dark-btn-secondary"
+            style={{ flex: 1, justifyContent: 'center' }}
           >
             {step === 1 ? 'Cancel' : 'Back'}
           </button>
@@ -504,7 +542,8 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               type="button"
               onClick={() => setStep(step + 1)}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              className="dark-btn-primary"
+              style={{ flex: 1, justifyContent: 'center' }}
             >
               Next
             </button>
@@ -513,7 +552,8 @@ const ResearchUploadModal = ({ isOpen, onClose, onSuccess }) => {
               type="submit"
               onClick={handleSubmit}
               disabled={loading}
-              className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+              className="dark-btn-primary"
+              style={{ flex: 1, justifyContent: 'center' }}
             >
               {loading ? '⏳ Uploading...' : '✓ Submit Research'}
             </button>

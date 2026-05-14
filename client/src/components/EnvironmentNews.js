@@ -3,6 +3,7 @@ import { getEnvironmentNews } from '../services/api';
 import { X, ExternalLink, Calendar, User, Wand2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import '../dark-theme.css';
 
 const EnvironmentNews = () => {
   const [news, setNews] = useState([]);
@@ -142,165 +143,163 @@ const EnvironmentNews = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '48px 0' }}>
+        <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid rgba(52,211,153,0.2)', borderTopColor: '#34d399', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
         {news.map((item, index) => (
           <div
             key={index}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
+            className="dark-card"
+            style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
           >
-            {/* Image */}
-            <div className="relative h-48 overflow-hidden bg-gray-200 flex items-center justify-center">
+            <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {item.image ? (
                 <img
                   src={item.image}
                   alt={item.headline}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : generatingImages[item.id] ? (
-                <div className="flex flex-col items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
-                  <span className="text-xs text-gray-600">Generating...</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid rgba(52,211,153,0.2)', borderTopColor: '#34d399', animation: 'spin 0.8s linear infinite' }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Generating...</span>
                 </div>
               ) : (
                 <button
                   onClick={() => generateImageForNews(item)}
-                  className="flex flex-col items-center justify-center gap-2 text-gray-600 hover:text-green-600 transition"
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
                 >
-                  <Wand2 className="w-8 h-8" />
-                  <span className="text-xs">Generate Image</span>
+                  <Wand2 style={{ width: 32, height: 32 }} />
+                  <span style={{ fontSize: 12 }}>Generate Image</span>
                 </button>
               )}
-              <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+              <div style={{
+                position: 'absolute', top: 12, right: 12,
+                background: 'var(--accent)', color: '#0a2818',
+                padding: '4px 12px', borderRadius: 50, fontSize: 11, fontWeight: 700,
+              }}>
                 Featured
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-5 flex flex-col flex-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.4 }}>
                 {item.headline}
               </h3>
 
               {item.date && (
-                <div className="flex items-center text-xs text-gray-500 mb-3">
-                  <Calendar className="w-3 h-3 mr-1" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+                  <Calendar style={{ width: 12, height: 12 }} />
                   {item.date}
                 </div>
               )}
 
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
+              <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 16px', lineHeight: 1.6, flex: 1 }}>
                 {item.summary}
               </p>
 
               {item.source && (
-                <p className="text-xs text-gray-500 mb-4">
-                  Source: <span className="font-semibold">{item.source}</span>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+                  Source: <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{item.source}</span>
                 </p>
               )}
 
               <button
                 onClick={() => setSelectedArticle(item)}
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="dark-btn-primary"
+                style={{ width: '100%', justifyContent: 'center' }}
               >
                 <span>Read More</span>
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink style={{ width: 14, height: 14 }} />
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal */}
       {selectedArticle && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Article Details</h2>
+        <div className="dark-modal-overlay" onClick={() => setSelectedArticle(null)}>
+          <div className="dark-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+            <div className="dark-modal-header" style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}>
+              <h2 style={{ color: '#0a2818', fontSize: 20 }}>Article Details</h2>
               <button
                 onClick={() => setSelectedArticle(null)}
-                className="hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
+                style={{ background: 'rgba(0,0,0,0.15)', border: 'none', cursor: 'pointer', borderRadius: 8, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a2818' }}
               >
-                <X className="w-6 h-6" />
+                <X style={{ width: 20, height: 20 }} />
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="p-8">
-              {/* Featured Image */}
+            <div style={{ padding: 28 }}>
               {selectedArticle.image ? (
                 <img
                   src={selectedArticle.image}
                   alt={selectedArticle.headline}
-                  className="w-full h-96 object-cover rounded-lg mb-6"
+                  style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, marginBottom: 24 }}
                 />
               ) : (
-                <div className="w-full h-96 bg-gray-200 rounded-lg mb-6 flex items-center justify-center">
-                  <span className="text-gray-500">Image generating...</span>
+                <div style={{ width: '100%', height: 320, background: 'var(--bg-input)', borderRadius: 12, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                  Image generating...
                 </div>
               )}
 
-              {/* Title */}
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 16px' }}>
                 {selectedArticle.headline}
               </h1>
 
-              {/* Meta Information */}
-              <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b border-gray-200">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
                 {selectedArticle.date && (
-                  <div className="flex items-center text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2 text-green-500" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                    <Calendar style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                     <span>{selectedArticle.date}</span>
                   </div>
                 )}
                 {selectedArticle.author && (
-                  <div className="flex items-center text-gray-600">
-                    <User className="w-4 h-4 mr-2 text-green-500" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                    <User style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                     <span>{selectedArticle.author}</span>
                   </div>
                 )}
                 {selectedArticle.source && (
-                  <div className="text-gray-600">
-                    <span className="font-semibold">Source:</span> {selectedArticle.source}
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+                    <span style={{ fontWeight: 600 }}>Source:</span> {selectedArticle.source}
                   </div>
                 )}
               </div>
 
-              {/* Summary */}
-              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
-                <p className="text-gray-700 font-semibold">Summary</p>
-                <p className="text-gray-600 mt-2">{selectedArticle.summary}</p>
+              <div style={{ marginBottom: 24, padding: 16, background: 'var(--accent-dim)', borderLeft: '3px solid var(--accent)', borderRadius: 8 }}>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 600, margin: '0 0 6px', fontSize: 13 }}>Summary</p>
+                <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: 13, lineHeight: 1.6 }}>{selectedArticle.summary}</p>
               </div>
 
-              {/* Full Content */}
-              <div className="prose prose-sm max-w-none">
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Full Article</h3>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <div style={{ marginBottom: 28 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>Full Article</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: 13, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {selectedArticle.content}
                 </p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-8 flex gap-4">
+              <div style={{ display: 'flex', gap: 12 }}>
                 <button
                   onClick={() => setSelectedArticle(null)}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors"
+                  className="dark-btn-secondary"
+                  style={{ flex: 1, justifyContent: 'center' }}
                 >
                   Close
                 </button>
                 <button
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                  className="dark-btn-primary"
+                  style={{ flex: 1, justifyContent: 'center' }}
                 >
                   <span>Share Article</span>
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink style={{ width: 14, height: 14 }} />
                 </button>
               </div>
             </div>

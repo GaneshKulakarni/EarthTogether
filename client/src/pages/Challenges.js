@@ -24,13 +24,21 @@ const Challenges = () => {
       try {
         const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
         const challengesRes = await axios.get('/api/challenges', config);
-        const withJoin = challengesRes.data.map(c => ({
+        const challenges = Array.isArray(challengesRes.data) ? challengesRes.data : [];
+        const withJoin = challenges.map(c => ({
           ...c,
-          isJoined: c.participants.some(p => (typeof p.user === 'object' ? p.user._id : p.user) === user._id),
+          isJoined: (c.participants || []).some(p => {
+            if (!p.user) return false;
+            const pid = typeof p.user === 'object' ? p.user._id : p.user;
+            return pid ? pid.toString() === user?._id?.toString() : false;
+          }),
         }));
         setChallenges(withJoin);
-        const postsRes = await axios.get('/api/posts', config);
-        setChallengePosts(postsRes.data.filter(p => p.category === 'Challenge' || p.type === 'challenge'));
+        try {
+          const postsRes = await axios.get('/api/posts', config);
+          const posts = Array.isArray(postsRes.data) ? postsRes.data : [];
+          setChallengePosts(posts.filter(p => p.category === 'Challenge' || p.type === 'challenge'));
+        } catch (_) {}
         setLoading(false);
       } catch (err) {
         toast.error('Failed to fetch data.');
@@ -38,7 +46,7 @@ const Challenges = () => {
       }
     };
     fetchData();
-  }, [user._id]);
+  }, [user?._id]);
 
   const joinChallenge = async (id) => {
     try {
@@ -66,13 +74,23 @@ const Challenges = () => {
     e.preventDefault();
     try {
       const config = { headers: { 'x-auth-token': localStorage.getItem('token') } };
-      const data = { ...newChallenge, requirements: newChallenge.requirements.filter(r => r.trim()), rewards: newChallenge.rewards.filter(r => r.trim()) };
+      const data = {
+        ...newChallenge,
+        duration: String(newChallenge.duration),
+        ecoPoints: Number(newChallenge.ecoPoints),
+        carbonSaved: Number(newChallenge.carbonSaved),
+        requirements: newChallenge.requirements.filter(r => r.trim()),
+        rewards: newChallenge.rewards.filter(r => r.trim()),
+      };
       const res = await axios.post('/api/challenges', data, config);
       setChallenges(prev => [...prev, { ...res.data, isJoined: false }]);
       setShowCreateModal(false);
       setNewChallenge({ title: '', description: '', category: 'General', difficulty: 'Medium', duration: 7, ecoPoints: 100, carbonSaved: 5, requirements: [''], rewards: [''] });
       toast.success('Challenge created!');
-    } catch (_) { toast.error('Failed to create challenge'); }
+    } catch (err) {
+      const msg = err.response?.data?.msg || err.response?.data?.errors?.[0]?.msg || 'Failed to create challenge';
+      toast.error(msg);
+    }
   };
 
   const getDifficultyStyle = (d) => ({

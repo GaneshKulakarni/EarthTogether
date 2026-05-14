@@ -57,7 +57,12 @@ router.post('/', [
     check('title', 'Title is required').not().isEmpty(),
     check('description', 'Description is required').not().isEmpty(),
     check('category', 'Category is required').not().isEmpty(),
-    check('duration', 'Duration is required').isNumeric()
+    check('duration', 'Duration is required and must be a number').custom((value) => {
+      if (value === undefined || value === null || value === '') throw new Error('Duration is required');
+      const num = Number(value);
+      if (isNaN(num) || num < 1) throw new Error('Duration must be a positive number');
+      return true;
+    })
   ]
 ], async (req, res) => {
   const errors = validationResult(req);

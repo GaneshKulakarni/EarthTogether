@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Recycle, Leaf, Calculator, Plus, TrendingUp } from 'lucide-react';
+import '../dark-theme.css';
 
 const WasteManagement = () => {
   const [wasteData, setWasteData] = useState({
@@ -10,12 +11,11 @@ const WasteManagement = () => {
   });
   const [newEntry, setNewEntry] = useState({ type: 'plastic', amount: '' });
 
-  // Carbon savings per kg of waste avoided/recycled
   const carbonFactors = {
-    plastic: 2.0, // kg CO2 per kg plastic
-    paper: 1.5,   // kg CO2 per kg paper
-    electronic: 5.0, // kg CO2 per kg e-waste
-    organic: 0.5  // kg CO2 per kg organic waste
+    plastic: 2.0,
+    paper: 1.5,
+    electronic: 5.0,
+    organic: 0.5
   };
 
   const addWasteEntry = () => {
@@ -35,113 +35,127 @@ const WasteManagement = () => {
   };
 
   const wasteTypes = [
-    { key: 'plastic', label: 'Plastic', icon: <Trash2 className="w-5 h-5" />, color: 'bg-red-100 text-red-600' },
-    { key: 'paper', label: 'Paper', icon: <Recycle className="w-5 h-5" />, color: 'bg-blue-100 text-blue-600' },
-    { key: 'electronic', label: 'E-Waste', icon: <Calculator className="w-5 h-5" />, color: 'bg-purple-100 text-purple-600' },
-    { key: 'organic', label: 'Organic', icon: <Leaf className="w-5 h-5" />, color: 'bg-green-100 text-green-600' }
+    { key: 'plastic', label: 'Plastic', icon: <Trash2 style={{ width: 20, height: 20 }} />, color: '#f87171', bgColor: 'rgba(248,113,113,0.15)' },
+    { key: 'paper', label: 'Paper', icon: <Recycle style={{ width: 20, height: 20 }} />, color: '#38bdf8', bgColor: 'rgba(56,189,248,0.15)' },
+    { key: 'electronic', label: 'E-Waste', icon: <Calculator style={{ width: 20, height: 20 }} />, color: '#a78bfa', bgColor: 'rgba(167,139,250,0.15)' },
+    { key: 'organic', label: 'Organic', icon: <Leaf style={{ width: 20, height: 20 }} />, color: '#34d399', bgColor: 'rgba(52,211,153,0.15)' }
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🗑️ Waste Management</h1>
-        <p className="text-gray-600">Track waste avoided and see your environmental impact!</p>
-      </div>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', padding: '32px 0' }}>
+      <div className="dark-main" style={{ marginTop: 0, padding: 0 }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 18,
+              background: 'var(--accent-dim)', border: '1px solid var(--border-accent)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 30, margin: '0 auto 16px',
+            }}>🗑️</div>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>Waste Management</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Track waste avoided and see your environmental impact!</p>
+          </div>
 
-      {/* Carbon Savings Summary */}
-      <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg p-8 mb-8">
-        <div className="text-center">
-          <TrendingUp className="w-12 h-12 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-2">{calculateTotalCarbonSaved()} kg</h2>
-          <p className="text-lg opacity-90">Total CO₂ Saved</p>
-        </div>
-      </div>
+          <div style={{
+            background: 'linear-gradient(135deg, #34d399, #059669)',
+            borderRadius: 16, padding: 32, marginBottom: 28,
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <TrendingUp style={{ width: 44, height: 44, color: '#0a2818', margin: '0 auto 12px' }} />
+              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#0a2818', margin: '0 0 4px' }}>{calculateTotalCarbonSaved()} kg</h2>
+              <p style={{ color: 'rgba(10,40,24,0.8)', fontSize: 15 }}>Total CO₂ Saved</p>
+            </div>
+          </div>
 
-      {/* Add New Entry */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Add Waste Entry</h3>
-        <div className="flex flex-col md:flex-row gap-4">
-          <select
-            value={newEntry.type}
-            onChange={(e) => setNewEntry(prev => ({ ...prev, type: e.target.value }))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
+          <div className="dark-card" style={{ padding: 24, marginBottom: 28 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 16px' }}>Add Waste Entry</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <select
+                value={newEntry.type}
+                onChange={(e) => setNewEntry(prev => ({ ...prev, type: e.target.value }))}
+                className="dark-input"
+              >
+                {wasteTypes.map(type => (
+                  <option key={type.key} value={type.key}>{type.label}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                placeholder="Amount (kg)"
+                value={newEntry.amount}
+                onChange={(e) => setNewEntry(prev => ({ ...prev, amount: e.target.value }))}
+                className="dark-input"
+              />
+              <button
+                onClick={addWasteEntry}
+                className="dark-btn-primary"
+                style={{ justifyContent: 'center' }}
+              >
+                <Plus style={{ width: 16, height: 16 }} />
+                Add Entry
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
             {wasteTypes.map(type => (
-              <option key={type.key} value={type.key}>{type.label}</option>
+              <div key={type.key} className="dark-stat-card">
+                <div className="dark-stat-icon" style={{ background: type.bgColor, color: type.color }}>
+                  {type.icon}
+                </div>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{type.label}</h3>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>{wasteData[type.key]} kg</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                  {(wasteData[type.key] * carbonFactors[type.key]).toFixed(2)} kg CO₂ saved
+                </div>
+              </div>
             ))}
-          </select>
-          <input
-            type="number"
-            placeholder="Amount (kg)"
-            value={newEntry.amount}
-            onChange={(e) => setNewEntry(prev => ({ ...prev, amount: e.target.value }))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button
-            onClick={addWasteEntry}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Entry
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* Waste Statistics */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {wasteTypes.map(type => (
-          <div key={type.key} className="bg-white rounded-lg shadow-md p-6">
-            <div className={`w-12 h-12 rounded-full ${type.color} flex items-center justify-center mb-4`}>
-              {type.icon}
+          <div className="dark-card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 20px' }}>Waste Reduction Tips</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+              <div>
+                <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px', fontSize: 14 }}>Plastic Reduction</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {['Use reusable bags and containers', 'Choose products with minimal packaging', 'Avoid single-use plastics', 'Recycle properly when disposal is necessary'].map((tip, i) => (
+                    <li key={i} style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', gap: 8 }}>
+                      <span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span> {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px', fontSize: 14 }}>Paper Conservation</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {['Go digital for bills and documents', 'Print double-sided when necessary', 'Use recycled paper products', 'Compost paper waste when possible'].map((tip, i) => (
+                    <li key={i} style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', gap: 8 }}>
+                      <span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span> {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px', fontSize: 14 }}>E-Waste Management</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {['Donate or sell working electronics', 'Use certified e-waste recycling centers', 'Extend device lifespan with proper care', 'Buy refurbished when possible'].map((tip, i) => (
+                    <li key={i} style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', gap: 8 }}>
+                      <span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span> {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px', fontSize: 14 }}>Organic Waste</h4>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {['Start composting at home', 'Plan meals to reduce food waste', 'Use food scraps for gardening', 'Donate excess food to local charities'].map((tip, i) => (
+                    <li key={i} style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', gap: 8 }}>
+                      <span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span> {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{type.label}</h3>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{wasteData[type.key]} kg</div>
-            <div className="text-sm text-gray-600">
-              {(wasteData[type.key] * carbonFactors[type.key]).toFixed(2)} kg CO₂ saved
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Tips Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-6">💡 Waste Reduction Tips</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Plastic Reduction</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li>• Use reusable bags and containers</li>
-              <li>• Choose products with minimal packaging</li>
-              <li>• Avoid single-use plastics</li>
-              <li>• Recycle properly when disposal is necessary</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Paper Conservation</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li>• Go digital for bills and documents</li>
-              <li>• Print double-sided when necessary</li>
-              <li>• Use recycled paper products</li>
-              <li>• Compost paper waste when possible</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">E-Waste Management</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li>• Donate or sell working electronics</li>
-              <li>• Use certified e-waste recycling centers</li>
-              <li>• Extend device lifespan with proper care</li>
-              <li>• Buy refurbished when possible</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Organic Waste</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li>• Start composting at home</li>
-              <li>• Plan meals to reduce food waste</li>
-              <li>• Use food scraps for gardening</li>
-              <li>• Donate excess food to local charities</li>
-            </ul>
           </div>
         </div>
       </div>

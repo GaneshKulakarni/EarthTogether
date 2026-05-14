@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import '../dark-theme.css';
 
 const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +41,7 @@ const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
       });
       
       setIsCompletedToday(true);
-      toast.success('Habit completed! 🎉');
+      toast.success('Habit completed!');
       if (onHabitUpdated) {
         onHabitUpdated();
       }
@@ -56,33 +57,47 @@ const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow flex flex-col h-full">
-      <div className="flex-1 mb-4">
-        <div className="flex items-start space-x-3 mb-3">
-          <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${habit.isActive ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-lg">{habit.name}</h3>
-            <p className="text-sm text-gray-600">{habit.category} • {habit.frequency}</p>
+    <div className="dark-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+          <div style={{
+            width: 10, height: 10, borderRadius: '50%',
+            background: habit.isActive !== false ? '#34d399' : 'var(--text-muted)',
+            flexShrink: 0, marginTop: 4,
+          }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>{habit.name}</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
+              {habit.category} &bull; {habit.frequency}
+            </p>
           </div>
         </div>
-        <p className="text-sm text-gray-700 mb-3">{habit.description || 'No description'}</p>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
+          {habit.description || 'No description'}
+        </p>
       </div>
 
-      <div className="border-t border-gray-100 pt-4 space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-600">Streak:</span>
-          <span className="text-lg font-bold text-green-600">{habit.currentStreak || 0} days</span>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Streak:</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)' }}>{habit.currentStreak || 0} days</span>
         </div>
-        <button 
+        <button
           onClick={handleComplete}
           disabled={isLoading || isCompletedToday}
-          className={`w-full px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 ${
-            isCompletedToday
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-green-500 hover:bg-green-600 text-white'
-          } ${isLoading ? 'opacity-50' : ''}`}
+          style={{
+            width: '100%', padding: '10px 16px', borderRadius: 10, border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontSize: 13, fontWeight: 600, cursor: isLoading || isCompletedToday ? 'not-allowed' : 'pointer',
+            opacity: isLoading ? 0.6 : 1,
+            background: isCompletedToday ? 'var(--bg-input)' : 'var(--accent)',
+            color: isCompletedToday ? 'var(--text-muted)' : '#0a2818',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = '#2ecc89'; e.target.style.boxShadow = '0 0 12px rgba(52,211,153,0.3)'; }}}
+          onMouseLeave={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = 'var(--accent)'; e.target.style.boxShadow = 'none'; }}}
         >
-          <CheckCircle className="w-4 h-4" />
+          <CheckCircle size={16} />
           <span>{isCompletedToday ? 'Completed Today' : isLoading ? 'Completing...' : 'Complete'}</span>
         </button>
       </div>
