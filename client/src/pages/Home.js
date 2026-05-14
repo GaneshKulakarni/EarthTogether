@@ -14,6 +14,7 @@ import {
   Trophy,
   Plus,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import UserProfileModal from "../components/UserProfileModal";
 import AppSidebar from "../components/AppSidebar";
 import "./Home.css";
@@ -175,7 +176,10 @@ const Home = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [postImage, setPostImage] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef(null);
+
+  const ecoEmojis = ["🌱","🌍","🌎","🌏","🌿","☀️","🌊","♻️","💚","🌳","🌸","🐝","🦋","🌻","🍃","💧","🔥","🌟","💪","🙌","🌺","🍀","🌲","🐢","🐬","☁️","🌈","✨","💡","📢"];
 
 
   /* ── Featured posts ── */
@@ -284,9 +288,20 @@ const Home = () => {
         timeAgo: "just now", liked: false, category: "General", stats: null,
       };
       setPosts([np, ...posts]);
-    } catch (_) { alert("Failed to post. Please try again."); }
+      toast.success("Post shared!");
+    } catch (err) {
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to post";
+      if (msg.includes("content") && msg.toLowerCase().includes("length")) {
+        toast.error("Content is too long (max 2000 characters)");
+      } else if (msg.includes("Content is required")) {
+        toast.error("Please write something to share");
+      } else {
+        toast.error("Failed to post. " + msg);
+      }
+    }
     setPostText("");
     setPostImage(null);
+    setShowEmojiPicker(false);
     setPostExpanded(false);
   };
 
@@ -352,15 +367,28 @@ const Home = () => {
               <button onClick={handleRemoveImage} style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>✕</button>
             </div>
           )}
+          {showEmojiPicker && (
+            <div style={{ margin: "0 16px 8px", padding: 10, background: "#1a2030", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {ecoEmojis.map((emoji, i) => (
+                  <button key={i} type="button" onClick={() => { setPostText(prev => prev + emoji); setShowEmojiPicker(false); }}
+                    style={{ width: 34, height: 34, fontSize: 18, border: "none", background: "transparent", borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    onMouseEnter={e => e.target.style.background = "rgba(52,211,153,0.15)"}
+                    onMouseLeave={e => e.target.style.background = "transparent"}
+                  >{emoji}</button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="create-post-actions">
             <div className="post-action-btns">
               <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageSelect} style={{ display: "none" }} />
               <button className="post-action-btn" onClick={() => fileInputRef.current?.click()}><Image size={16} /> Photo</button>
-              <button className="post-action-btn"><Smile size={16} /> Mood</button>
+              <button className="post-action-btn" onClick={() => { if (!postExpanded) setPostExpanded(true); setShowEmojiPicker(prev => !prev); }}><Smile size={16} /> Mood</button>
             </div>
             {postExpanded ? (
               <div style={{ display: "flex", gap: 8 }}>
-                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); setPostImage(null); }}>
+                <button className="post-action-btn" onClick={() => { setPostExpanded(false); setPostText(""); setPostImage(null); setShowEmojiPicker(false); }}>
                   Cancel
                 </button>
                 <button className="btn-post" onClick={handleCreatePost} disabled={!postText.trim()}>
