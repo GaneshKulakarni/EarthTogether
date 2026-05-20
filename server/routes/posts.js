@@ -72,18 +72,18 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
-    const { content, category, type, imageUrl } = req.body;
+    const { content, category, type, imageUrl, videoUrl } = req.body;
 
     if (!content || content.trim() === '') {
       return res.status(400).json({ message: 'Content is required' });
     }
-
     const newPost = new Post({
       user: req.user.id,
       content: content.trim(),
-      type: type || 'general',
+      type: type || (videoUrl ? 'video' : imageUrl ? 'image' : 'general'),
       category: category || 'General',
-      imageUrl: imageUrl || ''
+      imageUrl: imageUrl || '',
+      videoUrl: videoUrl || ''
     });
 
     const post = await newPost.save();

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { usePost } from "../context/PostContext";
 import { useNotifications } from "../context/NotificationContext";
 import axios from "axios";
-import { getPosts, likePost, commentOnPost, createPost, deletePost as deletePostApi, uploadImage } from "../services/api";
+import { getPosts, likePost, commentOnPost, createPost, deletePost as deletePostApi, uploadMedia } from "../services/api";
 import {
   Heart,
   MessageCircle,
@@ -168,9 +168,22 @@ const PostCard = ({
       )}
 
       {/* Image */}
-      {post.image && (
+      {post.image && !post.video && (
         <div className="post-image-container">
           <img src={post.image} alt="Post content" className="post-image" />
+        </div>
+      )}
+
+      {/* Video */}
+      {post.video && (
+        <div className="post-video-container" style={{ margin: "0 16px 12px", borderRadius: 12, overflow: "hidden", background: "#000" }}>
+          <video 
+            src={post.video} 
+            controls 
+            className="post-video" 
+            style={{ width: "100%", display: "block", maxHeight: 500 }}
+            poster={post.image || ""}
+          />
         </div>
       )}
 
@@ -291,7 +304,7 @@ const Home = () => {
               return {
                 id: p._id, _id: p._id,
                 user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
-                content: p.content, image: img,
+                content: p.content, image: img, video: p.videoUrl || null,
                 likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
                 timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
                 liked: false, category: p.category || "General", stats: null,
@@ -361,6 +374,7 @@ const Home = () => {
         ...p,
         content: updated.content || editContent,
         image: updated.imageUrl || p.image,
+        video: updated.videoUrl || p.video,
       });
       setPosts((prev) => prev.map((p) => ((p.id || p._id) === id ? updater(p) : p)));
       setApiPosts((prev) => prev.map((p) => ((p.id || p._id) === id ? updater(p) : p)));
@@ -397,7 +411,7 @@ const Home = () => {
             return {
               id: p._id, _id: p._id,
               user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
-              content: p.content, image: img,
+              content: p.content, image: img, video: p.videoUrl || null,
               likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
               timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
               liked: false, category: p.category || "General", stats: null,
@@ -413,11 +427,19 @@ const Home = () => {
     setPosting(true);
     let saved;
     try {
-      let imageUrl = "";
+      let mediaUrl = "";
+      let resourceType = "";
       if (postImageFile) {
-        imageUrl = await uploadImage(postImageFile);
+        const uploadRes = await uploadMedia(postImageFile);
+        mediaUrl = uploadRes.url;
+        resourceType = uploadRes.resource_type;
       }
-      saved = await createPost({ content: postText, category: "General", imageUrl });
+      saved = await createPost({ 
+        content: postText, 
+        category: "General", 
+        imageUrl: resourceType === "image" ? mediaUrl : "",
+        videoUrl: resourceType === "video" ? mediaUrl : ""
+      });
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to post";
       if (err.code === 'ECONNABORTED' || (msg && msg.includes("timeout"))) {

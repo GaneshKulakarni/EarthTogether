@@ -126,8 +126,16 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       ) : (
         <p className="text-gray-800 mb-4">{post.content}</p>
       )}
-      {post.imageUrl && (
-        <img src={post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
+      {post.image && !post.video && (
+        <img src={post.image} alt="" className="w-full rounded-lg mb-4" />
+      )}
+      {post.video && (
+        <video 
+          src={post.video} 
+          controls 
+          className="w-full rounded-lg mb-4 bg-black max-h-[500px]"
+          poster={post.image || ""}
+        />
       )}
       <div className="flex items-center justify-between text-gray-500 text-sm mb-4">
         <div className="flex items-center space-x-4">

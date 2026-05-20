@@ -28,7 +28,7 @@ router.post('/register', [
 
   try {
     // Check if user already exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase() });
     if (user) {
       return res.status(400).json({ errors: [{ msg: 'User already exists', param: 'email' }] });
     }
@@ -42,7 +42,7 @@ router.post('/register', [
     // Create new user (password will be hashed by User model pre-save middleware)
     user = new User({
       username,
-      email,
+      email: email.toLowerCase(),
       password,
       joinedAt: new Date()
     });
@@ -96,7 +96,7 @@ router.post('/login', [
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     console.log('User found:', !!user);
     if (!user) {
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
@@ -218,7 +218,7 @@ if (process.env.NODE_ENV !== 'production') {
     const { email, newPassword } = req.body;
 
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: email.toLowerCase() });
       if (!user) {
         return res.status(404).json({ errors: [{ msg: 'User not found' }] });
       }

@@ -139,14 +139,14 @@ export const deletePost = async (postId) => {
   }
 };
 
-export const uploadImage = async (file) => {
+export const uploadMedia = async (file) => {
   const formData = new FormData();
-  formData.append('image', file);
-  const response = await axios.post('/api/upload', formData, {
-    headers: { 'x-auth-token': localStorage.getItem('token') },
-    timeout: 60000,
+  formData.append('media', file);
+  const response = await api.post('/api/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 minutes for video uploads
   });
-  return response.data.url;
+  return response.data; // Returns { url, resource_type }
 };
 
 export default api;

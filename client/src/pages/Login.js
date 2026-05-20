@@ -36,7 +36,7 @@ const GoogleColorIcon = () => (
 const SLIDES = [
   {
     id: 0,
-    image: '/images/forest-hero.png',
+    image: '/images/forest-hero.jpg',
     badge: 'EST. 2024',
     quoteParts: ['"The best time to plant a tree was 20 years ago. The ', 'second best time', ' is now."'],
     cta: 'Join 12,000+ cultivators today.',
@@ -50,7 +50,7 @@ const SLIDES = [
   },
   {
     id: 2,
-    image: '/images/rainforest-river.png',
+    image: '/images/rainforest-river.jpg',
     badge: 'PLANET FIRST',
     quoteParts: ['"The Earth does not belong to us — we ', 'belong to the Earth', '."'],
     cta: 'Protecting 1M+ acres of wilderness together.',

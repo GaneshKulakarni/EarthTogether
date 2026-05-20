@@ -325,7 +325,7 @@ const Landing = () => {
       <section className="landing-hero">
         <motion.div className="landing-hero-bg" style={{ opacity: heroOpacity, scale: heroScale }}>
           <img
-            src="/images/forest-hero.png"
+            src="/images/forest-hero.jpg"
             alt="Dense forest with sunlight streaming through trees"
             className="landing-hero-img"
           />
