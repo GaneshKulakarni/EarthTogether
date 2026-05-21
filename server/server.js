@@ -21,6 +21,15 @@ if (!process.env.MONGODB_URI) {
 
 const app = express();
 
+// Disable ETags globally to prevent 304 caching issues with the dev proxy
+app.disable('etag');
+
+// Prevent proxy and browser caching of dynamic API routes
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 // Middleware
 app.use(helmet());
 

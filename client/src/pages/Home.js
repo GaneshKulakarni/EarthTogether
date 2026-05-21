@@ -54,6 +54,34 @@ const getBadgeClass = (category) => {
   return "general";
 };
 
+/* ─── PostSkeleton Component ─── */
+const PostSkeleton = () => {
+  return (
+    <div className="skeleton-card">
+      <div className="skeleton-header">
+        <div className="skeleton-avatar skeleton" />
+        <div className="skeleton-user-info">
+          <div className="skeleton-name skeleton" />
+          <div className="skeleton-title skeleton" />
+        </div>
+        <div className="skeleton-badge skeleton" />
+      </div>
+      <div className="skeleton-body">
+        <div className="skeleton-line skeleton" />
+        <div className="skeleton-line skeleton" style={{ width: '95%' }} />
+        <div className="skeleton-line skeleton short" />
+      </div>
+      <div className="skeleton-footer">
+        <div className="skeleton-btn-group">
+          <div className="skeleton-btn skeleton" />
+          <div className="skeleton-btn skeleton" />
+        </div>
+        <div className="skeleton-icon-btn skeleton" />
+      </div>
+    </div>
+  );
+};
+
 /* ─── PostCard Component ─── */
 const PostCard = ({ 
   post, 
@@ -242,6 +270,7 @@ const Home = () => {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [apiLoading, setApiLoading] = useState(true);
   const [showComments, setShowComments] = useState({});
   const [commentText, setCommentText] = useState({});
   const [postText, setPostText] = useState("");
@@ -291,6 +320,7 @@ const Home = () => {
   useEffect(() => {
     setPosts(featuredPosts);
     setLoading(false);
+    setApiLoading(true);
 
     (async () => {
       try {
@@ -314,6 +344,8 @@ const Home = () => {
         }
       } catch (err) {
         console.error("Error fetching posts on load:", err);
+      } finally {
+        setApiLoading(false);
       }
     })();
   }, []);
@@ -593,7 +625,7 @@ const Home = () => {
         </div>
 
         {/* Empty State */}
-        {[...posts, ...apiPosts].length === 0 && (
+        {!apiLoading && [...posts, ...apiPosts].length === 0 && (
           <div className="empty-state">
             <div className="empty-state-icon">🌱</div>
             <p className="empty-state-text">No posts yet. Be the first to share your eco-journey!</p>
@@ -633,34 +665,41 @@ const Home = () => {
         )}
 
         {/* Community Posts Section */}
-        {apiPosts.length > 0 && (
+        {(apiLoading || apiPosts.length > 0) && (
           <section className="feed-section">
             <div className="feed-section-header">
               <span className="feed-section-label">Community Posts</span>
               <div className="feed-section-line"></div>
             </div>
-            {apiPosts.map((post) => (
-              <PostCard 
-                key={post.id || post._id} 
-                post={post} 
-                showComments={showComments} 
-                setShowComments={setShowComments} 
-                commentText={commentText} 
-                setCommentText={setCommentText} 
-                handleLike={handleLike} 
-                handleShare={handleShare} 
-                handleComment={handleComment} 
-                openProfile={openProfile} 
-                user={user}
-                onDelete={handleDeletePost}
-                onEdit={(id, content) => { setEditingPostId(id); setEditContent(content || ""); }}
-                onSaveEdit={handleEditPost}
-                editingPostId={editingPostId}
-                editContent={editContent}
-                setEditContent={setEditContent}
-                setEditingPostId={setEditingPostId}
-              />
-            ))}
+            {apiLoading ? (
+              <>
+                <PostSkeleton />
+                <PostSkeleton />
+              </>
+            ) : (
+              apiPosts.map((post) => (
+                <PostCard 
+                  key={post.id || post._id} 
+                  post={post} 
+                  showComments={showComments} 
+                  setShowComments={setShowComments} 
+                  commentText={commentText} 
+                  setCommentText={setCommentText} 
+                  handleLike={handleLike} 
+                  handleShare={handleShare} 
+                  handleComment={handleComment} 
+                  openProfile={openProfile} 
+                  user={user}
+                  onDelete={handleDeletePost}
+                  onEdit={(id, content) => { setEditingPostId(id); setEditContent(content || ""); }}
+                  onSaveEdit={handleEditPost}
+                  editingPostId={editingPostId}
+                  editContent={editContent}
+                  setEditContent={setEditContent}
+                  setEditingPostId={setEditingPostId}
+                />
+              ))
+            )}
           </section>
         )}
       </main>

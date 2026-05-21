@@ -14,10 +14,15 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
 
   
   const currentUserId = currentUser?._id || currentUser?.id;
-  const isLikedByCurrentUser = post.likes.some(like => {
-    const likeUserId = typeof like.user === 'object' ? like.user._id || like.user.id : like.user;
-    return likeUserId === currentUserId;
-  });
+  const isLikedByCurrentUser = Array.isArray(post.likes)
+    ? post.likes.some(like => {
+        const likeUserId = typeof like.user === 'object' ? like.user._id || like.user.id : like.user;
+        return likeUserId === currentUserId;
+      })
+    : !!post.liked;
+
+  const likeCount = Array.isArray(post.likes) ? post.likes.length : (typeof post.likes === 'number' ? post.likes : 0);
+  const commentCount = Array.isArray(post.comments) ? post.comments.length : (typeof post.comments === 'number' ? post.comments : 0);
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
@@ -141,11 +146,11 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
         <div className="flex items-center space-x-4">
           <button onClick={() => onLike(post._id)} className="flex items-center space-x-1 hover:text-red-500 transition-colors">
             <Heart className={`w-5 h-5 ${isLikedByCurrentUser ? 'fill-red-500 text-red-500' : ''}`} />
-            <span>{post.likes.length} Likes</span>
+            <span>{likeCount} Likes</span>
           </button>
           <button onClick={() => setShowCommentInput(!showCommentInput)} className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
             <MessageCircle className="w-5 h-5" />
-            <span>{post.comments.length} Comments</span>
+            <span>{commentCount} Comments</span>
           </button>
         </div>
         <button className="flex items-center space-x-1 hover:text-green-500 transition-colors">
@@ -188,17 +193,17 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
         </form>
       )}
 
-      {post.comments.length > 0 && (
+      {Array.isArray(post.comments) && post.comments.length > 0 && (
         <div className="mt-4 border-t border-gray-200 pt-4">
           {post.comments.map((comment) => (
             <div key={comment._id} className="flex items-start space-x-3 mb-3">
               <img
-                src={comment.user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.user.username}`}
+                src={comment.user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.user?.username || comment.username || 'user'}`}
                 alt="Commenter Avatar"
                 className="w-8 h-8 rounded-full"
               />
               <div>
-                <p className="font-semibold text-gray-900 text-sm">{comment.user.username}</p>
+                <p className="font-semibold text-gray-900 text-sm">{comment.user?.username || comment.username || 'EcoMember'}</p>
                 <p className="text-gray-700 text-sm">{comment.content}</p>
                 <p className="text-gray-500 text-xs">
                   {comment.createdAt && !isNaN(new Date(comment.createdAt)) 

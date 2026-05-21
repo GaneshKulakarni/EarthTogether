@@ -91,6 +91,29 @@ router.get('/search', auth, async (req, res) => {
   }
 });
 
+// @route   GET api/users/leaderboard
+// @desc    Get leaderboard of all users sorted by points
+// @access  Private
+router.get('/leaderboard', auth, async (req, res) => {
+  try {
+    const { sortBy = 'ecoPoints' } = req.query;
+    
+    let sortField = 'ecoPoints';
+    if (sortBy === 'streaks') sortField = 'currentStreak';
+    if (sortBy === 'impact') sortField = 'totalCarbonSaved';
+    
+    const users = await User.find({})
+      .select('username ecoPoints currentStreak totalCarbonSaved')
+      .sort({ [sortField]: -1 })
+      .limit(100);
+    
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching leaderboard:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   GET api/users/:userId
 // @desc    Get user profile by ID
 // @access  Private
@@ -144,29 +167,6 @@ router.post('/:userId/follow', auth, async (req, res) => {
     res.json({ following: !isFollowing });
   } catch (err) {
     console.error('Error toggling follow:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @route   GET api/users/leaderboard
-// @desc    Get leaderboard of all users sorted by points
-// @access  Private
-router.get('/leaderboard', auth, async (req, res) => {
-  try {
-    const { sortBy = 'ecoPoints' } = req.query;
-    
-    let sortField = 'ecoPoints';
-    if (sortBy === 'streaks') sortField = 'currentStreak';
-    if (sortBy === 'impact') sortField = 'totalCarbonSaved';
-    
-    const users = await User.find({})
-      .select('username ecoPoints currentStreak totalCarbonSaved')
-      .sort({ [sortField]: -1 })
-      .limit(100);
-    
-    res.json(users);
-  } catch (err) {
-    console.error('Error fetching leaderboard:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
