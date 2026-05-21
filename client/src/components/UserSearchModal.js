@@ -37,7 +37,7 @@ const UserSearchModal = ({ isOpen, onClose, onUserSelect }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-900">Search Users</h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-black" />
             </button>
           </div>
           <div className="relative">

@@ -65,7 +65,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
             </p>
           </div>
         </div>
-        {(currentUser?._id === post.user._id || currentUser?.id === post.user.id) && showDelete && (
+        {(currentUserId === (post.user?._id || post.user?.id)) && showDelete && (
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setShowDropdown(!showDropdown)}

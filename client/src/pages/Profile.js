@@ -66,13 +66,9 @@ const Profile = () => {
   const fetchUserPostsData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('/api/posts', { headers: { 'x-auth-token': token } });
-      if (Array.isArray(res.data) && user) {
-        const myPosts = res.data.filter(post => {
-          const postUserId = post.user?._id || post.user?.id;
-          return postUserId === (user._id || user.id);
-        });
-        setUserPosts(myPosts);
+      const res = await axios.get('/api/posts/my-posts', { headers: { 'x-auth-token': token } });
+      if (Array.isArray(res.data)) {
+        setUserPosts(res.data);
       } else { setUserPosts([]); }
     } catch (_) { setUserPosts([]); }
   };

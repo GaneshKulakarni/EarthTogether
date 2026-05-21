@@ -65,11 +65,23 @@ router.post('/register', [
         res.json({
           token,
           user: {
+            _id: user._id,
             id: user.id,
             username: user.username,
             email: user.email,
+            avatar: user.avatar,
+            bio: user.bio,
+            location: user.location,
+            education: user.education,
+            institution: user.institution,
+            joinedAt: user.joinedAt,
             ecoPoints: user.ecoPoints,
-            currentStreak: user.currentStreak
+            currentStreak: user.currentStreak,
+            totalCarbonSaved: user.totalCarbonSaved,
+            badges: user.badges,
+            certifications: user.certifications,
+            followers: user.followers,
+            following: user.following
           }
         });
       }
@@ -157,14 +169,23 @@ router.post('/login', [
         res.json({
           token,
           user: {
+            _id: user._id,
             id: user.id,
             username: user.username,
             email: user.email,
+            avatar: user.avatar,
+            bio: user.bio,
+            location: user.location,
+            education: user.education,
+            institution: user.institution,
+            joinedAt: user.joinedAt,
             ecoPoints: user.ecoPoints,
             currentStreak: user.currentStreak,
             totalCarbonSaved: user.totalCarbonSaved,
             badges: user.badges,
-            certifications: user.certifications
+            certifications: user.certifications,
+            followers: user.followers,
+            following: user.following
           }
         });
       }

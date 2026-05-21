@@ -46,6 +46,11 @@ const authReducer = (state, action) => {
       };
       console.log('AuthContext: LOGIN_SUCCESS - isAuthenticated set to', newState.isAuthenticated);
       return newState;
+    case 'STOP_LOADING':
+      return {
+        ...state,
+        loading: false
+      };
     case 'AUTH_ERROR':
     case 'LOGIN_FAIL':
     case 'LOGOUT':
@@ -91,18 +96,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
         dispatch({ type: 'AUTH_ERROR' });
       } else {
-        // For other errors (network, server), keep user logged in
+        // For other errors (network, server), keep user intact
         // but stop loading
-        dispatch({ 
-          type: 'USER_LOADED', 
-          payload: { 
-            id: 'temp', 
-            username: 'User', 
-            email: 'user@example.com',
-            ecoPoints: 0,
-            currentStreak: 0
-          } 
-        });
+        dispatch({ type: 'STOP_LOADING' });
       }
     }
   };
