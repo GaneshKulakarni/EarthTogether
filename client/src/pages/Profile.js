@@ -44,15 +44,17 @@ const Profile = () => {
   }, [isAuthenticated, loading, navigate]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { if (user) fetchUserChallenges(); }, [user?._id]);
+  useEffect(() => { if (user) fetchJoinedChallenges(); }, [user?._id]);
 
-  const fetchUserChallenges = async () => {
+  const fetchJoinedChallenges = async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get('/api/challenges', { headers: { 'x-auth-token': token } });
       const joined = res.data.filter(c => c.participants.some(p => p.user === user?._id));
       setUserChallenges(joined.map(c => c._id));
-    } catch (_) {}
+    } catch (err) {
+      console.error('Error fetching joined challenges:', err);
+    }
   };
 
   const fetchUserHabits = async () => {
@@ -60,7 +62,10 @@ const Profile = () => {
       const token = localStorage.getItem('token');
       const res = await axios.get('/api/habits', { headers: { 'x-auth-token': token, 'Content-Type': 'application/json' } });
       setUserHabits(Array.isArray(res.data) ? res.data : []);
-    } catch (_) { toast.error('Failed to load habits.'); }
+    } catch (err) {
+      console.error('Error loading habits:', err);
+      toast.error('Failed to load habits.');
+    }
   };
 
   const fetchUserPostsData = async () => {
@@ -70,7 +75,33 @@ const Profile = () => {
       if (Array.isArray(res.data)) {
         setUserPosts(res.data);
       } else { setUserPosts([]); }
-    } catch (_) { setUserPosts([]); }
+    } catch (err) {
+      console.error('Error loading user posts:', err);
+      setUserPosts([]);
+    }
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`/api/posts/like/${postId}`, {}, { headers: { 'x-auth-token': token } });
+      // Update local state with the returned post
+      setUserPosts(prev => prev.map(p => p._id === postId ? response.data : p));
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const handleComment = async (postId, comment) => {
+    if (!comment.trim()) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/posts/comment/${postId}`, { content: comment }, { headers: { 'x-auth-token': token } });
+      // Fetch fresh posts to show new comments
+      fetchUserPostsData();
+    } catch (error) {
+      console.error('Error commenting:', error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -89,7 +120,10 @@ const Profile = () => {
       setEditing(false);
       setSelectedFile(null);
       loadUser();
-    } catch (_) { toast.error('Failed to update profile'); }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      toast.error('Failed to update profile');
+    }
   };
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -349,6 +383,8 @@ const Profile = () => {
                     key={post._id}
                     post={post}
                     showDelete={true}
+                    onLike={handleLike}
+                    onComment={handleComment}
                     onDelete={async (postId) => {
                       if (!window.confirm('Delete this post?')) return;
                       try {
@@ -356,7 +392,10 @@ const Profile = () => {
                         await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
                         setUserPosts(p => p.filter(x => x._id !== postId));
                         toast.success('Post deleted');
-                      } catch (_) { toast.error('Failed to delete post'); }
+                      } catch (err) {
+                        console.error('Error deleting post:', err);
+                        toast.error('Failed to delete post');
+                      }
                     }}
                     onEdit={() => fetchUserPostsData()}
                   />

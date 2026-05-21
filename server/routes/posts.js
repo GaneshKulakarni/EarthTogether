@@ -12,28 +12,20 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     let posts = await Post.find({ status: 'active' })
+      .populate('user', 'username ecoPoints avatar')
+      .populate('comments.user', 'username')
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
 
-    // Manually resolve user and comment references to avoid populate errors from deleted refs
+    // Normalize user and comment references for deleted refs
     for (const post of posts) {
-      try {
-        if (post.user) {
-          const u = await User.findById(post.user).select('username ecoPoints avatar').lean();
-          post.user = u || { username: 'EcoMember', ecoPoints: 0, avatar: '' };
-        }
-      } catch (_) {
+      if (!post.user || typeof post.user === 'string') {
         post.user = { username: 'EcoMember', ecoPoints: 0, avatar: '' };
       }
       if (post.comments) {
         for (const comment of post.comments) {
-          try {
-            if (comment.user) {
-              const cu = await User.findById(comment.user).select('username').lean();
-              comment.user = cu || { username: 'EcoMember' };
-            }
-          } catch (_) {
+          if (!comment.user || typeof comment.user === 'string') {
             comment.user = { username: 'EcoMember' };
           }
         }
@@ -94,6 +86,41 @@ router.post('/', auth, async (req, res) => {
   } catch (err) {
     console.error('Error creating post:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// @route   GET api/posts/my-posts
+// @desc    Get current user's posts
+// @access  Private
+router.get('/my-posts', auth, async (req, res) => {
+  try {
+    let posts = await Post.find({ user: req.user.id, status: 'active' })
+      .populate('user', 'username ecoPoints avatar')
+      .populate('comments.user', 'username')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Normalize user and comment references for deleted refs
+    for (const post of posts) {
+      if (!post.user || typeof post.user === 'string') {
+        post.user = { username: 'EcoMember', ecoPoints: 0, avatar: '' };
+      }
+      if (post.comments) {
+        for (const comment of post.comments) {
+          if (!comment.user || typeof comment.user === 'string') {
+            comment.user = { username: 'EcoMember' };
+          }
+        }
+      }
+      if (post.imageUrl && (post.imageUrl.startsWith('/images/') || post.imageUrl.startsWith('images/'))) {
+        post.imageUrl = '';
+      }
+    }
+
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 });
 
@@ -302,21 +329,6 @@ router.post('/share/:id', auth, async (req, res) => {
     }
 
     res.json(post.shares);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// @route   GET api/posts/my-posts
-// @desc    Get current user's posts
-// @access  Private
-router.get('/my-posts', auth, async (req, res) => {
-  try {
-    const posts = await Post.find({ user: req.user.id, status: 'active' })
-      .populate('user', ['username', 'ecoPoints', 'avatar'])
-      .sort({ createdAt: -1 });
-    res.json(posts);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

@@ -297,7 +297,7 @@ const Home = () => {
         const data = await getPosts();
         if (data?.length > 0) {
           const formatted = data
-            .filter((p) => p.content && p.content.trim().length > 10)
+            .filter((p) => p.content && p.content.trim().length > 0)
             .map((p) => {
               let img = p.imageUrl || null;
               if (img && (img.startsWith("/images/") || img.startsWith("/uploads/"))) img = null;
@@ -312,7 +312,9 @@ const Home = () => {
             });
           setApiPosts(formatted);
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error("Error fetching posts on load:", err);
+      }
     })();
   }, []);
 
@@ -326,7 +328,11 @@ const Home = () => {
 
   const handleLike = async (id) => {
     if (!isMockPost(id)) {
-      try { await likePost(id); } catch (_) {}
+      try {
+        await likePost(id);
+      } catch (err) {
+        console.error("Error liking post:", err);
+      }
     }
     updatePost(id, (p) => ({ ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }));
   };
@@ -335,7 +341,11 @@ const Home = () => {
     const txt = commentText[id];
     if (!txt?.trim()) return;
     if (!isMockPost(id)) {
-      try { await commentOnPost(id, txt); } catch (_) {}
+      try {
+        await commentOnPost(id, txt);
+      } catch (err) {
+        console.error("Error commenting on post:", err);
+      }
     }
     updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }));
     setCommentText({ ...commentText, [id]: "" });
@@ -343,7 +353,11 @@ const Home = () => {
 
   const handleShare = async (id) => {
     if (!isMockPost(id)) {
-      try { await sharePostAction(id); } catch (_) {}
+      try {
+        await sharePostAction(id);
+      } catch (err) {
+        console.error("Error sharing post:", err);
+      }
     }
     updatePost(id, (p) => ({ ...p, shares: p.shares + 1 }));
   };
@@ -361,7 +375,10 @@ const Home = () => {
       setPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
       setApiPosts((prev) => prev.filter((p) => (p.id || p._id) !== id));
       toast.success("Post deleted");
-    } catch (_) { toast.error("Failed to delete post"); }
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      toast.error("Failed to delete post");
+    }
   };
 
   const handleEditPost = async (id) => {
@@ -381,7 +398,10 @@ const Home = () => {
       setEditingPostId(null);
       setEditContent("");
       toast.success("Post updated");
-    } catch (_) { toast.error("Failed to update post"); }
+    } catch (err) {
+      console.error("Error updating post:", err);
+      toast.error("Failed to update post");
+    }
   };
 
   const handleImageSelect = (e) => {
@@ -404,7 +424,7 @@ const Home = () => {
       const data = await getPosts();
       if (data?.length > 0) {
         const formatted = data
-          .filter((p) => p.content && p.content.trim().length > 10)
+          .filter((p) => p.content && p.content.trim().length > 0)
           .map((p) => {
             let img = p.imageUrl || null;
             if (img && (img.startsWith("/images/") || img.startsWith("/uploads/"))) img = null;
@@ -419,7 +439,9 @@ const Home = () => {
           });
         setApiPosts(formatted);
       }
-    } catch (_) {}
+    } catch (err) {
+      console.error("Error refreshing posts:", err);
+    }
   };
 
   const handleCreatePost = async () => {
@@ -457,11 +479,11 @@ const Home = () => {
 
     const np = {
       id: saved._id, _id: saved._id,
-      user: { name: user?.username || "User", avatar: "🌱", title: "EarthTogether Member", _id: user?._id },
-      content: postText, image: saved.imageUrl || null, likes: 0, comments: 0, shares: 0,
+      user: { name: user?.username || "EcoMember", avatar: user?.avatar || "🌱", title: "EarthTogether Member", _id: user?._id },
+      content: postText, image: saved.imageUrl || null, video: saved.videoUrl || null, likes: 0, comments: 0, shares: 0,
       timeAgo: "just now", liked: false, category: "General", stats: null,
     };
-    setPosts([np, ...posts]);
+    setApiPosts((prev) => [np, ...prev]);
     toast.success("Post shared!");
     refreshApiPosts();
 

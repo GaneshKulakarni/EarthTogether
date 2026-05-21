@@ -30,6 +30,7 @@ const initialState = {
 const authReducer = (state, action) => {
   switch (action.type) {
     case 'USER_LOADED':
+      localStorage.setItem('user', JSON.stringify(action.payload));
       return {
         ...state,
         isAuthenticated: true,
@@ -55,6 +56,7 @@ const authReducer = (state, action) => {
     case 'LOGIN_FAIL':
     case 'LOGOUT':
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       return {
         ...state,
         token: null,
