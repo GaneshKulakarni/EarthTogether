@@ -104,11 +104,25 @@
 }
 
 .landing-logo-text {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--landing-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  color: var(--landing-dark);
+}
+
+.landing-logo-text .earth {
+  color: inherit;
+}
+
+.landing-logo-text .together {
+  color: #22c55e;
+}
+
+.landing-footer .landing-logo-text {
+  color: #fff;
 }
 
 .landing-nav-links {
