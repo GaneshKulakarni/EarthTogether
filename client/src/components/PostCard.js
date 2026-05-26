@@ -131,15 +131,15 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       ) : (
         <p className="text-gray-800 mb-4">{post.content}</p>
       )}
-      {post.image && !post.video && (
-        <img src={post.image} alt="" className="w-full rounded-lg mb-4" />
+      {(post.image || post.imageUrl) && !(post.video || post.videoUrl) && (
+        <img src={post.image || post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
       )}
-      {post.video && (
+      {(post.video || post.videoUrl) && (
         <video 
-          src={post.video} 
+          src={post.video || post.videoUrl} 
           controls 
           className="w-full rounded-lg mb-4 bg-black max-h-[500px]"
-          poster={post.image || ""}
+          poster={post.image || post.imageUrl || ""}
         />
       )}
       <div className="flex items-center justify-between text-gray-500 text-sm mb-4">

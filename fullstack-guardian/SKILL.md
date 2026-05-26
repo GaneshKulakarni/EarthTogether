@@ -104,4 +104,27 @@ When implementing features, provide:
 3. Frontend code (components, hooks, API calls)
 4. Brief security notes
 
+## Agent Behavior Rules
+
+- Always inspect the existing codebase before implementing
+- Reuse existing patterns before introducing new abstractions
+- Maintain consistency with current architecture
+- Prefer composability over duplication
+- Explain important architectural decisions
+- Avoid overengineering simple features
+- Optimize for maintainability first
+- Keep files modular and scalable
+
+## Task Execution Pipeline
+
+1. Understand task
+2. Scan related files
+3. Read relevant references
+4. Produce implementation plan
+5. Identify risks
+6. Implement incrementally
+7. Self-review code
+8. Verify security and edge cases
+9. Summarize changes
+
 [Documentation](https://jeffallan.github.io/claude-skills/skills/security/fullstack-guardian/)

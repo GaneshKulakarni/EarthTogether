@@ -73,3 +73,6 @@ Thumbs.db
 # Uploads
 uploads/avatars/*
 !uploads/avatars/.gitkeep
+
+# Fullstack Guardian
+fullstack-guardian/*
