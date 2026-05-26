@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, Search, User, Bell, LogOut, Leaf } from 'lucide-react';
+import { Menu, X, Search, User, Bell, LogOut } from 'lucide-react';
 import UserProfileModal from './UserProfileModal';
 import axios from 'axios';
 
@@ -9,22 +9,23 @@ import axios from 'axios';
 const LIGHT_ROUTES = ['/login', '/register', '/'];
 
 const NAV_LINKS = [
-  { label: 'Home',       path: '/welcome' },
-  { label: 'Dashboard',  path: '/dashboard' },
-  { label: 'Charts',     path: '/leaderboard' },
+  { label: 'Home', path: '/welcome' },
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Charts', path: '/leaderboard' },
+  { label: 'Profile', path: '/profile' },
 ];
 
 const Navbar = () => {
-  const [isOpen, setIsOpen]             = useState(false);
-  const [searchQuery, setSearchQuery]   = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [showResults, setShowResults]   = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
-  const [selectedUserId, setSelectedUserId]   = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const { isAuthenticated, logout, user } = useAuth();
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Dark navbar on all authenticated pages; light only on public routes
   const isDark = !LIGHT_ROUTES.includes(location.pathname);
@@ -39,7 +40,7 @@ const Navbar = () => {
       const res = await axios.get(`/api/users/search?q=${q}`, { headers: { 'x-auth-token': token } });
       setSearchResults(res.data);
       setShowResults(true);
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleUserSelect = (uid) => {
@@ -52,10 +53,10 @@ const Navbar = () => {
     ? { background: '#161b22', borderBottom: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)' }
     : { background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', boxShadow: '0 1px 20px rgba(0,0,0,0.08)', borderBottom: '1px solid #f0f0f0' };
 
-  const textColor  = isDark ? '#e6edf3' : '#374151';
+  const textColor = isDark ? '#e6edf3' : '#374151';
   const mutedColor = isDark ? '#8b949e' : '#6b7280';
-  const inputBg    = isDark ? '#0f1923'  : '#f3f4f6';
-  const inputBorder= isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
+  const inputBg = isDark ? '#0f1923' : '#f3f4f6';
+  const inputBorder = isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb';
 
   return (
     <>
@@ -64,13 +65,13 @@ const Navbar = () => {
 
           {/* ── Logo (EarthTogether Brand) ── */}
           <Link to="/welcome" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', marginRight: 8, flexShrink: 0 }}>
-            <div style={{ width: 34, height: 34, background: 'linear-gradient(135deg,#22c55e,#16a34a)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 14px rgba(34,197,94,0.3)', flexShrink: 0 }}>
-              <Leaf size={18} color="#fff" fill="none" strokeWidth={2} />
+            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#34d399,#059669)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 14px rgba(52,211,153,0.4)' }}>
+              🌿
             </div>
-            <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center' }}>
-              <span style={{ color: textColor }}>Earth</span>
-              <span style={{ color: '#22c55e' }}>Together</span>
-            </span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: textColor, letterSpacing: '0.01em' }}>EarthTogether</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#34d399', letterSpacing: '0.1em', textTransform: 'uppercase' }}>The Verdant Collective</span>
+            </div>
           </Link>
 
           {/* ── Search (positioned before nav links) ── */}

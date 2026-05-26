@@ -69,14 +69,6 @@ router.post('/', auth, async (req, res) => {
     if (!content || content.trim() === '') {
       return res.status(400).json({ message: 'Content is required' });
     }
-
-    if (imageUrl && (imageUrl.startsWith('data:') || imageUrl.length > 2048)) {
-      return res.status(400).json({ message: 'Invalid image URL. Base64 encoded images are not allowed.' });
-    }
-    if (videoUrl && (videoUrl.startsWith('data:') || videoUrl.length > 2048)) {
-      return res.status(400).json({ message: 'Invalid video URL. Base64 encoded videos are not allowed.' });
-    }
-
     const newPost = new Post({
       user: req.user.id,
       content: content.trim(),
@@ -170,9 +162,6 @@ router.put('/:id', auth, async (req, res) => {
     }
 
     const { content, category, imageUrl } = req.body;
-    if (imageUrl && (imageUrl.startsWith('data:') || imageUrl.length > 2048)) {
-      return res.status(400).json({ message: 'Invalid image URL. Base64 encoded images are not allowed.' });
-    }
     if (content !== undefined) post.content = content;
     if (category !== undefined) post.category = category;
     if (imageUrl !== undefined) post.imageUrl = imageUrl;

@@ -137,7 +137,7 @@ router.post('/:id/complete', auth, async (req, res) => {
     user.ecoPoints += habit.ecoPoints;
     user.totalCarbonSaved += habit.carbonSaved;
     user.currentStreak = habit.currentStreak;
-    
+
     // Award first habit completion achievement
     if (habit.completions.length === 1) {
       const firstHabitBadge = user.badges.find(badge => badge.name === "Eco Starter");
@@ -150,7 +150,7 @@ router.post('/:id/complete', auth, async (req, res) => {
         });
       }
     }
-    
+
     // Check for streak achievements
     const streakMilestones = [
       { days: 7, name: "Week Warrior", description: "Maintained a 7-day streak", icon: "🔥" },
@@ -161,7 +161,7 @@ router.post('/:id/complete', auth, async (req, res) => {
       { days: 200, name: "Eco Legend", description: "Maintained a 200-day streak", icon: "👑" },
       { days: 365, name: "Year-Long Hero", description: "Maintained a 365-day streak", icon: "🌍" }
     ];
-    
+
     // Award new streak achievements
     for (const milestone of streakMilestones) {
       if (habit.currentStreak === milestone.days) {
@@ -176,7 +176,7 @@ router.post('/:id/complete', auth, async (req, res) => {
         }
       }
     }
-    
+
     await user.save();
 
     res.json({ habit, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak } });

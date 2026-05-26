@@ -39,7 +39,7 @@ const Dashboard = () => {
         headers: { 'x-auth-token': token },
       });
       setChallenges(response.data.slice(0, 3));
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   useEffect(() => { fetchHabits(); fetchChallenges(); }, [fetchHabits, fetchChallenges]);
@@ -54,7 +54,7 @@ const Dashboard = () => {
         });
       }
       fetchHabits();
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const dailyQuotes = [
@@ -81,10 +81,10 @@ const Dashboard = () => {
   }
 
   const stats = [
-    { icon: '🏆', label: 'Eco Points',     value: user?.ecoPoints || 0,          color: '#f59e0b' },
-    { icon: '🔥', label: 'Day Streak',      value: user?.currentStreak || 0,       color: '#f97316' },
-    { icon: '🌿', label: 'CO₂ Saved (kg)',  value: user?.totalCarbonSaved || 0,    color: '#34d399' },
-    { icon: '🎯', label: 'Active Habits',   value: habits.length,                  color: '#38bdf8' },
+    { icon: '🏆', label: 'Eco Points', value: user?.ecoPoints || 0, color: '#f59e0b' },
+    { icon: '🔥', label: 'Day Streak', value: user?.currentStreak || 0, color: '#f97316' },
+    { icon: '🌿', label: 'CO₂ Saved (kg)', value: user?.totalCarbonSaved || 0, color: '#34d399' },
+    { icon: '🎯', label: 'Active Habits', value: habits.length, color: '#38bdf8' },
   ];
 
   return (

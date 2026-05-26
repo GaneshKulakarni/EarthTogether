@@ -11,14 +11,14 @@ import '../dark-theme.css';
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loadUser, isAuthenticated } = useAuth();
-  const [editing, setEditing]           = useState(false);
-  const [activeTab, setActiveTab]       = useState('profile');
-  const [userHabits, setUserHabits]     = useState([]);
-  const [userPosts, setUserPosts]       = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [userHabits, setUserHabits] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
   const [, setUserChallenges] = useState([]);
-  const [formData, setFormData]         = useState({ username: '', bio: '', avatar: '', location: '', education: '', institution: '' });
+  const [formData, setFormData] = useState({ username: '', bio: '', avatar: '', location: '', education: '', institution: '' });
   const [selectedFile, setSelectedFile] = useState(null);
-  const [loading, setLoading]           = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,12 +109,12 @@ const Profile = () => {
     try {
       const token = localStorage.getItem('token');
       const updateData = new FormData();
-      if (formData.username)              updateData.append('username', formData.username);
-      if (formData.bio !== undefined)     updateData.append('bio', formData.bio);
+      if (formData.username) updateData.append('username', formData.username);
+      if (formData.bio !== undefined) updateData.append('bio', formData.bio);
       if (formData.location !== undefined) updateData.append('location', formData.location);
       if (formData.education !== undefined) updateData.append('education', formData.education);
       if (formData.institution !== undefined) updateData.append('institution', formData.institution);
-      if (selectedFile)                   updateData.append('avatar', selectedFile);
+      if (selectedFile) updateData.append('avatar', selectedFile);
       await axios.put('/api/users/profile', updateData, { headers: { 'x-auth-token': token, 'Content-Type': 'multipart/form-data' } });
       toast.success('Profile updated!');
       setEditing(false);
@@ -143,16 +143,16 @@ const Profile = () => {
     : null;
 
   const statItems = [
-    { icon: '🏆', label: 'Eco Points',     value: user?.ecoPoints || 0,         color: '#f59e0b' },
-    { icon: '🔥', label: 'Current Streak',  value: user?.currentStreak || 0,      color: '#f97316' },
-    { icon: '🌿', label: 'CO₂ Saved',       value: `${user?.totalCarbonSaved || 0} kg`, color: '#34d399' },
-    { icon: '🏅', label: 'Badges Earned',   value: user?.badges?.length || 0,    color: '#38bdf8' },
+    { icon: '🏆', label: 'Eco Points', value: user?.ecoPoints || 0, color: '#f59e0b' },
+    { icon: '🔥', label: 'Current Streak', value: user?.currentStreak || 0, color: '#f97316' },
+    { icon: '🌿', label: 'CO₂ Saved', value: `${user?.totalCarbonSaved || 0} kg`, color: '#34d399' },
+    { icon: '🏅', label: 'Badges Earned', value: user?.badges?.length || 0, color: '#38bdf8' },
   ];
 
   const tabs = [
     { id: 'profile', label: '👤 Profile' },
-    { id: 'habits',  label: '🌱 My Habits' },
-    { id: 'feed',    label: '📝 My Posts' },
+    { id: 'habits', label: '🌱 My Habits' },
+    { id: 'feed', label: '📝 My Posts' },
   ];
 
   return (
@@ -168,7 +168,7 @@ const Profile = () => {
               onClick={() => {
                 setActiveTab(t.id);
                 if (t.id === 'habits') fetchUserHabits();
-                if (t.id === 'feed')   fetchUserPostsData();
+                if (t.id === 'feed') fetchUserPostsData();
               }}
             >
               {t.label}
@@ -176,8 +176,8 @@ const Profile = () => {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="dark-btn-primary"    onClick={() => navigate('/habits')}>  <Plus size={14} /> New Habit</button>
-          <button className="dark-btn-secondary"  onClick={() => navigate('/welcome')}> <Plus size={14} /> New Post</button>
+          <button className="dark-btn-primary" onClick={() => navigate('/habits')}>  <Plus size={14} /> New Habit</button>
+          <button className="dark-btn-secondary" onClick={() => navigate('/welcome')}> <Plus size={14} /> New Post</button>
         </div>
       </div>
 
@@ -224,7 +224,7 @@ const Profile = () => {
                 </div>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button type="button" className="dark-btn-secondary" onClick={() => setEditing(false)}>Cancel</button>
-                  <button type="submit"  className="dark-btn-primary">Save Changes</button>
+                  <button type="submit" className="dark-btn-primary">Save Changes</button>
                 </div>
               </form>
             ) : (
@@ -279,7 +279,7 @@ const Profile = () => {
                   <div style={{ display: 'flex', gap: 20 }}>
                     {[
                       { label: 'Followers', val: user?.followers?.length || 0 },
-                      { label: 'Following', val: user?.following?.length  || 0 },
+                      { label: 'Following', val: user?.following?.length || 0 },
                     ].map((item) => (
                       <div key={item.label} style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 18, fontWeight: 800, color: '#34d399' }}>{item.val}</div>
@@ -379,27 +379,26 @@ const Profile = () => {
           {userPosts.length > 0 ? (
             <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {userPosts.map(post => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    showDelete={true}
-                    onLike={handleLike}
-                    onComment={handleComment}
-                    onDelete={async (postId) => {
-                      if (!window.confirm('Delete this post?')) return;
-                      try {
-                        const token = localStorage.getItem('token');
-                        await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
-                        setUserPosts(p => p.filter(x => x._id !== postId));
-                        toast.success('Post deleted');
-                      } catch (err) {
-                        console.error('Error deleting post:', err);
-                        toast.error('Failed to delete post');
-                      }
-                    }}
-                    onEdit={() => fetchUserPostsData()}
-                    isDark={true}
-                  />
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  showDelete={true}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                  onDelete={async (postId) => {
+                    if (!window.confirm('Delete this post?')) return;
+                    try {
+                      const token = localStorage.getItem('token');
+                      await axios.delete(`/api/posts/${postId}`, { headers: { 'x-auth-token': token } });
+                      setUserPosts(p => p.filter(x => x._id !== postId));
+                      toast.success('Post deleted');
+                    } catch (err) {
+                      console.error('Error deleting post:', err);
+                      toast.error('Failed to delete post');
+                    }
+                  }}
+                  onEdit={() => fetchUserPostsData()}
+                />
               ))}
             </div>
           ) : (

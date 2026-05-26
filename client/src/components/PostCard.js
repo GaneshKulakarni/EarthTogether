@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = false, onJoinChallenge, userChallenges = [], isDark = false }) => {
+const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = false, onJoinChallenge, userChallenges = [] }) => {
   const { user: currentUser } = useAuth();
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -12,13 +12,13 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-  
+
   const currentUserId = currentUser?._id || currentUser?.id;
   const isLikedByCurrentUser = Array.isArray(post.likes)
     ? post.likes.some(like => {
-        const likeUserId = typeof like.user === 'object' ? like.user._id || like.user.id : like.user;
-        return likeUserId === currentUserId;
-      })
+      const likeUserId = typeof like.user === 'object' ? like.user._id || like.user.id : like.user;
+      return likeUserId === currentUserId;
+    })
     : !!post.liked;
 
   const likeCount = Array.isArray(post.likes) ? post.likes.length : (typeof post.likes === 'number' ? post.likes : 0);
@@ -39,10 +39,10 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       const response = await axios.get('/api/challenges', {
         headers: { 'x-auth-token': token }
       });
-      const availableChallenges = response.data.filter(challenge => 
+      const availableChallenges = response.data.filter(challenge =>
         challenge.status === 'active' && !userChallenges.includes(challenge._id)
       );
-      
+
       if (availableChallenges.length > 0 && onJoinChallenge) {
         await onJoinChallenge(availableChallenges[0]._id);
       }
@@ -52,7 +52,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
   };
 
   return (
-    <div className={`${isDark ? 'bg-black border border-gray-800' : 'bg-white shadow-md'} rounded-lg p-6`}>
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
@@ -61,9 +61,9 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <p className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{post.user.username}</p>
+            <p className="font-semibold text-gray-900">{post.user.username}</p>
             <p className="text-sm text-gray-500">
-              {post.createdAt && !isNaN(new Date(post.createdAt)) 
+              {post.createdAt && !isNaN(new Date(post.createdAt))
                 ? new Date(post.createdAt).toLocaleDateString()
                 : 'Just now'
               }
@@ -72,7 +72,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
         </div>
         {(currentUserId === (post.user?._id || post.user?.id)) && showDelete && (
           <div style={{ position: 'relative' }}>
-            <button 
+            <button
               onClick={() => setShowDropdown(!showDropdown)}
               style={{ padding: 6, borderRadius: '50%', border: 'none', background: 'none', cursor: 'pointer', color: '#8b949e' }}
               onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.06)'}
@@ -129,17 +129,17 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
           </div>
         </div>
       ) : (
-        <p className={`${isDark ? 'text-gray-200' : 'text-gray-800'} mb-4`}>{post.content}</p>
+        <p className="text-gray-800 mb-4">{post.content}</p>
       )}
-      {(post.image || post.imageUrl) && !(post.video || post.videoUrl) && (
-        <img src={post.image || post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
+      {post.image && !post.video && (
+        <img src={post.image} alt="" className="w-full rounded-lg mb-4" />
       )}
-      {(post.video || post.videoUrl) && (
-        <video 
-          src={post.video || post.videoUrl} 
-          controls 
+      {post.video && (
+        <video
+          src={post.video}
+          controls
           className="w-full rounded-lg mb-4 bg-black max-h-[500px]"
-          poster={post.image || post.imageUrl || ""}
+          poster={post.image || ""}
         />
       )}
       <div className="flex items-center justify-between text-gray-500 text-sm mb-4">
@@ -185,7 +185,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className={`flex-1 px-3 py-2 border ${isDark ? 'border-gray-700 bg-gray-900 text-white' : 'border-gray-300 bg-white text-gray-900'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <button type="submit" className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors">
             <Send className="w-5 h-5" />
@@ -194,7 +194,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       )}
 
       {Array.isArray(post.comments) && post.comments.length > 0 && (
-        <div className={`mt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'} pt-4`}>
+        <div className="mt-4 border-t border-gray-200 pt-4">
           {post.comments.map((comment) => (
             <div key={comment._id} className="flex items-start space-x-3 mb-3">
               <img
@@ -203,10 +203,10 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
                 className="w-8 h-8 rounded-full"
               />
               <div>
-                <p className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{comment.user?.username || comment.username || 'EcoMember'}</p>
-                <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-sm`}>{comment.content}</p>
+                <p className="font-semibold text-gray-900 text-sm">{comment.user?.username || comment.username || 'EcoMember'}</p>
+                <p className="text-gray-700 text-sm">{comment.content}</p>
                 <p className="text-gray-500 text-xs">
-                  {comment.createdAt && !isNaN(new Date(comment.createdAt)) 
+                  {comment.createdAt && !isNaN(new Date(comment.createdAt))
                     ? new Date(comment.createdAt).toLocaleDateString()
                     : 'Just now'
                   }

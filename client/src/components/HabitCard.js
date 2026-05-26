@@ -39,7 +39,7 @@ const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
       const response = await axios.post(`/api/habits/${habit._id}/complete`, {}, {
         headers: { 'x-auth-token': token }
       });
-      
+
       setIsCompletedToday(true);
       toast.success('Habit completed!');
       if (onHabitUpdated) {
@@ -94,8 +94,8 @@ const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
             color: isCompletedToday ? 'var(--text-muted)' : '#0a2818',
             transition: 'all 0.2s',
           }}
-          onMouseEnter={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = '#2ecc89'; e.target.style.boxShadow = '0 0 12px rgba(52,211,153,0.3)'; }}}
-          onMouseLeave={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = 'var(--accent)'; e.target.style.boxShadow = 'none'; }}}
+          onMouseEnter={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = '#2ecc89'; e.target.style.boxShadow = '0 0 12px rgba(52,211,153,0.3)'; } }}
+          onMouseLeave={e => { if (!isCompletedToday && !isLoading) { e.target.style.background = 'var(--accent)'; e.target.style.boxShadow = 'none'; } }}
         >
           <CheckCircle size={16} />
           <span>{isCompletedToday ? 'Completed Today' : isLoading ? 'Completing...' : 'Complete'}</span>

@@ -276,10 +276,7 @@ const Landing = () => {
             <div className="landing-logo-icon">
               <Leaf className="landing-logo-leaf" />
             </div>
-            <span className="landing-logo-text">
-              <span className="earth">Earth</span>
-              <span className="together">Together</span>
-            </span>
+            <span className="landing-logo-text">EarthTogether</span>
           </Link>
 
           <div className="landing-nav-links">
@@ -629,10 +626,7 @@ const Landing = () => {
                 <div className="landing-logo-icon">
                   <Leaf className="landing-logo-leaf" />
                 </div>
-                <span className="landing-logo-text">
-                  <span className="earth" style={{ color: '#fff' }}>Earth</span>
-                  <span className="together">Together</span>
-                </span>
+                <span className="landing-logo-text" style={{ color: '#fff' }}>EarthTogether</span>
               </div>
               <p className="landing-footer-desc">
                 A community-driven movement turning climate concern into real action. Together, we heal the earth.
