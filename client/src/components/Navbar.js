@@ -13,7 +13,6 @@ const NAV_LINKS = [
   { label: 'Dashboard',  path: '/dashboard' },
   { label: 'Charts',     path: '/leaderboard' },
   { label: 'Profile',    path: '/profile' },
-  { label: 'Challenges', path: '/challenges' },
 ];
 
 const Navbar = () => {
