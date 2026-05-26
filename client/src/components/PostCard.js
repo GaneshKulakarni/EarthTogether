@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = false, onJoinChallenge, userChallenges = [] }) => {
+const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = false, onJoinChallenge, userChallenges = [], isDark = false }) => {
   const { user: currentUser } = useAuth();
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -52,7 +52,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className={`${isDark ? 'bg-black border border-gray-800' : 'bg-white shadow-md'} rounded-lg p-6`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
@@ -61,7 +61,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
             className="w-10 h-10 rounded-full mr-3"
           />
           <div>
-            <p className="font-semibold text-gray-900">{post.user.username}</p>
+            <p className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{post.user.username}</p>
             <p className="text-sm text-gray-500">
               {post.createdAt && !isNaN(new Date(post.createdAt)) 
                 ? new Date(post.createdAt).toLocaleDateString()
@@ -129,7 +129,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
           </div>
         </div>
       ) : (
-        <p className="text-gray-800 mb-4">{post.content}</p>
+        <p className={`${isDark ? 'text-gray-200' : 'text-gray-800'} mb-4`}>{post.content}</p>
       )}
       {(post.image || post.imageUrl) && !(post.video || post.videoUrl) && (
         <img src={post.image || post.imageUrl} alt="" className="w-full rounded-lg mb-4" />
@@ -185,7 +185,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className={`flex-1 px-3 py-2 border ${isDark ? 'border-gray-700 bg-gray-900 text-white' : 'border-gray-300 bg-white text-gray-900'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
           />
           <button type="submit" className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors">
             <Send className="w-5 h-5" />
@@ -194,7 +194,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       )}
 
       {Array.isArray(post.comments) && post.comments.length > 0 && (
-        <div className="mt-4 border-t border-gray-200 pt-4">
+        <div className={`mt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'} pt-4`}>
           {post.comments.map((comment) => (
             <div key={comment._id} className="flex items-start space-x-3 mb-3">
               <img
@@ -203,8 +203,8 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
                 className="w-8 h-8 rounded-full"
               />
               <div>
-                <p className="font-semibold text-gray-900 text-sm">{comment.user?.username || comment.username || 'EcoMember'}</p>
-                <p className="text-gray-700 text-sm">{comment.content}</p>
+                <p className={`font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'} text-sm`}>{comment.user?.username || comment.username || 'EcoMember'}</p>
+                <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-sm`}>{comment.content}</p>
                 <p className="text-gray-500 text-xs">
                   {comment.createdAt && !isNaN(new Date(comment.createdAt)) 
                     ? new Date(comment.createdAt).toLocaleDateString()

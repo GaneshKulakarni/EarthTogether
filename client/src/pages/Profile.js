@@ -398,6 +398,7 @@ const Profile = () => {
                       }
                     }}
                     onEdit={() => fetchUserPostsData()}
+                    isDark={true}
                   />
               ))}
             </div>
