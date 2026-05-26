@@ -179,7 +179,7 @@ router.post('/:id/complete', auth, async (req, res) => {
 
     await user.save();
 
-    res.json({ habit, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak } });
+    res.json({ habit, userStats: { ecoPoints: user.ecoPoints, currentStreak: user.currentStreak, totalCarbonSaved: user.totalCarbonSaved } });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

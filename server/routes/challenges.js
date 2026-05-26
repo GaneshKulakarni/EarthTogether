@@ -34,7 +34,7 @@ router.get('/joined', auth, async (req, res) => {
     
     // Add progress for current user
     const challengesWithProgress = challenges.map(challenge => {
-      const participant = challenge.participants.find(p => p.user._id.toString() === req.user.id);
+      const participant = challenge.participants.find(p => p.user && p.user._id && p.user._id.toString() === req.user.id);
       return {
         ...challenge.toObject(),
         progress: participant ? participant.progress : 0

@@ -10,7 +10,7 @@ import '../dark-theme.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [habits, setHabits] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,17 +44,8 @@ const Dashboard = () => {
 
   useEffect(() => { fetchHabits(); fetchChallenges(); }, [fetchHabits, fetchChallenges]);
 
-  const markHabitComplete = async (habitId) => {
-    try {
-      const response = await axios.post(`/api/habits/${habitId}/complete`);
-      if (response.data.userStats) {
-        updateUser({
-          ecoPoints: response.data.userStats.ecoPoints,
-          currentStreak: response.data.userStats.currentStreak,
-        });
-      }
-      fetchHabits();
-    } catch (_) { }
+  const markHabitComplete = () => {
+    fetchHabits();
   };
 
   const dailyQuotes = [
@@ -183,7 +174,7 @@ const Dashboard = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {habits.map((habit) => (
-              <HabitCard key={habit._id} habit={habit} onComplete={markHabitComplete} />
+              <HabitCard key={habit._id} habit={habit} onComplete={markHabitComplete} onHabitUpdated={fetchHabits} />
             ))}
           </div>
         )}
