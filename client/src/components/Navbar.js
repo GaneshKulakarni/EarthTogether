@@ -11,7 +11,7 @@ const LIGHT_ROUTES = ['/login', '/register', '/'];
 const NAV_LINKS = [
   { label: 'Home', path: '/welcome' },
   { label: 'Dashboard', path: '/dashboard' },
-  { label: 'Charts', path: '/leaderboard' },
+  { label: 'Chat', path: '/chat' },
 ];
 
 const Navbar = () => {

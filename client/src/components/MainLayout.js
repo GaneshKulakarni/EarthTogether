@@ -13,6 +13,7 @@ const MainLayout = () => {
   const { isAuthenticated } = useAuth();
 
   const isFullBleed = FULL_BLEED_ROUTES.includes(location.pathname);
+  const isChat = location.pathname === '/chat';
 
   if (isFullBleed) {
     return (
@@ -48,9 +49,21 @@ const MainLayout = () => {
         {/* ── Main content ── */}
         <main
           className="dark-main"
-          style={{ marginLeft: isAuthenticated ? 220 : 0 }}
+          style={{
+            marginLeft: isAuthenticated ? 220 : 0,
+            height: isChat ? 'calc(100vh - 64px)' : 'auto',
+            overflow: isChat ? 'hidden' : 'visible',
+            display: isChat ? 'flex' : 'block',
+            flexDirection: isChat ? 'column' : 'initial'
+          }}
         >
-          <div style={{ padding: '32px' }}>
+          <div style={{
+            padding: isChat ? '0' : '32px',
+            flex: 1,
+            display: isChat ? 'flex' : 'block',
+            flexDirection: isChat ? 'column' : 'initial',
+            height: isChat ? '100%' : 'auto'
+          }}>
             <Outlet />
           </div>
         </main>
