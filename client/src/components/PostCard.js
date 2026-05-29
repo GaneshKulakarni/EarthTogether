@@ -596,7 +596,7 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
       )}
 
       {/* Comments List */}
-      {Array.isArray(post.comments) && post.comments.length > 0 && (
+      {showCommentInput && Array.isArray(post.comments) && post.comments.length > 0 && (
         <div style={{ ...styles.commentSection, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           {post.comments.map((comment) => {
             const commentUser = comment.user || {};

@@ -230,7 +230,7 @@ const PostCard = ({
             onClick={() => setShowComments({ ...showComments, [pid]: !showComments[pid] })}
           >
             <MessageCircle size={16} />
-            {post.comments}
+            {Array.isArray(post.comments) ? post.comments.length : (typeof post.comments === 'number' ? post.comments : 0)}
           </button>
         </div>
         <button className="share-btn" onClick={() => handleShare(pid)}>
@@ -241,7 +241,7 @@ const PostCard = ({
       {/* Comments */}
       {showComments[pid] && (
         <div className="comment-section">
-          <div className="comment-row">
+          <div className="comment-row" style={{ marginBottom: Array.isArray(post.comments) && post.comments.length > 0 ? 16 : 0 }}>
             <div className="comment-avatar">
               {user?.username?.[0]?.toUpperCase() || 'U'}
             </div>
@@ -256,11 +256,87 @@ const PostCard = ({
               <Send size={14} />
             </button>
           </div>
+
+          {/* Comments List */}
+          {Array.isArray(post.comments) && post.comments.length > 0 && (
+            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 12 }}>
+              {post.comments.map((comment) => {
+                const commentUser = comment.user || {};
+                const commentUsername = commentUser.username || commentUser.name || comment.username || 'EcoMember';
+                const commentAvatar = commentUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${commentUsername}`;
+                
+                return (
+                  <div key={comment._id || Math.random().toString()} className="comment-item">
+                    <div className="comment-avatar" style={{ overflow: 'hidden' }}>
+                      {commentUser.avatar ? (
+                        <img src={commentAvatar} alt={commentUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        commentUsername[0]?.toUpperCase() || 'U'
+                      )}
+                    </div>
+                    <div className="comment-content">
+                      <p className="comment-username">{commentUsername}</p>
+                      <p className="comment-text">{comment.content}</p>
+                      <p className="comment-date">
+                        {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'recently'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </article>
   );
 };
+
+/* ── Featured posts ── */
+const featuredPosts = [
+  {
+    id: "r1", _id: "r1",
+    user: { name: "Global Reforestation Report", avatar: "🌱", title: "Climate Research Labs", _id: "u1" },
+    content: 'New data suggests that "Miyawaki" forests are growing 10× faster and being 30× denser than conventional plantations. Check out the latest biodiversity metrics from our Singapore project site.',
+    image: null,
+    likes: 1200, comments: [
+      {
+        _id: "c_r1_1",
+        content: "This Miyawaki method is a game changer for urban greening!",
+        user: { username: "UrbanForestry" },
+        createdAt: new Date(Date.now() - 7200000)
+      },
+      {
+        _id: "c_r1_2",
+        content: "Impressive growth rates. Would love to read the full research paper.",
+        user: { username: "EcoScience" },
+        createdAt: new Date(Date.now() - 3600000)
+      }
+    ], shares: 31, timeAgo: "3 hours ago",
+    liked: false, category: "Research Highlight",
+    stats: [
+      { label: "Growth Rate", value: "+142%" },
+      { label: "CO2 Seq.",   value: "24t/yr" },
+      { label: "Active Sites", value: "892" },
+    ],
+  },
+  {
+    id: "m1", _id: "m1",
+    user: { name: "Elena Green", avatar: "🏖️", title: "Pacific Clean-up Crew", _id: "u2" },
+    content: "Our weekend beach cleanup was a massive success! We collected over 450lbs of microplastics and fishing nets. Huge shoutout to the 40 volunteers who showed up. The ocean thanks you! 🌊💙 #CleanTheOcean #VerdantCollective",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=400&fit=crop",
+    likes: 342, comments: [
+      {
+        _id: "c_m1_1",
+        content: "Amazing work, thank you guys for the clean up!",
+        user: { username: "OceanLover" },
+        createdAt: new Date(Date.now() - 600000)
+      }
+    ], shares: 15, timeAgo: "20 mins ago",
+    liked: false, category: "Community",
+    stats: null,
+  },
+];
 
 /* ─── Main Home Component ─── */
 const Home = () => {
@@ -288,32 +364,6 @@ const Home = () => {
   const ecoEmojis = ["🌱","🌍","🌎","🌏","🌿","☀️","🌊","♻️","💚","🌳","🌸","🐝","🦋","🌻","🍃","💧","🔥","🌟","💪","🙌","🌺","🍀","🌲","🐢","🐬","☁️","🌈","✨","💡","📢"];
 
 
-  /* ── Featured posts ── */
-  const featuredPosts = [
-    {
-      id: "r1", _id: "r1",
-      user: { name: "Global Reforestation Report", avatar: "🌱", title: "Climate Research Labs", _id: "u1" },
-      content: 'New data suggests that "Miyawaki" forests are growing 10× faster and being 30× denser than conventional plantations. Check out the latest biodiversity metrics from our Singapore project site.',
-      image: null,
-      likes: 1200, comments: 84, shares: 31, timeAgo: "3 hours ago",
-      liked: false, category: "Research Highlight",
-      stats: [
-        { label: "Growth Rate", value: "+142%" },
-        { label: "CO2 Seq.",   value: "24t/yr" },
-        { label: "Active Sites", value: "892" },
-      ],
-    },
-    {
-      id: "m1", _id: "m1",
-      user: { name: "Elena Green", avatar: "🏖️", title: "Pacific Clean-up Crew", _id: "u2" },
-      content: "Our weekend beach cleanup was a massive success! We collected over 450lbs of microplastics and fishing nets. Huge shoutout to the 40 volunteers who showed up. The ocean thanks you! 🌊💙 #CleanTheOcean #VerdantCollective",
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=400&fit=crop",
-      likes: 342, comments: 27, shares: 15, timeAgo: "20 mins ago",
-      liked: false, category: "Community",
-      stats: null,
-    },
-  ];
-
   const [apiPosts, setApiPosts] = useState([]);
 
   /* ── Fetch posts ── */
@@ -335,7 +385,7 @@ const Home = () => {
                 id: p._id, _id: p._id,
                 user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
                 content: p.content, image: img, video: p.videoUrl || null,
-                likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
+                likes: p.likes?.length || 0, comments: p.comments || [], shares: p.shares?.length || 0,
                 timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
                 liked: false, category: p.category || "General", stats: null,
               };
@@ -374,12 +424,23 @@ const Home = () => {
     if (!txt?.trim()) return;
     if (!isMockPost(id)) {
       try {
-        await commentOnPost(id, txt);
+        const res = await commentOnPost(id, txt);
+        updatePost(id, (p) => ({ ...p, comments: res.comments }));
       } catch (err) {
         console.error("Error commenting on post:", err);
       }
+    } else {
+      const dummyComment = {
+        _id: Math.random().toString(),
+        content: txt,
+        user: { username: user?.username || "EcoMember" },
+        createdAt: new Date()
+      };
+      updatePost(id, (p) => ({
+        ...p,
+        comments: Array.isArray(p.comments) ? [...p.comments, dummyComment] : [dummyComment]
+      }));
     }
-    updatePost(id, (p) => ({ ...p, comments: p.comments + 1 }));
     setCommentText({ ...commentText, [id]: "" });
   };
 
@@ -464,7 +525,7 @@ const Home = () => {
               id: p._id, _id: p._id,
               user: { name: p.user?.username || "EcoMember", avatar: "🌱", title: "EarthTogether Member", _id: p.user?._id || p.user },
               content: p.content, image: img, video: p.videoUrl || null,
-              likes: p.likes?.length || 0, comments: p.comments?.length || 0, shares: p.shares?.length || 0,
+              likes: p.likes?.length || 0, comments: p.comments || [], shares: p.shares?.length || 0,
               timeAgo: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "recently",
               liked: false, category: p.category || "General", stats: null,
             };

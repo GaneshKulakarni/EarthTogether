@@ -1265,3 +1265,38 @@
     font-size: 12px;
   }
 }
+
+/* Comment list styling */
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.comment-content {
+  flex: 1;
+}
+
+.comment-username {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  text-align: left;
+}
+
+.comment-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.comment-date {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: left;
+}
+
