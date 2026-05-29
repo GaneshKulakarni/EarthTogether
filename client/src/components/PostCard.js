@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Edit2, Trash2, Target, Plus, X } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Send, MoreHorizontal, Edit2, Trash2, Target, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -12,8 +12,19 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-
   const currentUserId = currentUser?._id || currentUser?.id;
+  
+  // Get user info from post (handle both populated and unpopulated user fields)
+  const postUser = post.user || {};
+  const postUserId = postUser._id || postUser.id || post.user;
+  const postUsername = postUser.username || postUser.name || 'EcoMember';
+  const postAvatar = postUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${postUsername}`;
+  const postUserTitle = postUser.title || 'EarthTogether Member';
+  
+  // Handle both image/imageUrl and video/videoUrl field names
+  const postImage = post.image || post.imageUrl || null;
+  const postVideo = post.video || post.videoUrl || null;
+  
   const isLikedByCurrentUser = Array.isArray(post.likes)
     ? post.likes.some(like => {
       const likeUserId = typeof like.user === 'object' ? like.user._id || like.user.id : like.user;
@@ -26,12 +37,11 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
+    if (!commentText.trim()) return;
     onComment(post._id, commentText);
     setCommentText('');
     setShowCommentInput(false);
   };
-
-
 
   const handleJoinFirstChallenge = async () => {
     try {
@@ -51,173 +61,567 @@ const PostCard = ({ post, onLike, onComment, onDelete, onEdit, showDelete = fals
     }
   };
 
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Just now';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Just now';
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+    });
+  };
+
+  // Get badge class based on category
+  const getBadgeClass = (category) => {
+    if (!category) return 'general';
+    const l = category.toLowerCase();
+    if (l.includes('research')) return 'research';
+    if (l.includes('challenge')) return 'challenge';
+    return 'general';
+  };
+
+  const badgeClass = getBadgeClass(post.category);
+  const isOwner = currentUserId === postUserId;
+
+  // CSS variables for dark theme
+  const styles = {
+    card: {
+      background: '#1a2030',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      transition: 'all 0.2s ease',
+    },
+    header: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      padding: '18px 20px 14px',
+    },
+    userInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+    },
+    avatar: {
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, #34d399, #059669)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '18px',
+      color: 'white',
+      flexShrink: 0,
+      overflow: 'hidden',
+    },
+    username: {
+      color: '#e6edf3',
+      fontSize: '14px',
+      fontWeight: 600,
+      margin: '0 0 3px 0',
+    },
+    userTitle: {
+      color: '#58646e',
+      fontSize: '12px',
+      margin: 0,
+    },
+    badge: {
+      fontSize: '10px',
+      fontWeight: 700,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      padding: '5px 12px',
+      borderRadius: '20px',
+      whiteSpace: 'nowrap',
+    },
+    badgeGeneral: {
+      background: 'rgba(52,211,153,0.12)',
+      border: '1px solid rgba(52,211,153,0.25)',
+      color: '#34d399',
+    },
+    badgeResearch: {
+      background: 'rgba(56,189,248,0.12)',
+      border: '1px solid rgba(56,189,248,0.25)',
+      color: '#38bdf8',
+    },
+    badgeChallenge: {
+      background: 'rgba(245,158,11,0.12)',
+      border: '1px solid rgba(245,158,11,0.25)',
+      color: '#f59e0b',
+    },
+    content: {
+      padding: '0 20px 16px',
+      color: '#8b949e',
+      fontSize: '14px',
+      lineHeight: 1.8,
+      wordBreak: 'break-word',
+    },
+    imageContainer: {
+      width: '100%',
+      overflow: 'hidden',
+      borderTop: '1px solid rgba(255,255,255,0.08)',
+      borderBottom: '1px solid rgba(255,255,255,0.08)',
+    },
+    image: {
+      width: '100%',
+      maxHeight: '360px',
+      objectFit: 'cover',
+      display: 'block',
+    },
+    videoContainer: {
+      margin: '0 20px 12px',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      background: '#000',
+    },
+    footer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '14px 20px',
+      background: 'rgba(0,0,0,0.15)',
+    },
+    reactions: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    reactionBtn: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      background: 'transparent',
+      border: 'none',
+      color: '#8b949e',
+      fontSize: '13px',
+      cursor: 'pointer',
+      padding: '8px 14px',
+      borderRadius: '10px',
+      transition: 'all 0.2s ease',
+    },
+    reactionBtnLiked: {
+      background: 'rgba(248,113,113,0.1)',
+      color: '#f87171',
+    },
+    shareBtn: {
+      background: 'transparent',
+      border: 'none',
+      color: '#58646e',
+      cursor: 'pointer',
+      padding: '8px',
+      borderRadius: '50%',
+      transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    commentSection: {
+      padding: '16px 20px',
+      borderTop: '1px solid rgba(255,255,255,0.08)',
+      background: 'rgba(0,0,0,0.1)',
+    },
+    commentRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+    },
+    commentAvatar: {
+      width: '32px',
+      height: '32px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, #34d399, #059669)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '12px',
+      color: 'white',
+      fontWeight: 600,
+      flexShrink: 0,
+    },
+    commentInput: {
+      flex: 1,
+      background: '#0f1923',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '50px',
+      padding: '10px 18px',
+      color: '#e6edf3',
+      fontSize: '13px',
+      outline: 'none',
+      fontFamily: 'inherit',
+    },
+    commentSend: {
+      background: 'rgba(52,211,153,0.12)',
+      border: 'none',
+      borderRadius: '50%',
+      width: '36px',
+      height: '36px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#34d399',
+      cursor: 'pointer',
+    },
+    commentItem: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: '12px',
+      marginBottom: '12px',
+    },
+    commentContent: {
+      flex: 1,
+    },
+    commentUsername: {
+      fontWeight: 600,
+      color: '#e6edf3',
+      fontSize: '13px',
+      margin: '0 0 4px 0',
+    },
+    commentText: {
+      color: '#8b949e',
+      fontSize: '13px',
+      margin: '0 0 4px 0',
+      lineHeight: 1.5,
+    },
+    commentDate: {
+      color: '#58646e',
+      fontSize: '11px',
+    },
+    dropdown: {
+      position: 'absolute',
+      right: 0,
+      top: '100%',
+      marginTop: '4px',
+      width: '160px',
+      background: '#1a2030',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '10px',
+      zIndex: 20,
+      overflow: 'hidden',
+    },
+    dropdownItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      width: '100%',
+      padding: '10px 14px',
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      color: '#e6edf3',
+      fontSize: '13px',
+      textAlign: 'left',
+    },
+    dropdownItemDanger: {
+      color: '#f87171',
+    },
+    editTextarea: {
+      width: '100%',
+      padding: '12px',
+      borderRadius: '10px',
+      border: '1px solid rgba(52,211,153,0.3)',
+      background: '#0f1923',
+      color: '#e6edf3',
+      fontSize: '14px',
+      fontFamily: 'inherit',
+      resize: 'vertical',
+      outline: 'none',
+      marginBottom: '12px',
+    },
+    challengeBanner: {
+      margin: '0 20px 16px',
+      padding: '12px 16px',
+      background: 'rgba(52,211,153,0.08)',
+      border: '1px solid rgba(52,211,153,0.2)',
+      borderRadius: '12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+  };
+
+  const getBadgeStyle = () => {
+    switch (badgeClass) {
+      case 'research': return styles.badgeResearch;
+      case 'challenge': return styles.badgeChallenge;
+      default: return styles.badgeGeneral;
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <img
-            src={post.user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${post.user.username}`}
-            alt="User Avatar"
-            className="w-10 h-10 rounded-full mr-3"
-          />
-          <div>
-            <p className="font-semibold text-gray-900">{post.user.username}</p>
-            <p className="text-sm text-gray-500">
-              {post.createdAt && !isNaN(new Date(post.createdAt))
-                ? new Date(post.createdAt).toLocaleDateString()
-                : 'Just now'
-              }
-            </p>
-          </div>
-        </div>
-        {(currentUserId === (post.user?._id || post.user?.id)) && showDelete && (
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              style={{ padding: 6, borderRadius: '50%', border: 'none', background: 'none', cursor: 'pointer', color: '#8b949e' }}
-              onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.06)'}
-              onMouseLeave={e => e.target.style.background = 'none'}
-            >
-              <MoreHorizontal className="w-5 h-5" />
-            </button>
-            {showDropdown && (
-              <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 4, width: 160, background: '#1a2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, zIndex: 20, overflow: 'hidden' }}>
-                <button
-                  onClick={() => { setShowDropdown(false); setIsEditing(true); setEditContent(post.content); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#e6edf3', fontSize: 13, textAlign: 'left' }}
-                  onMouseEnter={e => e.target.style.background = 'rgba(52,211,153,0.1)'}
-                  onMouseLeave={e => e.target.style.background = 'none'}
-                >
-                  <Edit2 size={14} /> Edit Post
-                </button>
-                <button
-                  onClick={() => { onDelete(post._id); setShowDropdown(false); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#f87171', fontSize: 13, textAlign: 'left' }}
-                  onMouseEnter={e => e.target.style.background = 'rgba(248,113,113,0.1)'}
-                  onMouseLeave={e => e.target.style.background = 'none'}
-                >
-                  <Trash2 size={14} /> Delete Post
-                </button>
-              </div>
+    <div style={styles.card}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.userInfo}>
+          <div style={styles.avatar}>
+            {postUser.avatar ? (
+              <img src={postAvatar} alt={postUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              postUsername[0]?.toUpperCase() || '🌱'
             )}
           </div>
-        )}
+          <div>
+            <p style={styles.username}>{postUsername}</p>
+            <p style={styles.userTitle}>{postUserTitle} · {formatDate(post.createdAt)}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ ...styles.badge, ...getBadgeStyle() }}>
+            {post.category || 'General'}
+          </span>
+          {isOwner && showDelete && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  padding: '4px 8px', 
+                  borderRadius: '6px', 
+                  color: '#8b949e',
+                  fontSize: '16px'
+                }}
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              {showDropdown && (
+                <div style={styles.dropdown}>
+                  <button 
+                    onClick={() => { setShowDropdown(false); setIsEditing(true); setEditContent(post.content); }}
+                    style={styles.dropdownItem}
+                    onMouseEnter={e => e.target.style.background = 'rgba(52,211,153,0.1)'}
+                    onMouseLeave={e => e.target.style.background = 'none'}
+                  >
+                    <Edit2 size={14} /> Edit Post
+                  </button>
+                  <button 
+                    onClick={() => { onDelete(post._id); setShowDropdown(false); }}
+                    style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }}
+                    onMouseEnter={e => e.target.style.background = 'rgba(248,113,113,0.1)'}
+                    onMouseLeave={e => e.target.style.background = 'none'}
+                  >
+                    <Trash2 size={14} /> Delete Post
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Content */}
       {isEditing ? (
-        <div style={{ marginBottom: 12 }}>
+        <div style={{ padding: '0 20px 16px' }}>
           <textarea
             autoFocus
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             rows={4}
-            style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid rgba(52,211,153,0.3)', background: '#0f1923', color: '#e6edf3', fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none' }}
+            style={styles.editTextarea}
           />
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button onClick={() => setIsEditing(false)}
-              style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'transparent', color: '#8b949e', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>Cancel</button>
-            <button onClick={async () => {
-              if (!editContent.trim()) return toast.error('Content cannot be empty');
-              try {
-                const token = localStorage.getItem('token');
-                await axios.put(`/api/posts/${post._id}`, { content: editContent }, { headers: { 'x-auth-token': token } });
-                setIsEditing(false);
-                toast.success('Post updated');
-                if (onEdit) onEdit(post._id, editContent);
-              } catch (_) { toast.error('Failed to update post'); }
-            }}
-              style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#34d399', color: '#0a2818', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>Save</button>
-          </div>
-        </div>
-      ) : (
-        <p className="text-gray-800 mb-4">{post.content}</p>
-      )}
-      {post.image && !post.video && (
-        <img src={post.image} alt="" className="w-full rounded-lg mb-4" />
-      )}
-      {post.video && (
-        <video
-          src={post.video}
-          controls
-          className="w-full rounded-lg mb-4 bg-black max-h-[500px]"
-          poster={post.image || ""}
-        />
-      )}
-      <div className="flex items-center justify-between text-gray-500 text-sm mb-4">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => onLike(post._id)} className="flex items-center space-x-1 hover:text-red-500 transition-colors">
-            <Heart className={`w-5 h-5 ${isLikedByCurrentUser ? 'fill-red-500 text-red-500' : ''}`} />
-            <span>{likeCount} Likes</span>
-          </button>
-          <button onClick={() => setShowCommentInput(!showCommentInput)} className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
-            <MessageCircle className="w-5 h-5" />
-            <span>{commentCount} Comments</span>
-          </button>
-        </div>
-        <button className="flex items-center space-x-1 hover:text-green-500 transition-colors">
-          <Share2 className="w-5 h-5" />
-          <span>Share</span>
-        </button>
-      </div>
-
-      {/* Challenge Join Button */}
-      {(post.category === 'Challenge' || post.type === 'challenge') && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium text-green-800">Challenge Post</span>
-            </div>
-            <button
-              onClick={handleJoinFirstChallenge}
-              className="flex items-center space-x-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <button 
+              onClick={() => setIsEditing(false)}
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '8px', 
+                border: '1px solid rgba(255,255,255,0.08)', 
+                background: 'transparent', 
+                color: '#8b949e', 
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 600
+              }}
             >
-              <Plus className="w-4 h-4" />
-              <span>Join Challenge</span>
+              Cancel
+            </button>
+            <button 
+              onClick={async () => {
+                if (!editContent.trim()) return toast.error('Content cannot be empty');
+                try {
+                  const token = localStorage.getItem('token');
+                  await axios.put(`/api/posts/${post._id}`, { content: editContent }, { headers: { 'x-auth-token': token } });
+                  setIsEditing(false);
+                  toast.success('Post updated');
+                  if (onEdit) onEdit(post._id, editContent);
+                } catch (_) { 
+                  toast.error('Failed to update post'); 
+                }
+              }}
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '8px', 
+                border: 'none', 
+                background: '#34d399', 
+                color: '#0a2818', 
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 700
+              }}
+            >
+              Save
             </button>
           </div>
         </div>
+      ) : (
+        <div style={styles.content}>{post.content}</div>
       )}
 
-      {showCommentInput && (
-        <form onSubmit={handleCommentSubmit} className="flex items-center space-x-2 mt-4">
-          <input
-            type="text"
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button type="submit" className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors">
-            <Send className="w-5 h-5" />
-          </button>
-        </form>
-      )}
-
-      {Array.isArray(post.comments) && post.comments.length > 0 && (
-        <div className="mt-4 border-t border-gray-200 pt-4">
-          {post.comments.map((comment) => (
-            <div key={comment._id} className="flex items-start space-x-3 mb-3">
-              <img
-                src={comment.user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${comment.user?.username || comment.username || 'user'}`}
-                alt="Commenter Avatar"
-                className="w-8 h-8 rounded-full"
-              />
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">{comment.user?.username || comment.username || 'EcoMember'}</p>
-                <p className="text-gray-700 text-sm">{comment.content}</p>
-                <p className="text-gray-500 text-xs">
-                  {comment.createdAt && !isNaN(new Date(comment.createdAt))
-                    ? new Date(comment.createdAt).toLocaleDateString()
-                    : 'Just now'
-                  }
-                </p>
-              </div>
-            </div>
-          ))}
+      {/* Image */}
+      {postImage && !postVideo && (
+        <div style={styles.imageContainer}>
+          <img src={postImage} alt="Post content" style={styles.image} />
         </div>
       )}
 
+      {/* Video */}
+      {postVideo && (
+        <div style={styles.videoContainer}>
+          <video 
+            src={postVideo} 
+            controls 
+            style={{ width: '100%', display: 'block', maxHeight: '500px' }}
+            poster={postImage || ""}
+          />
+        </div>
+      )}
 
+      {/* Challenge Banner */}
+      {(post.category === 'Challenge' || post.type === 'challenge') && (
+        <div style={styles.challengeBanner}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Target size={18} style={{ color: '#34d399' }} />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#34d399' }}>Challenge Post</span>
+          </div>
+          <button
+            onClick={handleJoinFirstChallenge}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: '#34d399',
+              color: '#0a2818',
+              border: 'none',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            <Plus size={14} /> Join
+          </button>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <div style={styles.reactions}>
+          <button 
+            onClick={() => onLike(post._id)} 
+            style={{
+              ...styles.reactionBtn,
+              ...(isLikedByCurrentUser ? styles.reactionBtnLiked : {})
+            }}
+            onMouseEnter={e => {
+              if (!isLikedByCurrentUser) {
+                e.target.style.background = 'rgba(52,211,153,0.12)';
+                e.target.style.color = '#34d399';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!isLikedByCurrentUser) {
+                e.target.style.background = 'transparent';
+                e.target.style.color = '#8b949e';
+              }
+            }}
+          >
+            <Heart size={16} fill={isLikedByCurrentUser ? "currentColor" : "none"} />
+            {likeCount > 999 ? `${(likeCount / 1000).toFixed(1)}k` : likeCount}
+          </button>
+          <button 
+            onClick={() => setShowCommentInput(!showCommentInput)} 
+            style={styles.reactionBtn}
+            onMouseEnter={e => {
+              e.target.style.background = 'rgba(52,211,153,0.12)';
+              e.target.style.color = '#34d399';
+            }}
+            onMouseLeave={e => {
+              e.target.style.background = 'transparent';
+              e.target.style.color = '#8b949e';
+            }}
+          >
+            <MessageCircle size={16} />
+            {commentCount}
+          </button>
+        </div>
+        <button 
+          style={styles.shareBtn}
+          onMouseEnter={e => {
+            e.target.style.background = 'rgba(52,211,153,0.12)';
+            e.target.style.color = '#34d399';
+          }}
+          onMouseLeave={e => {
+            e.target.style.background = 'transparent';
+            e.target.style.color = '#58646e';
+          }}
+        >
+          <Share2 size={16} />
+        </button>
+      </div>
+
+      {/* Comment Input */}
+      {showCommentInput && (
+        <div style={styles.commentSection}>
+          <form onSubmit={handleCommentSubmit} style={styles.commentRow}>
+            <div style={styles.commentAvatar}>
+              {currentUser?.username?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <input
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a comment..."
+              style={styles.commentInput}
+            />
+            <button type="submit" style={styles.commentSend}>
+              <Send size={16} />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Comments List */}
+      {Array.isArray(post.comments) && post.comments.length > 0 && (
+        <div style={{ ...styles.commentSection, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          {post.comments.map((comment) => {
+            const commentUser = comment.user || {};
+            const commentUsername = commentUser.username || commentUser.name || comment.username || 'EcoMember';
+            const commentAvatar = commentUser.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${commentUsername}`;
+            
+            return (
+              <div key={comment._id} style={styles.commentItem}>
+                <div style={{ ...styles.commentAvatar, overflow: 'hidden' }}>
+                  {commentUser.avatar ? (
+                    <img src={commentAvatar} alt={commentUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    commentUsername[0]?.toUpperCase() || 'U'
+                  )}
+                </div>
+                <div style={styles.commentContent}>
+                  <p style={styles.commentUsername}>{commentUsername}</p>
+                  <p style={styles.commentText}>{comment.content}</p>
+                  <p style={styles.commentDate}>{formatDate(comment.createdAt)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
