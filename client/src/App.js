@@ -19,6 +19,7 @@ import WasteManagement from './pages/WasteManagement';
 import Researches from './pages/Researches';
 import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
+import AboutUs from './pages/AboutUs';
 import { AuthProvider } from './context/AuthContext';
 import { PostProvider } from './context/PostContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -44,6 +45,11 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            
+            {/* Public Route with MainLayout (Navbar, no sidebar if unauthenticated) */}
+            <Route element={<MainLayout />}>
+              <Route path="/about" element={<AboutUs />} />
+            </Route>
             
             {/* Protected Routes with MainLayout */}
             <Route element={

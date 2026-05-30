@@ -361,7 +361,7 @@ const Landing = () => {
               <Link to="/register" className="landing-btn-primary" id="join-movement-btn">
                 Join the Movement
               </Link>
-              <Link to="#how-it-works" className="landing-btn-secondary" id="see-how-btn">
+              <Link to="/about" className="landing-btn-secondary" id="see-how-btn">
                 See How It Works
               </Link>
             </motion.div>
@@ -655,7 +655,7 @@ const Landing = () => {
 
             <div className="landing-footer-col">
               <h4 className="landing-footer-heading">Resources</h4>
-              <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>About Us</button>
+              <Link to="/about" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', textDecoration: 'none' }}>About Us</Link>
               <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>Privacy Policy</button>
               <button type="button" className="landing-footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>Terms of Service</button>
             </div>

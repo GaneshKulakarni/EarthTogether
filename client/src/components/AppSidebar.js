@@ -13,6 +13,7 @@ import {
   FlaskConical,
   Users,
   LogOut,
+  Info,
 } from 'lucide-react';
 import '../pages/Home.css';
 
@@ -84,6 +85,14 @@ const AppSidebar = () => {
 
       {/* Bottom actions */}
       <div className="sidebar-bottom">
+        <Link
+          to="/about"
+          className={`sidebar-link ${location.pathname === '/about' ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <Info size={18} />
+          About Us
+        </Link>
         <button
           className="sidebar-link"
           style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}
