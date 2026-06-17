@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { fetchNotifications } = useNotifications();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [userChallenges, setUserChallenges] = useState([]);
   const [newPost, setNewPost] = useState({
