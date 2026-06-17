@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useReducer } from 'react';
-import axios from 'axios';
 import { getPosts, createPost, likePost, commentOnPost, sharePost, deletePost } from '../services/api';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';

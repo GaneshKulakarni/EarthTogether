@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Trophy, Target, TrendingUp, Calendar, Flame } from 'lucide-react';
+import { Leaf, Trophy, Target, TrendingUp, Calendar } from 'lucide-react';
 import axios from 'axios';
 import HabitCard from '../components/HabitCard';
-import EmptyState from '../components/EmptyState';
+
 import ShareProgressModal from '../components/ShareProgressModal';
 import '../dark-theme.css';
 

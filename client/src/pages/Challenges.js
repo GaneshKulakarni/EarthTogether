@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Target, Users, Trophy, Plus, Star, TrendingUp, CheckCircle, Clock, Zap, Leaf, X } from 'lucide-react';
+import { Target, Trophy, Plus, Star, TrendingUp, CheckCircle, Clock, Zap, Leaf, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import PostCard from '../components/PostCard';

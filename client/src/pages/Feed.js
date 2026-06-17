@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Image, Send } from 'lucide-react';
 import PostCard from '../components/PostCard';
-import { useNotifications } from '../context/NotificationContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 

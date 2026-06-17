@@ -20,11 +20,6 @@ export const NotificationProvider = ({ children }) => {
       const newNotifications = response.data;
       
       // Show toast for new unread notifications
-      const previousUnreadIds = previousNotificationsRef.current.filter(n => !n.read).map(n => n._id);
-      const newUnreadNotifications = newNotifications.filter(n => 
-        !n.read && !previousUnreadIds.includes(n._id)
-      );
-      
       // No like notifications to show
       
       previousNotificationsRef.current = newNotifications;
