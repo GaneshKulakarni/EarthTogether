@@ -152,14 +152,14 @@ const EnvironmentNews = () => {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 16 }}>
         {news.map((item, index) => (
           <div
             key={index}
             className="dark-card"
             style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
           >
-            <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', height: 180, overflow: 'hidden', background: 'var(--bg-input)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {item.image ? (
                 <img
                   src={item.image}
@@ -189,7 +189,7 @@ const EnvironmentNews = () => {
               </div>
             </div>
 
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.4 }}>
                 {item.headline}
               </h3>
@@ -226,9 +226,9 @@ const EnvironmentNews = () => {
 
       {selectedArticle && (
         <div className="dark-modal-overlay" onClick={() => setSelectedArticle(null)}>
-          <div className="dark-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+          <div className="dark-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="dark-modal-header" style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}>
-              <h2 style={{ color: '#0a2818', fontSize: 20 }}>Article Details</h2>
+              <h2 style={{ color: '#0a2818', fontSize: 'clamp(17px, 3.5vw, 20px)' }}>Article Details</h2>
               <button
                 onClick={() => setSelectedArticle(null)}
                 style={{ background: 'rgba(0,0,0,0.15)', border: 'none', cursor: 'pointer', borderRadius: 8, padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a2818' }}
@@ -237,32 +237,32 @@ const EnvironmentNews = () => {
               </button>
             </div>
 
-            <div style={{ padding: 28 }}>
+            <div className="p-4 sm:p-6">
               {selectedArticle.image ? (
                 <img
                   src={selectedArticle.image}
                   alt={selectedArticle.headline}
-                  style={{ width: '100%', height: 320, objectFit: 'cover', borderRadius: 12, marginBottom: 24 }}
+                  style={{ width: '100%', height: 'auto', maxHeight: 260, objectFit: 'cover', borderRadius: 12, marginBottom: 20 }}
                 />
               ) : (
-                <div style={{ width: '100%', height: 320, background: 'var(--bg-input)', borderRadius: 12, marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ width: '100%', height: 180, background: 'var(--bg-input)', borderRadius: 12, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                   Image generating...
                 </div>
               )}
 
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 16px' }}>
+              <h1 style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px', lineHeight: 1.35 }}>
                 {selectedArticle.headline}
               </h1>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
                 {selectedArticle.date && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 13 }}>
                     <Calendar style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                     <span>{selectedArticle.date}</span>
                   </div>
                 )}
                 {selectedArticle.author && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 13 }}>
                     <User style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                     <span>{selectedArticle.author}</span>
                   </div>
@@ -274,19 +274,19 @@ const EnvironmentNews = () => {
                 )}
               </div>
 
-              <div style={{ marginBottom: 24, padding: 16, background: 'var(--accent-dim)', borderLeft: '3px solid var(--accent)', borderRadius: 8 }}>
+              <div style={{ marginBottom: 20, padding: 14, background: 'var(--accent-dim)', borderLeft: '3px solid var(--accent)', borderRadius: 8 }}>
                 <p style={{ color: 'var(--text-primary)', fontWeight: 600, margin: '0 0 6px', fontSize: 13 }}>Summary</p>
                 <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: 13, lineHeight: 1.6 }}>{selectedArticle.summary}</p>
               </div>
 
-              <div style={{ marginBottom: 28 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>Full Article</h3>
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 10px' }}>Full Article</h3>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, fontSize: 13, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {selectedArticle.content}
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: 12 }}>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => setSelectedArticle(null)}
                   className="dark-btn-secondary"

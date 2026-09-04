@@ -75,27 +75,27 @@ const MemePage = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 4 }}>
+    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, py: { xs: 2.5, sm: 4 } }}>
+      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'primary.main', mb: { xs: 2, sm: 3 }, fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
         Eco-Memes
       </Typography>
-      <Typography variant="subtitle1" align="center" color="textSecondary" paragraph>
+      <Typography variant="subtitle1" align="center" color="textSecondary" paragraph sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
         A little humor for a greener planet!
       </Typography>
-      <Grid container spacing={4}>
+      <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
         {memes.length > 0 ? (
           memes.map((meme) => (
             <Grid item key={meme._id} xs={12} sm={6} md={4}>
               <StyledCard>
                 <CardMedia
                   component="img"
-                  height="250"
+                  height="220"
                   image={meme.imageUrl || 'https://via.placeholder.com/300x250?text=No+Meme+Image'}
                   alt={meme.title}
                   sx={{ objectFit: 'contain', backgroundColor: '#f0f0f0' }}
                 />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2 } }}>
+                  <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                     {meme.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -104,11 +104,11 @@ const MemePage = () => {
                 </CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-around', p: 1, borderTop: '1px solid #eee' }}>
                   <IconButton aria-label="like" onClick={() => handleLike(meme._id)}>
-                    <ThumbsUp size={20} />
+                    <ThumbsUp size={18} />
                     <Typography variant="body2" sx={{ ml: 0.5 }}>{meme.likes}</Typography>
                   </IconButton>
                   <IconButton aria-label="comments">
-                    <MessageSquare size={20} />
+                    <MessageSquare size={18} />
                     <Typography variant="body2" sx={{ ml: 0.5 }}>{meme.comments}</Typography>
                   </IconButton>
                 </Box>

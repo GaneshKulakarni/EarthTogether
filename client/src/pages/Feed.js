@@ -144,124 +144,117 @@ const Feed = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Eco-Feed</h1>
-            <p className="text-gray-600 mt-2">Share your eco-journey and get inspired by others</p>
-          </div>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Share</span>
-          </button>
+    <div style={{ maxWidth: 760, margin: '0 auto', width: '100%' }}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Eco-Feed</h1>
+          <p className="text-gray-400 text-sm mt-1">Share your eco-journey and get inspired by others</p>
         </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="dark-btn-primary self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4 mr-1.5" />
+          <span>Share</span>
+        </button>
+      </div>
 
-        {/* Create Post Form */}
-        {showCreateForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Share Your Eco-Action</h2>
-            <form onSubmit={handleCreatePost} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type
-                  </label>
-                  <select
-                    value={newPost.type}
-                    onChange={(e) => setNewPost({ ...newPost, type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="eco-action">Eco Action</option>
-                    <option value="tip">Eco Tip</option>
-                    <option value="achievement">Achievement</option>
-                    <option value="challenge">Challenge</option>
-                    <option value="general">General</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={newPost.category}
-                    onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="energy">Energy</option>
-                    <option value="waste">Waste</option>
-                    <option value="transport">Transport</option>
-                    <option value="water">Water</option>
-                    <option value="food">Food</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-
+      {/* Create Post Form */}
+      {showCreateForm && (
+        <div className="dark-card p-4 sm:p-6 mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">Share Your Eco-Action</h2>
+          <form onSubmit={handleCreatePost} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What's on your mind?
-                </label>
-                <textarea
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                  rows="4"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Share your eco-action, tip, or achievement..."
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                <label className="dark-label">Type</label>
+                <select
+                  value={newPost.type}
+                  onChange={(e) => setNewPost({ ...newPost, type: e.target.value })}
+                  className="dark-input"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors flex items-center space-x-2"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Share</span>
-                </button>
+                  <option value="eco-action">Eco Action</option>
+                  <option value="tip">Eco Tip</option>
+                  <option value="achievement">Achievement</option>
+                  <option value="challenge">Challenge</option>
+                  <option value="general">General</option>
+                </select>
               </div>
-            </form>
-          </div>
-        )}
+              <div>
+                <label className="dark-label">Category</label>
+                <select
+                  value={newPost.category}
+                  onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
+                  className="dark-input"
+                >
+                  <option value="energy">Energy</option>
+                  <option value="waste">Waste</option>
+                  <option value="transport">Transport</option>
+                  <option value="water">Water</option>
+                  <option value="food">Food</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
 
-        {/* Posts Feed */}
-        <div className="max-w-2xl mx-auto space-y-6">
-          {posts.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow-md">
-              <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-              <p className="text-gray-500 mb-4">Be the first to share your eco-journey!</p>
+            <div>
+              <label className="dark-label">What's on your mind?</label>
+              <textarea
+                value={newPost.content}
+                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                rows="4"
+                className="dark-input"
+                placeholder="Share your eco-action, tip, or achievement..."
+                style={{ resize: 'vertical' }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
               <button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                type="button"
+                onClick={() => setShowCreateForm(false)}
+                className="dark-btn-secondary"
               >
-                Share Your First Post
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="dark-btn-primary"
+              >
+                <Send className="w-4 h-4 mr-1" />
+                <span>Share</span>
               </button>
             </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post._id}
-                post={post}
-                onLike={handleLike}
-                onComment={handleComment}
-                onJoinChallenge={joinChallenge}
-                userChallenges={userChallenges}
-              />
-            ))
-          )}
+          </form>
         </div>
+      )}
+
+      {/* Posts Feed */}
+      <div className="space-y-5">
+        {posts.length === 0 ? (
+          <div className="dark-card dark-empty p-8 sm:p-12 text-center">
+            <Image className="w-14 h-14 text-gray-500 mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium text-white mb-2">No posts yet</h3>
+            <p className="text-gray-400 mb-4 text-sm">Be the first to share your eco-journey!</p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="dark-btn-primary"
+            >
+              Share Your First Post
+            </button>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <PostCard
+              key={post._id}
+              post={post}
+              onLike={handleLike}
+              onComment={handleComment}
+              onJoinChallenge={joinChallenge}
+              userChallenges={userChallenges}
+            />
+          ))
+        )}
       </div>
     </div>
   );

@@ -108,10 +108,11 @@ const Leaderboard = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '16px 20px',
+                  padding: '14px 16px',
                   borderBottom: index < leaderboard.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                   background: isTop3 ? `rgba(${index === 0 ? '245,158,11' : index === 1 ? '148,163,184' : '180,83,9'},0.05)` : 'transparent',
                   transition: 'background 0.15s',
+                  gap: 12
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(52,211,153,0.05)'; }}
                 onMouseLeave={(e) => {
@@ -121,29 +122,29 @@ const Leaderboard = () => {
                 }}
               >
                 {/* Left: rank + avatar + name */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 36, textAlign: 'center', fontSize: isTop3 ? 22 : 14, fontWeight: 700, color }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1 }}>
+                  <div style={{ width: 28, textAlign: 'center', fontSize: isTop3 ? 20 : 13, fontWeight: 700, color, flexShrink: 0 }}>
                     {emoji}
                   </div>
                   <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
+                    width: 38, height: 38, borderRadius: '50%',
                     background: `linear-gradient(135deg, ${color}33, ${color}11)`,
                     border: `2px solid ${color}44`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, fontWeight: 800, color,
+                    fontSize: 15, fontWeight: 800, color, flexShrink: 0
                   }}>
                     {u.username.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#e6edf3' }}>{u.username}</p>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#e6edf3', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.username}</p>
                     <p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>Rank #{index + 1}</p>
                   </div>
                 </div>
 
                 {/* Right: metric */}
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 20, fontWeight: 800, color }}>{getMetricValue(u)}</div>
-                  <div style={{ fontSize: 11, color: '#8b949e' }}>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 'clamp(16px, 3.5vw, 20px)', fontWeight: 800, color }}>{getMetricValue(u)}</div>
+                  <div style={{ fontSize: 10, color: '#8b949e' }}>
                     {activeTab === 'ecoPoints' && 'Total Points'}
                     {activeTab === 'streaks'   && 'Current Streak'}
                     {activeTab === 'impact'    && 'Carbon Saved'}

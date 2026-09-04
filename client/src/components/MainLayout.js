@@ -30,40 +30,46 @@ const MainLayout = () => {
     <div className="dark-layout">
       <Navbar />
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* ── Shared sidebar — identical to Home page ── */}
+      <div style={{ display: 'flex', flex: 1, minWidth: 0 }}>
+        {/* ── Shared sidebar — shown on desktop screens (>=1024px) ── */}
         {isAuthenticated && (
-          <div style={{
-            position: 'fixed',
-            left: 0,
-            top: 64,
-            height: 'calc(100vh - 64px)',
-            width: 220,
-            zIndex: 10,
-            overflowY: 'auto',
-          }}>
+          <div
+            className="hidden lg:block"
+            style={{
+              position: 'fixed',
+              left: 0,
+              top: 64,
+              height: 'calc(100vh - 64px)',
+              width: 220,
+              zIndex: 10,
+              overflowY: 'auto',
+            }}
+          >
             <AppSidebar />
           </div>
         )}
 
         {/* ── Main content ── */}
         <main
-          className="dark-main"
+          className={`dark-main ${isAuthenticated ? 'has-sidebar' : ''}`}
           style={{
-            marginLeft: isAuthenticated ? 220 : 0,
             height: isChat ? 'calc(100vh - 64px)' : 'auto',
             overflow: isChat ? 'hidden' : 'visible',
             display: isChat ? 'flex' : 'block',
-            flexDirection: isChat ? 'column' : 'initial'
+            flexDirection: isChat ? 'column' : 'initial',
+            minWidth: 0
           }}
         >
-          <div style={{
-            padding: isChat ? '0' : '32px',
-            flex: 1,
-            display: isChat ? 'flex' : 'block',
-            flexDirection: isChat ? 'column' : 'initial',
-            height: isChat ? '100%' : 'auto'
-          }}>
+          <div
+            className={isChat ? '' : 'dark-content'}
+            style={{
+              flex: 1,
+              display: isChat ? 'flex' : 'block',
+              flexDirection: isChat ? 'column' : 'initial',
+              height: isChat ? '100%' : 'auto',
+              minWidth: 0
+            }}
+          >
             <Outlet />
           </div>
         </main>

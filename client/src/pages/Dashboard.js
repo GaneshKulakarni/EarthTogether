@@ -82,42 +82,43 @@ const Dashboard = () => {
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
       {/* ── Welcome Header ── */}
-      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#e6edf3', margin: 0 }}>
+          <h1 style={{ fontSize: 'clamp(20px, 4vw, 26px)', fontWeight: 800, color: '#e6edf3', margin: 0 }}>
             Welcome back, <span style={{ color: '#34d399' }}>{user?.username}</span> 👋
           </h1>
-          <p style={{ color: '#8b949e', marginTop: 6, fontSize: 14 }}>{randomQuote}</p>
+          <p style={{ color: '#8b949e', marginTop: 6, fontSize: 13 }}>{randomQuote}</p>
         </div>
         <button
           className="dark-btn-primary"
           onClick={() => setShowShareModal(true)}
+          style={{ padding: '8px 16px', fontSize: 13 }}
         >
           📤 Share Progress
         </button>
       </div>
 
       {/* ── Stats Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {stats.map((s) => (
-          <div key={s.label} className="dark-stat-card">
-            <div className="dark-stat-icon" style={{ background: `${s.color}18` }}>
-              <span style={{ fontSize: 20 }}>{s.icon}</span>
+          <div key={s.label} className="dark-stat-card" style={{ padding: '16px 12px' }}>
+            <div className="dark-stat-icon" style={{ background: `${s.color}18`, width: 40, height: 40 }}>
+              <span style={{ fontSize: 18 }}>{s.icon}</span>
             </div>
-            <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
-            <div className="dark-stat-label">{s.label}</div>
+            <div className="dark-stat-value" style={{ color: s.color, fontSize: 'clamp(20px, 3.5vw, 24px)' }}>{s.value}</div>
+            <div className="dark-stat-label" style={{ fontSize: 11 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      <p style={{ fontSize: 11, color: '#58646e', marginBottom: 24 }}>
+      <p style={{ fontSize: 11, color: '#58646e', marginBottom: 20 }}>
         * CO₂ values are estimates for motivational purposes.
       </p>
 
       {/* ── Active Challenges ── */}
       {challenges.length > 0 && (
-        <div className="dark-card" style={{ padding: 24, marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div className="dark-card" style={{ padding: '18px 20px', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div className="dark-section-header" style={{ marginBottom: 0 }}>
               <div className="dark-section-icon">
                 <Target size={18} />
@@ -132,12 +133,12 @@ const Dashboard = () => {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {challenges.map((ch) => (
               <div key={ch._id} style={{
                 background: 'rgba(52,211,153,0.06)',
                 border: '1px solid rgba(52,211,153,0.2)',
-                borderRadius: 12, padding: 16,
+                borderRadius: 12, padding: 14,
               }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: '#e6edf3', marginBottom: 10 }}>{ch.title}</h3>
                 <div className="dark-progress-track">
@@ -154,7 +155,7 @@ const Dashboard = () => {
       )}
 
       {/* ── Today's Habits ── */}
-      <div className="dark-card" style={{ padding: 24, marginBottom: 24 }}>
+      <div className="dark-card" style={{ padding: '18px 20px', marginBottom: 20 }}>
         <div className="dark-section-header">
           <div className="dark-section-icon">
             <Calendar size={18} />
@@ -163,7 +164,7 @@ const Dashboard = () => {
         </div>
 
         {habits.length === 0 ? (
-          <div className="dark-empty">
+          <div className="dark-empty" style={{ padding: '32px 16px' }}>
             <Leaf size={44} />
             <h3>No habits set up yet</h3>
             <p>Create your first eco-habit to start making a difference!</p>
@@ -181,10 +182,10 @@ const Dashboard = () => {
       </div>
 
       {/* ── Quick Actions + Achievements ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Quick Actions */}
-        <div className="dark-card" style={{ padding: 24 }}>
+        <div className="dark-card" style={{ padding: '20px' }}>
           <div className="dark-section-header">
             <div className="dark-section-icon"><TrendingUp size={18} /></div>
             <span className="dark-section-title">Quick Actions</span>
@@ -203,7 +204,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Achievements */}
-        <div className="dark-card" style={{ padding: 24 }}>
+        <div className="dark-card" style={{ padding: '20px' }}>
           <div className="dark-section-header">
             <div className="dark-section-icon"><Trophy size={18} /></div>
             <span className="dark-section-title">Recent Achievements</span>

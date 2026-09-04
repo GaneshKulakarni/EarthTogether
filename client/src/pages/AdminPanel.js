@@ -59,20 +59,20 @@ const AdminPanel = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🛡️ Admin Panel</h1>
-        <p className="text-gray-600">Manage platform content and spotlight eco-leaders</p>
+    <div className="max-w-6xl mx-auto p-3 sm:p-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">🛡️ Admin Panel</h1>
+        <p className="text-gray-600 text-sm sm:text-base">Manage platform content and spotlight eco-leaders</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-md mb-8">
-        <div className="flex overflow-x-auto">
+      <div className="bg-white rounded-lg shadow-md mb-6 sm:mb-8">
+        <div className="flex overflow-x-auto scrollbar-none">
           {adminTabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'bg-green-500 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -87,32 +87,32 @@ const AdminPanel = () => {
 
       {/* Overview Tab */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <Users className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">{stats.totalUsers}</h3>
-              <p className="text-gray-600">Total Users</p>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-blue-500 mx-auto mb-2 sm:mb-4" />
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalUsers}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Total Users</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <FileText className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">{stats.activePosts}</h3>
-              <p className="text-gray-600">Active Posts</p>
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+              <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-green-500 mx-auto mb-2 sm:mb-4" />
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{stats.activePosts}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Active Posts</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <Image className="w-12 h-12 text-purple-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">{stats.pendingMemes}</h3>
-              <p className="text-gray-600">Pending Memes</p>
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+              <Image className="w-8 h-8 sm:w-12 sm:h-12 text-purple-500 mx-auto mb-2 sm:mb-4" />
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{stats.pendingMemes}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Pending Memes</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <Award className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900">{stats.totalChallenges}</h3>
-              <p className="text-gray-600">Total Challenges</p>
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+              <Award className="w-8 h-8 sm:w-12 sm:h-12 text-yellow-500 mx-auto mb-2 sm:mb-4" />
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalChallenges}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Total Challenges</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
             <div className="space-y-3">
               {loading ? (
                 <div className="text-center py-4">

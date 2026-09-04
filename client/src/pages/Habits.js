@@ -249,7 +249,7 @@ const Habits = () => {
                       style={{ resize: 'vertical' }}
                     />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="dark-label">Frequency</label>
                       <select
@@ -276,7 +276,7 @@ const Habits = () => {
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="dark-label">Carbon Saved (kg)</label>
                       <input
@@ -352,10 +352,10 @@ const Habits = () => {
               {habits.map((habit) => {
                 const badgeStyle = getCategoryBadgeStyle(habit.category);
                 return (
-                  <div key={habit._id} className="dark-card" style={{ padding: '16px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                  <div key={habit._id} className="dark-card" style={{ padding: '16px 18px' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                           <span style={{
                             width: 8, height: 8, borderRadius: '50%',
                             background: habit.isActive !== false ? '#34d399' : 'var(--text-muted)',
@@ -376,7 +376,7 @@ const Habits = () => {
                             {habit.description}
                           </p>
                         )}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: 'var(--text-muted)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Calendar size={12} /> {habit.frequency}
                           </span>
@@ -388,7 +388,7 @@ const Habits = () => {
                           </span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignSelf: 'flex-start' }}>
                         <button onClick={() => handleEdit(habit)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 6, borderRadius: 8 }}
                           onMouseEnter={e => e.target.style.background = 'var(--accent-dim)'}

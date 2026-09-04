@@ -277,19 +277,18 @@ const InteractiveStatCard = ({ icon, label, value, color, reducedMotion }) => {
     <motion.div
       whileHover={reducedMotion ? {} : { y: -6, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-      className="relative overflow-hidden group shadow-lg backdrop-blur-md transition-all duration-300"
+      className="relative overflow-hidden group shadow-lg backdrop-blur-md transition-all duration-300 p-3 sm:p-5"
       style={{
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
         background: 'rgba(22, 27, 34, 0.7)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: '16px',
-        padding: '20px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-between',
         textAlign: 'center',
-        minHeight: '160px',
+        minHeight: '140px',
         position: 'relative'
       }}
     >
@@ -303,7 +302,7 @@ const InteractiveStatCard = ({ icon, label, value, color, reducedMotion }) => {
 
       {/* Topographic Lines SVG Background */}
       <svg
-        className="absolute bottom-0 right-0 w-32 h-32 text-gray-800/20 group-hover:text-emerald-500/10 pointer-events-none transition-colors duration-500"
+        className="absolute bottom-0 right-0 w-24 h-24 sm:w-32 sm:h-32 text-gray-800/20 group-hover:text-emerald-500/10 pointer-events-none transition-colors duration-500"
         viewBox="0 0 100 100"
         fill="none"
         stroke="currentColor"
@@ -317,7 +316,7 @@ const InteractiveStatCard = ({ icon, label, value, color, reducedMotion }) => {
 
       {/* Icon Badge */}
       <div 
-        className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl group-hover:scale-110 transition-transform duration-300 shadow-inner"
+        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-lg sm:text-xl group-hover:scale-110 transition-transform duration-300 shadow-inner"
         style={{ 
           background: `${color}12`,
           border: `1px solid ${color}25`,
@@ -329,14 +328,14 @@ const InteractiveStatCard = ({ icon, label, value, color, reducedMotion }) => {
 
       {/* Value */}
       <div 
-        className="text-2xl font-black tracking-tight mt-3 select-all"
+        className="text-lg sm:text-2xl font-black tracking-tight mt-2 select-all"
         style={{ color: color }}
       >
         {value}
       </div>
 
       {/* Label */}
-      <div className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mt-1">
+      <div className="text-[9px] sm:text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mt-1">
         {label}
       </div>
     </motion.div>
@@ -356,27 +355,25 @@ const AchievementCard = ({ badge, index, userJoinedAt }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       whileHover={{ scale: 1.01, x: 4 }}
-      className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#1b1c26]/60 to-[#13141a]/60 border border-amber-500/10 hover:border-amber-500/30 shadow-md transition-all duration-300 group"
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-[#1b1c26]/60 to-[#13141a]/60 border border-amber-500/10 hover:border-amber-500/30 shadow-md transition-all duration-300 group"
     >
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform duration-300">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0 group-hover:rotate-12 transition-transform duration-300">
           {badgeIcon}
         </div>
-        <div>
-          <h4 className="text-sm font-bold text-white tracking-wide group-hover:text-amber-400 transition-colors">
+        <div className="min-w-0">
+          <h4 className="text-sm font-bold text-white tracking-wide group-hover:text-amber-400 transition-colors truncate">
             {badgeName}
           </h4>
-          <p className="text-xs text-gray-400 mt-0.5">{badgeDescription}</p>
+          <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{badgeDescription}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="text-right">
-          <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-            Completed
-          </span>
-          <div className="text-[10px] text-gray-500 mt-1.5">{completionDate}</div>
-        </div>
+      <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+        <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-400 tracking-wider bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+          Completed
+        </span>
+        <div className="text-[10px] text-gray-500 sm:text-right">{completionDate}</div>
       </div>
     </motion.div>
   );
@@ -583,7 +580,7 @@ const Profile = () => {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="flex flex-wrap gap-2">
           <button className="dark-btn-primary" onClick={() => navigate('/habits')}>  <Plus size={14} /> New Habit</button>
           <button className="dark-btn-secondary" onClick={() => navigate('/welcome')}> <Plus size={14} /> New Post</button>
         </div>
@@ -596,9 +593,8 @@ const Profile = () => {
           <div 
             ref={heroRef}
             onMouseMove={handleHeroMouseMove}
-            className="group transition-all duration-300"
+            className="group transition-all duration-300 p-4 sm:p-7"
             style={{
-              padding: 28,
               borderRadius: '24px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
@@ -616,7 +612,7 @@ const Profile = () => {
             {/* Live 3D Ecosystem Canvas */}
             <ProfileEcosystemCanvas reducedMotion={prefersReducedMotion} />
 
-            <div className="relative z-10 flex justify-between items-center mb-6">
+            <div className="relative z-10 flex flex-wrap justify-between items-center gap-3 mb-6">
               <h1 className="text-xl font-black text-white tracking-wide uppercase">My Profile</h1>
               <button
                 className="dark-btn-secondary border border-gray-800 hover:border-emerald-500/40 text-gray-300 hover:text-emerald-400 transition-all rounded-xl py-2 px-4 flex items-center gap-2"
@@ -661,11 +657,11 @@ const Profile = () => {
             ) : (
               /* ── View Mode ── */
               <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start justify-between">
-                <div className="flex flex-col sm:flex-row gap-6 items-start flex-1 w-full">
+                <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 items-center sm:items-start flex-1 w-full text-center sm:text-left">
                   {/* Glowing Avatar Frame */}
                   <div className="relative flex-shrink-0 group">
                     <div 
-                      className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border border-emerald-500/50 shadow-[0_0_20px_rgba(52,211,153,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-400 group-hover:shadow-[0_0_25px_rgba(52,211,153,0.45)]"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center overflow-hidden border border-emerald-500/50 shadow-[0_0_20px_rgba(52,211,153,0.25)] transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-400 group-hover:shadow-[0_0_25px_rgba(52,211,153,0.45)]"
                       style={{
                         background: 'linear-gradient(135deg, #10b981, #047857)',
                       }}
@@ -676,20 +672,20 @@ const Profile = () => {
                       }
                     </div>
                     {/* Small Green Leaf Badge */}
-                    <div className="absolute bottom-0 right-0 w-7 h-7 bg-[#10b981] border border-emerald-400 rounded-full flex items-center justify-center shadow-lg text-white transform translate-x-0.5 translate-y-0.5 select-none">
-                      <Leaf size={12} fill="white" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 sm:w-7 sm:h-7 bg-[#10b981] border border-emerald-400 rounded-full flex items-center justify-center shadow-lg text-white transform translate-x-0.5 translate-y-0.5 select-none">
+                      <Leaf size={11} fill="white" />
                     </div>
                   </div>
 
                   {/* Profile info details */}
                   <div className="flex-1 w-full">
-                    <h2 className="text-2xl font-black text-white tracking-wide leading-none">{user?.username}</h2>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide leading-none">{user?.username}</h2>
                     <p className="text-sm font-semibold text-emerald-400/90 mt-2 mb-3 tracking-wide">
                       {user?.bio || 'No bio yet. Tell us about your eco-journey!'}
                     </p>
 
                     {/* Metadata Badges */}
-                    <div className="flex flex-wrap gap-2.5 mt-4 text-[11px] font-bold text-gray-400">
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-4 text-[11px] font-bold text-gray-400">
                       {user?.location && (
                         <span className="flex items-center gap-1.5 bg-gray-800/40 py-1.5 px-3 rounded-xl border border-gray-800/60 hover:text-white transition-colors duration-200">
                           <MapPin size={11} className="text-emerald-400" /> {user.location}
@@ -711,13 +707,13 @@ const Profile = () => {
                     </div>
 
                     {/* Followers Counter */}
-                    <div className="flex gap-6 mt-6 border-t border-gray-800/40 pt-4 w-full">
+                    <div className="flex gap-6 mt-6 border-t border-gray-800/40 pt-4 w-full justify-center sm:justify-start">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-black text-emerald-400">{user?.followers?.length || 0}</span>
+                        <span className="text-xl sm:text-2xl font-black text-emerald-400">{user?.followers?.length || 0}</span>
                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Followers</span>
                       </div>
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-black text-emerald-400">{user?.following?.length || 0}</span>
+                        <span className="text-xl sm:text-2xl font-black text-emerald-400">{user?.following?.length || 0}</span>
                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Following</span>
                       </div>
                     </div>
@@ -728,7 +724,7 @@ const Profile = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             {statItems.map((s) => (
               <InteractiveStatCard
                 key={s.label}
@@ -742,7 +738,7 @@ const Profile = () => {
           </div>
 
           {/* Achievements Section */}
-          <div className="border border-gray-800/70 rounded-2xl p-6 backdrop-blur-md shadow-lg" style={{ background: 'rgba(22, 27, 34, 0.5)' }}>
+          <div className="border border-gray-800/70 rounded-2xl p-4 sm:p-6 backdrop-blur-md shadow-lg" style={{ background: 'rgba(22, 27, 34, 0.5)' }}>
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500">
                 <Trophy size={18} />

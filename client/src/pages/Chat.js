@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Phone, Video, Info, Plus, Smile, Send } from 'lucide-react';
+import { Phone, Video, Info, Plus, Smile, Send, ArrowLeft } from 'lucide-react';
 
 const Chat = () => {
   const { user } = useAuth();
   const messagesEndRef = useRef(null);
   const [inputValue, setInputValue] = useState('');
   const [selectedContactId, setSelectedContactId] = useState('elena');
+  const [showMobileChat, setShowMobileChat] = useState(false);
 
   // Contact list state
   const [contacts, setContacts] = useState([
@@ -272,20 +273,23 @@ const Chat = () => {
   return (
     <div className="h-full flex bg-[#0f111a] text-slate-100 font-sans" style={{ minHeight: 'calc(100vh - 64px)' }}>
       {/* ─── DIRECT MESSAGES SIDEBAR ─── */}
-      <div className="w-80 flex-shrink-0 flex flex-col bg-[#0b0c14] border-r border-white/5">
-        <div className="p-6 border-b border-white/5">
+      <div className={`w-full md:w-80 flex-shrink-0 flex flex-col bg-[#0b0c14] border-r border-white/5 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+        <div className="p-4 sm:p-6 border-b border-white/5">
           <h2 className="text-xs font-bold uppercase tracking-widest text-[#58646e]">
             Direct Messages
           </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">
           {contacts.map((c) => {
             const isActive = c.id === selectedContactId;
             return (
               <div
                 key={c.id}
-                onClick={() => setSelectedContactId(c.id)}
+                onClick={() => {
+                  setSelectedContactId(c.id);
+                  setShowMobileChat(true);
+                }}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition text-left cursor-pointer ${
                   isActive ? 'bg-[#181926] text-white shadow-sm' : 'hover:bg-[#131420] text-slate-400 hover:text-slate-200'
                 }`}
@@ -338,15 +342,24 @@ const Chat = () => {
       </div>
 
       {/* ─── CHAT CONVERSATION WINDOW ─── */}
-      <div className="flex-1 flex flex-col bg-[#12131e] min-w-0 relative">
+      <div className={`flex-1 flex flex-col bg-[#12131e] min-w-0 relative ${!showMobileChat ? 'hidden md:flex' : 'flex'}`}>
         {/* Chat Header */}
-        <div className="h-[72px] flex items-center justify-between px-6 border-b border-white/5 flex-shrink-0">
-          <div className="flex items-center">
+        <div className="h-[64px] sm:h-[72px] flex items-center justify-between px-4 sm:px-6 border-b border-white/5 flex-shrink-0">
+          <div className="flex items-center min-w-0">
+            {/* Mobile Back Button */}
+            <button
+              onClick={() => setShowMobileChat(false)}
+              className="md:hidden mr-2.5 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 flex-shrink-0"
+              title="Back to contacts"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
             {/* Active Contact Avatar */}
             {activeContact && (
               <>
                 <div className="relative mr-3 flex-shrink-0">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-white/10">
                     <img
                       src={activeContact.avatar}
                       alt={activeContact.name}
@@ -354,7 +367,7 @@ const Chat = () => {
                     />
                   </div>
                   <span
-                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#12131e] ${
+                    className={`absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border-2 border-[#12131e] ${
                       activeContact.status === 'typing'
                         ? 'bg-amber-500 animate-pulse'
                         : 'bg-emerald-500'
@@ -362,8 +375,8 @@ const Chat = () => {
                   />
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-white leading-tight">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white leading-tight truncate">
                     {activeContact.name}
                   </h3>
                   <p
@@ -381,26 +394,26 @@ const Chat = () => {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-5">
-            <button className="text-slate-400 hover:text-white transition duration-200" title="Voice Call">
-              <Phone className="w-5 h-5" />
+          <div className="flex items-center gap-3 sm:gap-5 flex-shrink-0">
+            <button className="text-slate-400 hover:text-white transition duration-200 p-1" title="Voice Call">
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <button className="text-slate-400 hover:text-white transition duration-200" title="Video Call">
-              <Video className="w-5 h-5" />
+            <button className="text-slate-400 hover:text-white transition duration-200 p-1" title="Video Call">
+              <Video className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <button className="text-slate-400 hover:text-white transition duration-200" title="View Info">
-              <Info className="w-5 h-5" />
+            <button className="text-slate-400 hover:text-white transition duration-200 p-1" title="View Info">
+              <Info className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Message Stream */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {activeMessages.map((m, idx) => {
             if (m.isDivider) {
               return (
-                <div key={m.id || idx} className="flex justify-center my-6">
-                  <span className="bg-[#181a28] border border-white/5 text-slate-400 text-[10px] font-bold tracking-widest px-4 py-1.5 rounded-full uppercase">
+                <div key={m.id || idx} className="flex justify-center my-4 sm:my-6">
+                  <span className="bg-[#181a28] border border-white/5 text-slate-400 text-[10px] font-bold tracking-widest px-3 sm:px-4 py-1.5 rounded-full uppercase">
                     {m.content}
                   </span>
                 </div>
@@ -425,7 +438,7 @@ const Chat = () => {
                   </div>
 
                   {/* Message Bubble */}
-                  <div className="bg-[#162d24] border border-emerald-500/10 text-[#4ade80] text-sm px-4 py-3 rounded-2xl rounded-tr-none leading-relaxed shadow-md max-w-[70%]">
+                  <div className="bg-[#162d24] border border-emerald-500/10 text-[#4ade80] text-sm px-4 py-3 rounded-2xl rounded-tr-none leading-relaxed shadow-md max-w-[88%] sm:max-w-[70%]">
                     {m.content}
                   </div>
 
@@ -439,9 +452,9 @@ const Chat = () => {
 
             // Other sender
             return (
-              <div key={m.id || idx} className="flex items-start gap-3 w-full max-w-[75%]">
+              <div key={m.id || idx} className="flex items-start gap-2.5 sm:gap-3 w-full max-w-[88%] sm:max-w-[75%]">
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 flex-shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-white/10 flex-shrink-0">
                   <img
                     src={m.sender.avatar}
                     alt={m.sender.name}
@@ -483,15 +496,15 @@ const Chat = () => {
         </div>
 
         {/* Bottom Message Input Bar */}
-        <div className="p-4 bg-[#12131e] border-t border-white/5 flex-shrink-0">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-[#1c1e2e] border border-white/5 rounded-full px-4 py-1.5">
+        <div className="p-3 sm:p-4 bg-[#12131e] border-t border-white/5 flex-shrink-0">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3 bg-[#1c1e2e] border border-white/5 rounded-full px-3 sm:px-4 py-1.5">
             {/* Attachment Button */}
             <button
               type="button"
-              className="w-10 h-10 rounded-full bg-[#222436] border border-white/10 flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition flex-shrink-0"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#222436] border border-white/10 flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition flex-shrink-0"
               title="Add attachment"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Input */}
@@ -500,7 +513,7 @@ const Chat = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Share an eco-tip or message..."
-              className="flex-1 bg-transparent border-none outline-none text-white px-2 placeholder-slate-500 text-sm py-2.5"
+              className="flex-1 bg-transparent border-none outline-none text-white px-2 placeholder-slate-500 text-xs sm:text-sm py-2 sm:py-2.5 min-w-0"
             />
 
             {/* Emoji Button */}
@@ -509,16 +522,16 @@ const Chat = () => {
               className="text-slate-400 hover:text-white transition flex-shrink-0 p-1"
               title="Insert Emoji"
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Send Button */}
             <button
               type="submit"
-              className="w-10 h-10 rounded-full bg-[#34d399] flex items-center justify-center text-black hover:opacity-90 hover:scale-105 transition flex-shrink-0"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#34d399] flex items-center justify-center text-black hover:opacity-90 hover:scale-105 transition flex-shrink-0"
               title="Send message"
             >
-              <Send className="w-4 h-4 ml-0.5" />
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5" />
             </button>
           </form>
         </div>

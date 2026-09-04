@@ -248,7 +248,7 @@ const HabitCard = ({ habit, onComplete, onHabitUpdated }) => {
                   style={{ width: '100%', padding: '10px 12px', background: '#0f1923', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e6edf3', fontSize: 14, resize: 'vertical' }}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="dark-label" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#8b949e', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Frequency</label>
                   <select

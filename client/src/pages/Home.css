@@ -1219,24 +1219,34 @@
   }
 }
 
-@media (max-width: 768px) {
-  .home-sidebar { 
-    display: none; 
+@media (max-width: 1023px) {
+  .home-sidebar {
+    display: none;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .home-shell {
+    height: auto;
+    min-height: calc(100vh - 64px);
+    overflow: visible;
+  }
+
   .home-feed { 
-    padding: 16px;
+    padding: 14px 12px;
+    overflow-y: visible;
+    gap: 14px;
   }
   
   .create-post-card {
-    padding: 16px;
+    padding: 14px;
   }
   
   .post-header,
   .post-content,
   .post-stats {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 14px;
+    padding-right: 14px;
   }
   
   .post-stats {
@@ -1244,14 +1254,14 @@
   }
   
   .post-footer {
-    padding: 12px 16px;
+    padding: 10px 14px;
   }
   
   .fab {
-    width: 50px;
-    height: 50px;
-    bottom: 20px;
-    right: 20px;
+    width: 48px;
+    height: 48px;
+    bottom: 16px;
+    right: 16px;
   }
 }
 
@@ -1261,7 +1271,7 @@
   }
   
   .reaction-btn {
-    padding: 6px 10px;
+    padding: 6px 8px;
     font-size: 12px;
   }
 }

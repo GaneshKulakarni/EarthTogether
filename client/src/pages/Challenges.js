@@ -144,24 +144,24 @@ const Challenges = () => {
       </div>
 
       {/* ── Stats Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         {[
           { emoji: '🎯', label: 'Active Challenges', value: activeChallenges.length, color: '#34d399' },
           { emoji: '👥', label: 'Joined',             value: joinedChallenges.length, color: '#38bdf8' },
           { emoji: '⭐', label: 'Points Available',   value: joinedChallenges.reduce((s, c) => s + (c.ecoPoints || 0), 0), color: '#f59e0b' },
         ].map((s) => (
-          <div key={s.label} className="dark-stat-card">
-            <div className="dark-stat-icon" style={{ background: `${s.color}18` }}>
-              <span style={{ fontSize: 20 }}>{s.emoji}</span>
+          <div key={s.label} className="dark-stat-card" style={{ padding: '16px' }}>
+            <div className="dark-stat-icon" style={{ background: `${s.color}18`, width: 40, height: 40 }}>
+              <span style={{ fontSize: 18 }}>{s.emoji}</span>
             </div>
-            <div className="dark-stat-value" style={{ color: s.color }}>{s.value}</div>
-            <div className="dark-stat-label">{s.label}</div>
+            <div className="dark-stat-value" style={{ color: s.color, fontSize: 'clamp(20px, 4vw, 24px)' }}>{s.value}</div>
+            <div className="dark-stat-label" style={{ fontSize: 11 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* ── Tabs + Create ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div className="dark-tabs">
           <button className={`dark-tab${activeTab === 'active' ? ' active' : ''}`} onClick={() => setActiveTab('active')}>
             All ({activeChallenges.length})
@@ -176,15 +176,15 @@ const Challenges = () => {
       </div>
 
       {/* ── Challenge Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {displayed.map((ch) => {
           const diffStyle = getDifficultyStyle(ch.difficulty);
           return (
             <div key={ch._id} className="dark-card" style={{ overflow: 'hidden' }}>
               {/* Card top */}
-              <div style={{ padding: '20px 20px 16px' }}>
+              <div style={{ padding: '18px 16px 14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, color: '#8b949e', fontSize: 12 }}>
                       {getCategoryIcon(ch.category)}
                       <span>{ch.category}</span>
@@ -192,8 +192,8 @@ const Challenges = () => {
                     <h3 style={{ fontSize: 15, fontWeight: 700, color: '#e6edf3', margin: '0 0 6px' }}>{ch.title}</h3>
                     <p style={{ fontSize: 12, color: '#8b949e', lineHeight: 1.5, margin: 0 }}>{ch.description}</p>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 12 }}>
-                    <span style={{ padding: '2px 10px', borderRadius: 50, fontSize: 11, fontWeight: 700, ...diffStyle }}>{ch.difficulty}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, marginLeft: 10, flexShrink: 0 }}>
+                    <span style={{ padding: '2px 8px', borderRadius: 50, fontSize: 10, fontWeight: 700, ...diffStyle }}>{ch.difficulty}</span>
                     {ch.isJoined && (
                       <span style={{ fontSize: 11, color: '#34d399', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <CheckCircle size={12} /> Joined
@@ -215,15 +215,15 @@ const Challenges = () => {
                 )}
 
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, textAlign: 'center', marginTop: 12 }}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center mt-3">
                   {[
                     { val: ch.duration,              sub: 'Days' },
                     { val: ch.participants?.length,   sub: 'Members' },
                     { val: ch.ecoPoints,              sub: 'Pts', color: '#34d399' },
                     { val: `${ch.carbonSaved}kg`,     sub: 'CO₂',  color: '#38bdf8' },
                   ].map((item, i) => (
-                    <div key={i} style={{ padding: '6px 0', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: item.color || '#e6edf3' }}>{item.val}</div>
+                    <div key={i} style={{ padding: '6px 4px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: item.color || '#e6edf3' }}>{item.val}</div>
                       <div style={{ fontSize: 10, color: '#8b949e' }}>{item.sub}</div>
                     </div>
                   ))}
@@ -382,8 +382,8 @@ const Challenges = () => {
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={createChallenge} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <form onSubmit={createChallenge} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="dark-label">Title</label>
                   <input className="dark-input" value={newChallenge.title} onChange={e => setNewChallenge({ ...newChallenge, title: e.target.value })} required />
@@ -399,7 +399,7 @@ const Challenges = () => {
                 <label className="dark-label">Description</label>
                 <textarea className="dark-input" rows={3} value={newChallenge.description} onChange={e => setNewChallenge({ ...newChallenge, description: e.target.value })} required style={{ resize: 'vertical' }} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="dark-label">Difficulty</label>
                   <select className="dark-input" value={newChallenge.difficulty} onChange={e => setNewChallenge({ ...newChallenge, difficulty: e.target.value })}>

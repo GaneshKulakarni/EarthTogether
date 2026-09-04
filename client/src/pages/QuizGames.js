@@ -148,39 +148,39 @@ const QuizGames = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🎮 Eco-Learning Hub</h1>
-        <p className="text-gray-600">
+    <div className="max-w-4xl mx-auto p-3 sm:p-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">🎮 Eco-Learning Hub</h1>
+        <p className="text-gray-600 text-sm sm:text-base px-2">
           Test your knowledge and learn with interactive quizzes and flashcards!
         </p>
-        <div className="mt-3 text-sm text-gray-500">
+        <div className="mt-3 text-xs sm:text-sm text-gray-500">
           Quizzes: {quizSource === 'gemini' ? 'AI generated via Gemini' : 'Fallback set'} ·
           Flashcards: {cardSource === 'gemini' ? 'AI generated via Gemini' : 'Fallback set'}
         </div>
       </div>
 
       {mode === 'menu' && (
-        <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-lg transition-shadow">
-            <GamepadIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Eco-Quiz</h2>
-            <p className="text-gray-600 mb-6">Test your environmental knowledge with interactive quizzes</p>
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-8 max-w-2xl mx-auto">
+          <div className="bg-white rounded-xl shadow-md p-5 sm:p-8 text-center hover:shadow-lg transition-shadow">
+            <GamepadIcon className="w-12 h-12 sm:w-16 sm:h-16 text-blue-500 mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">Eco-Quiz</h2>
+            <p className="text-gray-600 text-sm sm:text-base mb-5 sm:mb-6">Test your environmental knowledge with interactive quizzes</p>
             <button
               onClick={startQuiz}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Start Quiz
             </button>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-lg transition-shadow">
-            <Brain className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Flashcards</h2>
-            <p className="text-gray-600 mb-6">Learn eco-facts with interactive flashcards</p>
+          <div className="bg-white rounded-xl shadow-md p-5 sm:p-8 text-center hover:shadow-lg transition-shadow">
+            <Brain className="w-12 h-12 sm:w-16 sm:h-16 text-green-500 mx-auto mb-3 sm:mb-4" />
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">Flashcards</h2>
+            <p className="text-gray-600 text-sm sm:text-base mb-5 sm:mb-6">Learn eco-facts with interactive flashcards</p>
             <button
               onClick={startFlashcards}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Study Cards
             </button>
@@ -190,12 +190,12 @@ const QuizGames = () => {
 
       {mode === 'quiz' && (
         <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">Question {currentIndex + 1} of {quizzes.length}</span>
+              <span className="text-xs sm:text-sm text-gray-600">Question {currentIndex + 1} of {quizzes.length}</span>
               <button
                 onClick={() => setMode('menu')}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-1"
               >
                 ✕
               </button>
@@ -208,16 +208,16 @@ const QuizGames = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">{quizzes[currentIndex]?.question}</h3>
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-8">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">{quizzes[currentIndex]?.question}</h3>
             
-            <div className="space-y-3 mb-6">
+            <div className="space-y-2.5 sm:space-y-3 mb-5 sm:mb-6">
               {quizzes[currentIndex]?.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleAnswerChange(option)}
                   disabled={showResult}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
+                  className={`w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-colors text-sm sm:text-base ${
                     selectedAnswer === option
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
@@ -232,31 +232,31 @@ const QuizGames = () => {
               <button
                 onClick={handleSubmitAnswer}
                 disabled={!selectedAnswer}
-                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
               >
                 Submit Answer
               </button>
             )}
 
             {showResult && (
-              <div className="mt-6">
+              <div className="mt-5 sm:mt-6">
                 {selectedAnswer === quizzes[currentIndex]?.correctAnswer ? (
                   <div className="flex items-center text-green-600 mb-4">
-                    <CheckCircle className="w-6 h-6 mr-2" />
-                    <span className="font-semibold">Correct! +10 Eco-Points</span>
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 flex-shrink-0" />
+                    <span className="font-semibold text-sm sm:text-base">Correct! +10 Eco-Points</span>
                   </div>
                 ) : (
                   <div className="text-red-600 mb-4">
                     <div className="flex items-center mb-2">
-                      <XCircle className="w-6 h-6 mr-2" />
-                      <span className="font-semibold">Incorrect</span>
+                      <XCircle className="w-5 h-5 sm:w-6 sm:h-6 mr-2 flex-shrink-0" />
+                      <span className="font-semibold text-sm sm:text-base">Incorrect</span>
                     </div>
-                    <p>Correct answer: {quizzes[currentIndex]?.correctAnswer}</p>
+                    <p className="text-xs sm:text-sm">Correct answer: {quizzes[currentIndex]?.correctAnswer}</p>
                   </div>
                 )}
                 <button
                   onClick={handleNext}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
                 >
                   {currentIndex < quizzes.length - 1 ? 'Next Question' : 'Finish Quiz'}
                 </button>
@@ -268,37 +268,37 @@ const QuizGames = () => {
 
       {mode === 'flashcards' && (
         <div className="max-w-2xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-sm text-gray-600">Card {currentIndex + 1} of {flashcards.length}</span>
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <span className="text-xs sm:text-sm text-gray-600">Card {currentIndex + 1} of {flashcards.length}</span>
             <button
               onClick={() => setMode('menu')}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-1"
             >
               ✕
             </button>
           </div>
           
-          <div className="bg-white rounded-lg shadow-md p-8 min-h-64 flex flex-col justify-center">
+          <div className="bg-white rounded-xl shadow-md p-5 sm:p-8 min-h-60 sm:min-h-64 flex flex-col justify-center">
             <div className="text-center">
               {!showAnswer ? (
                 <>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">{flashcards[currentIndex]?.question}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-5 sm:mb-6">{flashcards[currentIndex]?.question}</h3>
                   <button
                     onClick={() => setShowAnswer(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
                   >
                     Show Answer
                   </button>
                 </>
               ) : (
                 <>
-                  <h3 className="text-lg font-medium text-gray-700 mb-4">{flashcards[currentIndex]?.question}</h3>
-                  <div className="bg-green-50 p-6 rounded-lg mb-6">
-                    <p className="text-gray-900">{flashcards[currentIndex]?.answer}</p>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 sm:mb-4">{flashcards[currentIndex]?.question}</h3>
+                  <div className="bg-green-50 p-4 sm:p-6 rounded-lg mb-5 sm:mb-6">
+                    <p className="text-gray-900 text-sm sm:text-base">{flashcards[currentIndex]?.answer}</p>
                   </div>
                   <button
                     onClick={() => setShowAnswer(false)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors mr-3"
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium transition-colors text-sm sm:text-base"
                   >
                     <RotateCcw className="w-4 h-4 inline mr-2" />
                     Flip Back
@@ -308,17 +308,17 @@ const QuizGames = () => {
             </div>
           </div>
           
-          <div className="flex justify-between mt-6">
+          <div className="flex justify-between mt-4 sm:mt-6 gap-3">
             <button
               onClick={handlePrevious}
               disabled={currentIndex === 0}
-              className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="flex-1 sm:flex-initial bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Previous
             </button>
             <button
               onClick={handleNext}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="flex-1 sm:flex-initial bg-green-500 hover:bg-green-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Next Card
             </button>
