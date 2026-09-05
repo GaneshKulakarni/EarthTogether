@@ -1,8 +1,8 @@
 import React, { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, Users, Search, Settings, ChevronRight, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, Wind, Sun, Award, TrendingUp, BookOpen, ExternalLink, Menu, X } from 'lucide-react';
+import { Leaf, Users, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, Wind, Sun, Award, TrendingUp, BookOpen, ExternalLink, User, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import './Landing.css';
@@ -199,11 +199,23 @@ function WaveDivider({ fill = '#ffffff', flip = false, className = '' }) {
 
 /* ─────────────── Main Landing Component ─────────────── */
 const Landing = () => {
-  useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const { scrollYProgress } = useScroll();
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 1.1]);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 40 },
@@ -269,63 +281,81 @@ const Landing = () => {
 
   return (
     <div className="landing-root">
-      {/* ─── HEADER / NAVBAR ─── */}
-      <nav className="landing-nav">
-        <div className="landing-nav-inner">
-          <Link to="/" className="landing-logo">
-            <div className="landing-logo-icon">
-              <Leaf className="landing-logo-leaf" />
-            </div>
-            <span className="landing-logo-text">
-              <span className="earth">Earth</span>
-              <span className="together">Together</span>
-            </span>
-          </Link>
-
-          <div className="landing-nav-links">
-            <button className="landing-nav-icon-btn" aria-label="Search">
-              <Search size={18} />
-            </button>
-            <button className="landing-nav-icon-btn" aria-label="Settings">
-              <Settings size={18} />
-            </button>
-            <Link to="/login" className="landing-nav-link">Elem Members</Link>
-            <Link to="/register" className="landing-nav-cta">
-              Contribute <ChevronRight size={16} />
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="landing-mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              className="landing-mobile-menu"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Link to="/login" className="landing-mobile-link" onClick={() => setMobileMenuOpen(false)}>Elem Members</Link>
-              <Link to="/register" className="landing-mobile-link landing-mobile-cta" onClick={() => setMobileMenuOpen(false)}>
-                Contribute <ChevronRight size={16} />
-              </Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
-
       {/* ─── HERO SECTION ─── */}
       <section className="landing-hero">
+        {/* Top Centered Brand Title & Right Auth Navigation */}
+        <header className="landing-hero-brand-top">
+          <Link to="/" className="landing-brand-center" aria-label="EarthTogether Home">
+            <span className="earth">Earth</span>
+            <span className="together">Together</span>
+          </Link>
+
+          <div className="landing-hero-auth">
+            {isAuthenticated ? (
+              <div className="landing-profile-container" ref={profileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                  className="landing-profile-btn"
+                  aria-label="User Profile Menu"
+                  aria-expanded={profileMenuOpen}
+                >
+                  <div className="landing-profile-avatar">
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.username || 'User'} className="landing-avatar-img" />
+                    ) : (
+                      <span className="landing-avatar-initial">
+                        {user?.username?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase() || <User size={18} />}
+                      </span>
+                    )}
+                  </div>
+                  <span className="landing-profile-name">
+                    {user?.username || user?.name?.split(' ')[0] || 'Profile'}
+                  </span>
+                </button>
+
+                {profileMenuOpen && (
+                  <div className="landing-profile-dropdown">
+                    <div className="landing-dropdown-header">
+                      <p className="landing-dropdown-user">{user?.username || user?.name || 'Eco-Warrior'}</p>
+                      <p className="landing-dropdown-email">{user?.email || 'Active Member'}</p>
+                    </div>
+                    <div className="landing-dropdown-divider" />
+                    <Link
+                      to="/profile"
+                      className="landing-dropdown-item"
+                      onClick={() => setProfileMenuOpen(false)}
+                    >
+                      <User size={16} />
+                      <span>My Profile</span>
+                    </Link>
+                    <button
+                      type="button"
+                      className="landing-dropdown-item landing-dropdown-logout"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        logout();
+                      }}
+                    >
+                      <LogOut size={16} />
+                      <span>Log out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="landing-guest-auth">
+                <Link to="/login" className="landing-auth-btn landing-btn-login">
+                  Log In
+                </Link>
+                <Link to="/register" className="landing-auth-btn landing-btn-signup">
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+        </header>
+
         <motion.div className="landing-hero-bg" style={{ opacity: heroOpacity, scale: heroScale }}>
           <img
             src="/images/forest-hero.jpg"
