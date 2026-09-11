@@ -759,91 +759,127 @@ const Landing = () => {
 
           <div className="et-features-grid">
             {/* Card 1: Build Better Habits */}
-            <SpotlightCard className="et-feature-card">
-              <div className="et-feature-icon-badge" style={{ background: '#dcfce7', color: '#16a34a' }}>
-                <Leaf size={24} />
+            <SpotlightCard className="et-feature-card et-card-habits">
+              <div className="et-feature-top">
+                <div className="et-feature-icon-badge" style={{ background: '#dcfce7', color: '#16a34a' }}>
+                  <Leaf size={22} />
+                </div>
+                <span className="et-feature-tag et-tag-green">Habit Tracking</span>
               </div>
               <h3 className="et-feature-title">Build Better Habits</h3>
               <p className="et-feature-desc">
                 Track everyday eco-actions and build streaks that stick.
               </p>
-              <Link to="/habits" className="et-feature-link">
-                <span>Track My Habits</span>
-                <ArrowRight size={16} />
-              </Link>
-              <div className="et-feature-visual-wrap">
+              <div className="et-feature-media">
                 <img
-                  src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=320&q=80"
+                  src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80"
                   alt="Sprouting plant in soil"
-                  className="et-feature-visual-img"
+                  className="et-feature-media-img"
+                  loading="lazy"
                 />
+                <div className="et-feature-media-overlay" />
+                <div className="et-feature-badge-pill">
+                  <span className="et-badge-dot" style={{ background: '#22c55e' }} />
+                  <span>21-Day Habit Streak</span>
+                </div>
               </div>
+              <Link to="/habits" className="et-feature-btn et-btn-habits">
+                <span>Track My Habits</span>
+                <ArrowRight size={16} className="et-btn-arrow" />
+              </Link>
             </SpotlightCard>
 
             {/* Card 2: Take on Challenges */}
-            <SpotlightCard className="et-feature-card">
-              <div className="et-feature-icon-badge" style={{ background: '#ffedd5', color: '#ea580c' }}>
-                <Award size={24} />
+            <SpotlightCard className="et-feature-card et-card-challenges">
+              <div className="et-feature-top">
+                <div className="et-feature-icon-badge" style={{ background: '#ffedd5', color: '#ea580c' }}>
+                  <Award size={22} />
+                </div>
+                <span className="et-feature-tag et-tag-orange">Weekly Quests</span>
               </div>
               <h3 className="et-feature-title">Take on Challenges</h3>
               <p className="et-feature-desc">
                 Join weekly community challenges, complete actions and earn badges and certificates.
               </p>
-              <Link to="/challenges" className="et-feature-link">
-                <span>Explore Challenges</span>
-                <ArrowRight size={16} />
-              </Link>
-              <div className="et-feature-visual-wrap">
+              <div className="et-feature-media">
                 <img
-                  src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=320&q=80"
+                  src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80"
                   alt="Mountain summit flag"
-                  className="et-feature-visual-img"
+                  className="et-feature-media-img"
+                  loading="lazy"
                 />
+                <div className="et-feature-media-overlay" />
+                <div className="et-feature-badge-pill">
+                  <span className="et-badge-dot" style={{ background: '#f97316' }} />
+                  <span>Weekly Sprint #14</span>
+                </div>
               </div>
+              <Link to="/challenges" className="et-feature-btn et-btn-challenges">
+                <span>Explore Challenges</span>
+                <ArrowRight size={16} className="et-btn-arrow" />
+              </Link>
             </SpotlightCard>
 
             {/* Card 3: Connect with People */}
-            <SpotlightCard className="et-feature-card">
-              <div className="et-feature-icon-badge" style={{ background: '#e0f2fe', color: '#0284c7' }}>
-                <Users size={24} />
+            <SpotlightCard className="et-feature-card et-card-community">
+              <div className="et-feature-top">
+                <div className="et-feature-icon-badge" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                  <Users size={22} />
+                </div>
+                <span className="et-feature-tag et-tag-blue">Global Feed</span>
               </div>
               <h3 className="et-feature-title">Connect with People</h3>
               <p className="et-feature-desc">
                 Share your journey, get inspired and be part of a global community.
               </p>
-              <Link to="/feed" className="et-feature-link">
-                <span>Join the Community</span>
-                <ArrowRight size={16} />
-              </Link>
-              <div className="et-feature-visual-wrap">
+              <div className="et-feature-media">
                 <img
-                  src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=320&q=80"
+                  src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80"
                   alt="Community members together"
-                  className="et-feature-visual-img"
+                  className="et-feature-media-img"
+                  loading="lazy"
                 />
+                <div className="et-feature-media-overlay" />
+                <div className="et-feature-badge-pill">
+                  <span className="et-badge-dot" style={{ background: '#0284c7' }} />
+                  <span>12.4k Eco-Changers</span>
+                </div>
               </div>
+              <Link to="/feed" className="et-feature-btn et-btn-community">
+                <span>Join the Community</span>
+                <ArrowRight size={16} className="et-btn-arrow" />
+              </Link>
             </SpotlightCard>
 
             {/* Card 4: Learn & Grow */}
-            <SpotlightCard className="et-feature-card">
-              <div className="et-feature-icon-badge" style={{ background: '#f3e8ff', color: '#9333ea' }}>
-                <BookOpen size={24} />
+            <SpotlightCard className="et-feature-card et-card-learn">
+              <div className="et-feature-top">
+                <div className="et-feature-icon-badge" style={{ background: '#f3e8ff', color: '#9333ea' }}>
+                  <BookOpen size={22} />
+                </div>
+                <span className="et-feature-tag et-tag-purple">Knowledge Hub</span>
               </div>
               <h3 className="et-feature-title">Learn & Grow</h3>
               <p className="et-feature-desc">
                 Read latest news, research, take quizzes and learn simple ways to make a difference.
               </p>
-              <Link to="/researches" className="et-feature-link">
-                <span>Explore Resources</span>
-                <ArrowRight size={16} />
-              </Link>
-              <div className="et-feature-visual-wrap">
+              <div className="et-feature-media">
                 <img
-                  src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80"
+                  src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"
                   alt="Books stacked with plant"
-                  className="et-feature-visual-img"
+                  className="et-feature-media-img"
+                  loading="lazy"
                 />
+                <div className="et-feature-media-overlay" />
+                <div className="et-feature-badge-pill">
+                  <span className="et-badge-dot" style={{ background: '#a855f7' }} />
+                  <span>50+ Guides & Quizzes</span>
+                </div>
               </div>
+              <Link to="/researches" className="et-feature-btn et-btn-learn">
+                <span>Explore Resources</span>
+                <ArrowRight size={16} className="et-btn-arrow" />
+              </Link>
             </SpotlightCard>
           </div>
         </div>
