@@ -1236,68 +1236,86 @@
   }
 
   .home-feed { 
-    padding: 14px 12px;
-    max-width: 100%;
+    padding: 18px 20px 32px;
+    max-width: 620px;
     margin: 0 auto;
     width: 100%;
+    box-sizing: border-box;
     overflow-y: visible;
-    gap: 14px;
+    gap: 16px;
   }
   
   .create-post-card {
-    padding: 14px;
+    padding: 16px 18px;
+    border-radius: 16px;
   }
   
-  .post-header,
-  .post-content,
-  .post-stats {
-    padding-left: 14px;
-    padding-right: 14px;
+  .post-card {
+    border-radius: 16px;
   }
   
+  .post-header {
+    padding: 16px 18px 12px;
+  }
+
+  .post-content {
+    padding: 0 18px 16px;
+  }
+
   .post-stats {
+    padding: 0 18px 16px;
     grid-template-columns: 1fr;
+    gap: 8px;
   }
   
   .post-footer {
-    padding: 10px 14px;
+    padding: 12px 18px;
   }
   
   .fab {
     width: 48px;
     height: 48px;
-    bottom: 16px;
-    right: 16px;
+    bottom: 20px;
+    right: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .home-feed {
-    padding: 12px 8px;
-    gap: 12px;
+    padding: 14px 18px 28px;
+    max-width: 100%;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 14px;
   }
   .create-post-card {
-    padding: 12px 10px;
-    border-radius: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
   }
   .post-card {
-    border-radius: 12px;
+    border-radius: 14px;
   }
-  .post-header,
-  .post-content,
+  .post-header {
+    padding: 14px 16px 10px;
+  }
+  .post-content {
+    padding: 0 16px 14px;
+  }
   .post-stats {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0 16px 14px;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
   .post-footer {
-    padding: 8px 10px;
+    padding: 10px 16px;
   }
   .post-reactions {
-    gap: 4px;
+    gap: 6px;
   }
   .reaction-btn {
-    padding: 6px 8px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 13px;
   }
 }
 
