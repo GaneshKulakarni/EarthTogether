@@ -167,27 +167,27 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{user.ecoPoints || 0}</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{user.ecoPoints || 0}</p>
               <p className="text-xs text-gray-600 mt-1">Eco Points</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">#{leaderboardRank || '-'}</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">#{leaderboardRank || '-'}</p>
               <p className="text-xs text-gray-600 mt-1">Rank</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">{user.badges?.length || 0}</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-600">{user.badges?.length || 0}</p>
               <p className="text-xs text-gray-600 mt-1">Badges</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-pink-600">{user.followers?.length || 0}</p>
+              <p className="text-xl sm:text-2xl font-bold text-pink-600">{user.followers?.length || 0}</p>
               <p className="text-xs text-gray-600 mt-1">Followers</p>
             </div>
           </div>
 
           {/* Impact Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 text-center">
               <Droplet className="w-5 h-5 text-cyan-600 mx-auto mb-1" />
               <p className="text-lg font-bold text-cyan-700">{user.totalWasteReduced || 0}kg</p>
