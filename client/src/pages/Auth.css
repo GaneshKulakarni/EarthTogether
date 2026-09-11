@@ -671,9 +671,50 @@
 
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
+  .auth-page {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .auth-main {
+    flex: 1 0 auto;
+    min-height: calc(100vh - 56px);
+    overflow: visible;
+  }
   .auth-left-panel { display: none; }
   .auth-right-panel {
     flex: 1;
-    padding: 20px 20px;
+    padding: 24px 16px 40px;
+    overflow: visible;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .auth-form-header,
+  .auth-form-card,
+  .auth-page-footer {
+    max-width: 420px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-navbar {
+    padding: 0 16px;
+    height: 52px;
+  }
+  .auth-navbar-logo-name {
+    font-size: 0.95rem;
+  }
+  .auth-form-card {
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+  .auth-form-title {
+    font-size: 1.35rem;
+  }
+  .auth-social-row {
+    flex-direction: column;
   }
 }

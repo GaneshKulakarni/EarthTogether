@@ -4,7 +4,7 @@ import {
   Leaf, Users, Recycle, TreePine, Heart, ArrowRight, Globe, Sprout, 
   Award, TrendingUp, BookOpen, User, LogOut, Search, Play, Flame, Check, 
   MessageCircle, Share2, Compass, HelpCircle, Trash2, Sparkles, MapPin, Cloud, 
-  X
+  X, Menu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -175,6 +175,7 @@ const Landing = () => {
   // Navigation state
   const [scrolled, setScrolled] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
 
   // Video modal state
@@ -411,12 +412,136 @@ const Landing = () => {
                 Log In
               </Link>
               <Link to="/register" className="et-btn-pill-white">
-                <span>Join EarthTogether</span>
+                <span className="et-btn-pill-text">Join EarthTogether</span>
                 <ArrowRight size={16} />
               </Link>
             </>
           )}
+
+          {/* Mobile Menu Toggle */}
+          <button
+            type="button"
+            className="et-mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {/* Mobile & Tablet Navigation Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="et-mobile-drawer"
+            >
+              <nav className="et-mobile-nav">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="et-mobile-nav-link"
+                >
+                  Home
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    scrollToSection('features');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="et-mobile-nav-link"
+                >
+                  Features
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    scrollToSection('community');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="et-mobile-nav-link"
+                >
+                  Community
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    scrollToSection('impact');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="et-mobile-nav-link"
+                >
+                  Impact
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    scrollToSection('resources');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="et-mobile-nav-link"
+                >
+                  Resources
+                </button>
+              </nav>
+
+              <div className="et-mobile-auth">
+                {isAuthenticated ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="et-btn-pill-white"
+                      style={{ textAlign: 'center', justifyContent: 'center' }}
+                    >
+                      <span>Go to Dashboard</span>
+                      <ArrowRight size={16} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        logout();
+                      }}
+                      className="et-btn-ghost"
+                      style={{ textAlign: 'center', justifyContent: 'center', color: '#f87171' }}
+                    >
+                      <LogOut size={16} style={{ marginRight: 6 }} />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="et-btn-ghost"
+                      style={{ flex: 1, textAlign: 'center', justifyContent: 'center' }}
+                    >
+                      Log In
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="et-btn-pill-white"
+                      style={{ flex: 1, textAlign: 'center', justifyContent: 'center' }}
+                    >
+                      <span>Join</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ─── 2. HERO SECTION ─── */}

@@ -361,7 +361,7 @@ const WasteManagement = () => {
                 userLocation={userLocation}
                 selectedCenter={selectedCenter}
                 onSelectCenter={(center) => setSelectedCenter(center)}
-                height="460px"
+                height="clamp(320px, 48vh, 460px)"
               />
             </div>
 

@@ -1216,6 +1216,9 @@
   
   .home-feed {
     padding: 20px 24px;
+    max-width: 740px;
+    margin: 0 auto;
+    width: 100%;
   }
 }
 
@@ -1234,6 +1237,9 @@
 
   .home-feed { 
     padding: 14px 12px;
+    max-width: 100%;
+    margin: 0 auto;
+    width: 100%;
     overflow-y: visible;
     gap: 14px;
   }
@@ -1266,10 +1272,29 @@
 }
 
 @media (max-width: 480px) {
+  .home-feed {
+    padding: 12px 8px;
+    gap: 12px;
+  }
+  .create-post-card {
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+  .post-card {
+    border-radius: 12px;
+  }
+  .post-header,
+  .post-content,
+  .post-stats {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .post-footer {
+    padding: 8px 10px;
+  }
   .post-reactions {
     gap: 4px;
   }
-  
   .reaction-btn {
     padding: 6px 8px;
     font-size: 12px;
